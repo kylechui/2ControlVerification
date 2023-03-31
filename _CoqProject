@@ -1,0 +1,8 @@
+# VQC files from Robert Rand's Library
+-R vqc VQC
+vqc/Complex.v
+vqc/Matrix.v
+vqc/Multiqubit.v
+vqc/Qubit.v
+vqc/Real.v
+vqc/SQIR.v
