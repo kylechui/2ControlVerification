@@ -4,7 +4,7 @@ From Proof Require Import Matrix.
 From Proof Require Import Assumptions.
 From Proof Require Import Definitions.
 
-Lemma a1 : forall {n} (D : Square n), Invertible (D) -> Determinant (D) <> 0 /\ Determinant (D) <> 0 -> Invertible(D). Proof. Admitted.
+Lemma a1 : forall {n} (D : Square n), (Invertible (D) -> Determinant (D) <> 0) /\ (Determinant (D) <> 0 -> Invertible(D)). Proof. Admitted.
 
 Lemma a2 : forall {n} (D E : Square n), Determinant (D × E) = (Determinant(D) * Determinant(E))%C. Proof. Admitted.
 
@@ -20,8 +20,7 @@ Proof.
           with (Csum (fun x : nat => Csum (fun y : nat => E x y * D y x) n ) n + Csum (fun x : nat => E x n * D n x) n)%C.
         replace (Csum (fun x : nat => Csum (fun y : nat => D x y * E y x) n + D x n * E n x) n)%C 
           with (Csum (fun x : nat => Csum (fun y : nat => D x y * E y x) n ) n + Csum (fun x : nat => D x n * E n x) n)%C.
-        replace (Csum (fun x : nat => Csum (fun y : nat => E x y * D y x) n) n)%C 
-          with (Csum (fun x : nat => Csum (fun y : nat => D x y * E y x) n) n)%C.
+        rewrite IHn.
         replace (Csum (fun y : nat => E n y * D y n) n)%C
           with (Csum (fun x : nat => D x n * E n x) n)%C.
         replace (Csum (fun x : nat => E x n * D n x) n)%C
@@ -33,11 +32,20 @@ Proof.
           - apply Csum_eq.
             intros.
             apply Cmult_comm.
-          - apply IHn.
           - rewrite <- Csum_plus.
             reflexivity.
           - rewrite <- Csum_plus.
             reflexivity.
 Qed.
+
+Lemma a4 : forall {n} (D E : Square n), Invertible(E) -> Eigenvalues (E × D × Inverse(E)) = Eigenvalues (D). Proof. Admitted.
+
+Lemma a5 : forall {n} (D E : Square n), (D × E) == I n -> (E × D) == I n.
+Proof.
+  intros.
+  assert (invertible_D: Invertible(D)).
+  {
+   apply a1. 
+  }
 
     
