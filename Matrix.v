@@ -7,7 +7,7 @@ Require Import Bool.
 Require Import Program.
 Require Import List.
 Import ListNotations.
-From VQC Require Export Complex.
+From Proof Require Export Complex.
 
 (** * Matrix Definitions and Equivalence **)
 

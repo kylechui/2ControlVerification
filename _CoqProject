@@ -1,13 +1,14 @@
--docroot PROOF
+-Q . Proof
 # VQC files from Robert Rand's Library
--R proof/vqc VQC
-proof/vqc/Complex.v
-proof/vqc/Matrix.v
-proof/vqc/Multiqubit.v
-proof/vqc/Qubit.v
-proof/vqc/Real.v
-proof/vqc/SQIR.v
+Complex.v
+Matrix.v
+Multiqubit.v
+Qubit.v
+Real.v
+SQIR.v
 # Definitions taken from YT Jeong
--R proof/definitions DEFINITIONS
-proof/definitions/Definitions.v
-proof/definitions/Permutation.v
+Definitions.v
+Assumptions.v
+Permutation.v
+# Appendix of proof
+SquareMatrices.v

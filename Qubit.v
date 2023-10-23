@@ -1,6 +1,6 @@
 (** * Qubit: The Building Blocks of Quantum Computing *)
 
-From VQC Require Export Matrix.
+From Proof Require Export Matrix.
 Require Import FunctionalExtensionality.
 Require Import Bool.
 Require Import List.

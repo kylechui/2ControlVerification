@@ -4,9 +4,9 @@ Require Import Bool.
 Require Import Setoid.
 Require Import Reals.
 Require Import Psatz.
-From VQC Require Import Matrix.
-From VQC Require Import Qubit.
-From VQC Require Import Multiqubit.
+From Proof Require Import Matrix.
+From Proof Require Import Qubit.
+From Proof Require Import Multiqubit.
 
 (** * A Small Quantum Intermediate Representation **)
 
