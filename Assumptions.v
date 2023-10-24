@@ -102,6 +102,8 @@ Definition Determinant {n} (A: Square n) : C. Admitted.
 
 Property determinant_of_I {n}: Determinant (I n) = 1. Admitted.
 
+Lemma determinant_eq {n}: forall (A B: Square n), A == B -> Determinant(A) = Determinant(B). Admitted.
+
 
 (* Miscellaneous assumptions *)
 

@@ -40,12 +40,50 @@ Qed.
 
 Lemma a4 : forall {n} (D E : Square n), Invertible(E) -> Eigenvalues (E × D × Inverse(E)) = Eigenvalues (D). Proof. Admitted.
 
+(* TODO: finish subproof. *)
+Lemma Cmult_nonzero : forall (a b : C), (a*b <> 0 -> a<>0 /\ b<>0)%C. Admitted.
+
 Lemma a5 : forall {n} (D E : Square n), (D × E) == I n -> (E × D) == I n.
 Proof.
   intros.
-  assert (invertible_D: Invertible(D)).
+  assert (det_de : Determinant(D × E) = 1).
   {
-   apply a1. 
+    replace (Determinant(D × E)) with (Determinant(I n)).
+    apply determinant_of_I.
+    apply determinant_eq.
+    apply mat_equiv_sym.
+    apply H.
   }
+  assert (nonzero_det : Determinant(D)<>0 /\ Determinant(E)<>0).
+  {
+   rewrite a2 in det_de.
+   apply Cmult_nonzero.
+   rewrite det_de.
+   apply C1_neq_C0.
+  }
+  assert (invertible_e : Invertible(E)).
+  {
+    apply a1.
+    apply nonzero_det.
+  }
+  assert (right_inverse: I n == E × Inverse(E)).
+  {
+    rewrite mx_rinverse.
+    apply mat_equiv_refl.
+    apply invertible_e.
+  }
+  rewrite right_inverse.
+  pattern E at 2.
+  rewrite <- Mmult_1_r.
+  replace (E × Inverse E) with (E × I n × Inverse E).
+  rewrite <- H.
+  rewrite Mmult_assoc.
+  rewrite Mmult_assoc.
+  rewrite <- right_inverse.
+  rewrite Mmult_1_r.
+  apply mat_equiv_refl.
+  replace (E × I n) with (E).
+  trivial.
+  unfold Mmult.
 
     
