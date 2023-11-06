@@ -51,7 +51,8 @@ Proof.
             reflexivity.
 Qed.
 
-Lemma a4 : forall {n} (D E : Square n), Invertible(E) -> Eigenvalues (E × D × Inverse(E)) = Eigenvalues (D). Proof. Admitted.
+(* TODO: add a4_4 after discussion on representation of invertible. *)
+Lemma a4_2 : forall (D E : Square 2), Invertible_2(E) -> Eigenvalues (E × D × Inverse_2(E)) = Eigenvalues (D). Proof. Admitted.
 
 Property det2_of_I: Determinant2 (I 2) = 1. 
   Proof.
