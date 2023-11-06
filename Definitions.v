@@ -9,9 +9,6 @@ Import ListNotations.
 Definition Determinant2 (A : Square 2) :=
   Cmult (A 0 0)%nat (A 1 1)%nat - Cmult (A 0 1)%nat (A 1 0)%nat.
 
-Definition Invertible {n} (A: Square n) : Prop :=
-  exists (B: Square n), A × B == I (n).
-
 Definition TensorProduct (w : Vector 4) : Prop := exists (u v : Vector 2), w == u ⊗ v.
 
 Definition Entangled (q : Vector 4) : Prop := ~ (TensorProduct q).

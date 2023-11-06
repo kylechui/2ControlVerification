@@ -96,21 +96,7 @@ Lemma partial_trace_compat_r : forall {m} (n : nat) (U U' : Square m),
   U == U' -> partial_trace_r U n == partial_trace_r U' n.
 Admitted.
 
-(* Determinant assumptions *)
-
-Definition Determinant {n} (A: Square n) : C. Admitted.
-
-Property determinant_of_I {n}: Determinant (I n) = 1. Admitted.
-
-Lemma determinant_eq {n}: forall (A B: Square n), A == B -> Determinant(A) = Determinant(B). Admitted.
-
-
 (* Miscellaneous assumptions *)
-
-Definition Inverse {n} (A : Square n) : Square n. Admitted. 
-
-Lemma mx_linverse : forall {n} (A : Square n), Invertible (A) -> (Inverse (A)) × A == I n. Proof. Admitted.
-Lemma mx_rinverse : forall {n} (A : Square n), Invertible (A) -> A × (Inverse (A))   == I n. Proof. Admitted.
 
 Lemma corner_matrices_are_unitary_8 : forall (U : Unitary 8) (WF_U : WF_Unitary U),
   Get8_01 U == Zero 4 4 /\ Get8_10 U == Zero 4 4 -> 
