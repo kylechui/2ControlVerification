@@ -137,7 +137,6 @@ Proof.
   apply Cmult_nonzero.
   apply det_de.
   Qed.
-  (*TODO: need a second pair of eyes on this. To me this should immediately follow from Cmult_nonzero, but the tactic fails*)
 
 (* Supporting the only 2 needed sizes of lemma a6. To a human this is easily extended to size nxn. 
    Unclear how well that will translate to coq, since the trivial human proof is elementary pattern matching, on infinite sizes.
