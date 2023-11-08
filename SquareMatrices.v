@@ -72,7 +72,7 @@ Lemma det2_eq: forall (A B: Square 2), A == B -> Determinant2(A) = Determinant2(
   Qed.
 
 (* TODO: ask for help on proof by contradiction. This should work here since b = 0 /\ b <> 0 holds. *)
-Lemma Cmult_nonzero : forall (a b : C), (a*b <> 0 -> b<>0)%C.
+Lemma Cmult_nonzero : forall (a b : C), (a * b)%C <> 0 -> a <> 0 /\ b <> 0.
   Proof.
   Admitted.
 
@@ -97,7 +97,7 @@ Proof.
     apply H.
   }
 
-  cut ((Determinant2(E))<>0). intros nonzero_det.
+  cut (Determinant2(D) <> 0 /\ Determinant2(E) <> 0). intros nonzero_det.
   assert (invertible_e : Invertible_2(E)).
   {
     apply a1_2.
@@ -125,9 +125,10 @@ Proof.
   set (b := Determinant2 E).
   fold a in det_de.
   fold b in det_de.
-  Admitted.
+  apply Cmult_nonzero.
+  apply det_de.
+  Qed.
   (*TODO: need a second pair of eyes on this. To me this should immediately follow from Cmult_nonzero, but the tactic fails*)
-  (* rewrite Cmult_nonzero in det_de. *)
 
 (* Supporting the only 2 needed sizes of lemma a6. To a human this is easily extended to size nxn. 
    Unclear how well that will translate to coq, since the trivial human proof is elementary pattern matching, on infinite sizes.
@@ -422,6 +423,3 @@ rewrite R13; rewrite S13; rewrite H. lca. lia. lia.
 rewrite R14; rewrite S14; rewrite H. lca. lia. lia.
 rewrite R15; rewrite S15; rewrite H. lca. lia. lia.
 Qed.
-
-
-    
