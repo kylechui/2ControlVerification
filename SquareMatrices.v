@@ -71,10 +71,19 @@ Lemma det2_eq: forall (A B: Square 2), A == B -> Determinant2(A) = Determinant2(
   repeat rewrite H ; auto.
   Qed.
 
-(* TODO: ask for help on proof by contradiction. This should work here since b = 0 /\ b <> 0 holds. *)
 Lemma Cmult_nonzero : forall (a b : C), (a * b)%C <> 0 -> a <> 0 /\ b <> 0.
   Proof.
-  Admitted.
+  intros a b H.
+  split.
+  - intro Ha.
+    apply H.
+    rewrite Ha, Cmult_0_l.
+    reflexivity.
+  - intro Hb.
+    apply H.
+    rewrite Hb, Cmult_0_r.
+    reflexivity.
+  Qed.
 
 Lemma mx_linverse_2 : forall (A : Square 2), Invertible_2 (A) -> (Inverse_2 (A)) × A == I 2. 
  Proof.
