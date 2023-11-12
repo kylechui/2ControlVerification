@@ -1,6 +1,6 @@
 (** * Complex: Complex Numbers in Coq *)
 
-From VQC Require Export Real.
+From Proof Require Export Real.
 
 (* ################################################################# *)
 (** * Basic Definitions *)

@@ -1,8 +1,14 @@
+-Q . Proof
 # VQC files from Robert Rand's Library
--R vqc VQC
-vqc/Complex.v
-vqc/Matrix.v
-vqc/Multiqubit.v
-vqc/Qubit.v
-vqc/Real.v
-vqc/SQIR.v
+Complex.v
+Matrix.v
+Multiqubit.v
+Qubit.v
+Real.v
+SQIR.v
+# Definitions taken from YT Jeong
+Definitions.v
+Assumptions.v
+Permutation.v
+# Appendix of proof
+SquareMatrices.v

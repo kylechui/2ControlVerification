@@ -1,6 +1,6 @@
 (** * Multiqubit: Entanglement and Measurement *)
 
-From VQC Require Import Qubit.
+From Proof Require Import Qubit.
 Require Import Bool.
 Require Import List.
 Import ListNotations.
