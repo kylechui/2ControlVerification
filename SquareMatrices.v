@@ -8,20 +8,20 @@ From Proof Require Import Qubit.
 Require Import List.
 Import ListNotations.
 
-Definition Inverse_2 (A : Square 2) : Square 2 :=
-  (1 /Determinant2(A))%C * (l2M [[(A 1 1)%nat; (-1 * (A 0 1)%nat)%C]; [(A 0 0)%nat; (-1 * (A 1 0)%nat)%C]]).
+Definition Nonzero_det_2 (A : Square 2) : Prop := Determinant2 A <> 0.
 
-(*TODO: validate this definition. Not entirely sure how to encode the concept of inverse only exists
-if Invertible holds in coq.*)
 Definition Invertible_2 (A : Square 2) := exists (B : Square 2), B × A == I 2 /\ A × B == I 2.
 
-Lemma a1_2 : forall (D : Square 2), Determinant2 (D) <> 0 -> Invertible_2(D).
- Proof. Admitted.
+Definition Inverse_2 (A : Square 2) (pf : Invertible_2 A) : Square 2 :=
+  (1 /Determinant2(A))%C * (l2M [[(A 1 1)%nat; (-1 * (A 0 1)%nat)%C]; [(A 0 0)%nat; (-1 * (A 1 0)%nat)%C]]).
 
+Lemma a1_2 : forall (D : Square 2), Determinant2 (D) <> 0 -> Invertible_2(D).
+Proof.
+Admitted.
 
 Lemma a2_2 : forall (D E : Square 2), Determinant2 (D × E) = (Determinant2(D) * Determinant2(E))%C. Proof. Admitted.
 
-Lemma a3 : forall {n} (D E : Square n), trace (D × E) = trace (E × D). 
+Lemma a3 : forall {n} (D E : Square n), trace (D × E) = trace (E × D).
 Proof. 
     intros n D E.
     unfold trace.
@@ -52,7 +52,7 @@ Proof.
 Qed.
 
 (* TODO: add a4_4 after discussion on representation of invertible. *)
-Lemma a4_2 : forall (D E : Square 2), Invertible_2(E) -> Eigenvalues (E × D × Inverse_2(E)) = Eigenvalues (D). Proof. Admitted.
+Lemma a4_2 : forall (D E : Square 2) (pf : Invertible_2 E), Eigenvalues (E × D × Inverse_2 E pf) = Eigenvalues (D). Proof. Admitted.
 
 Property det2_of_I: Determinant2 (I 2) = 1. 
   Proof.
@@ -85,10 +85,10 @@ Lemma Cmult_nonzero : forall (a b : C), (a * b)%C <> 0 -> a <> 0 /\ b <> 0.
     reflexivity.
   Qed.
 
-Lemma mx_linverse_2 : forall (A : Square 2), Invertible_2 (A) -> (Inverse_2 (A)) × A == I 2. 
+Lemma mx_linverse_2 : forall (A : Square 2) (pf : Invertible_2 A), (Inverse_2 A pf) × A == I 2.
  Proof.
  Admitted.
-Lemma mx_rinverse_2 : forall (A : Square 2), Invertible_2 (A) -> A × (Inverse_2 (A))   == I 2.
+Lemma mx_rinverse_2 : forall (A : Square 2) (pf : Invertible_2 A), A × (Inverse_2 A pf) == I 2.
  Proof.
  Admitted.
 
@@ -105,21 +105,26 @@ Proof.
     apply mat_equiv_sym.
     apply H.
   }
-
-  cut (Determinant2(D) <> 0 /\ Determinant2(E) <> 0). intros nonzero_det.
-  assert (invertible_e : Invertible_2(E)).
+  apply Cmult_nonzero in det_de.
+  destruct det_de as [det_d det_e].
+  assert (invertible_d : Invertible_2 D).
   {
     apply a1_2.
-    apply nonzero_det.
+    apply det_d.
   }
-  assert (right_inverse: I 2 == E × Inverse_2(E)).
+  assert (invertible_e : Invertible_2 E).
+  {
+    apply a1_2.
+    apply det_e.
+  }
+
+  assert (right_inverse: I 2 == E × (Inverse_2 E invertible_e)).
   {
     rewrite mx_rinverse_2. 
     apply mat_equiv_refl.
-    apply invertible_e.
   }
   rewrite right_inverse.
-  cut (E × Inverse_2 E == E × I 2 × Inverse_2 E).
+  cut (E × Inverse_2 E invertible_e == E × I 2 × Inverse_2 E invertible_e).
   intros.
   rewrite H0.
   rewrite <- H.
@@ -130,13 +135,7 @@ Proof.
   apply mat_equiv_refl.
   rewrite Mmult_1_r.
   apply mat_equiv_refl.
-  set (a := Determinant2 D).
-  set (b := Determinant2 E).
-  fold a in det_de.
-  fold b in det_de.
-  apply Cmult_nonzero.
-  apply det_de.
-  Qed.
+Qed.
 
 (* Supporting the only 2 needed sizes of lemma a6. To a human this is easily extended to size nxn. 
    Unclear how well that will translate to coq, since the trivial human proof is elementary pattern matching, on infinite sizes.
