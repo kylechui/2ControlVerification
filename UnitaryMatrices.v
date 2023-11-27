@@ -459,3 +459,36 @@ by_cell.
     reflexivity.
 }
 Qed.
+
+Lemma a8 : forall (Q : Square 2),
+  WF_Unitary Q -> (Q × ∣0⟩) × (Q × ∣0⟩)† .+ (Q × ∣1⟩) × (Q × ∣1⟩)† = I 2.
+Proof.
+  intros.
+  repeat rewrite Mmult_adjoint.
+  repeat rewrite Mmult_assoc.
+  rewrite <- Mmult_plus_distr_l.
+  repeat rewrite <- Mmult_assoc.
+  rewrite <- Mmult_plus_distr_r.
+  assert (Step1 : ∣0⟩⟨0∣ .+ ∣1⟩⟨1∣ = I 2). 
+  { 
+    apply mat_equiv_eq.
+    apply WF_plus.
+    apply WF_braqubit0.
+    apply WF_braqubit1.
+    apply WF_I.
+    by_cell.
+    lca. lca. lca. lca.
+  }
+  rewrite Step1. clear Step1.
+  rewrite Mmult_1_l.
+  assert (Step2: WF_Unitary (Q†)).
+  {
+    apply transpose_unitary.
+    apply H.
+  }
+  destruct Step2 as [Step2_1 Step2_2].
+  rewrite adjoint_involutive in Step2_2.
+  apply Step2_2.
+  apply transpose_unitary.
+  apply H.
+Qed.
