@@ -84,7 +84,9 @@ rewrite Cmult_comm.
 reflexivity.
 Qed.
 
-(* Invalid argument until number of eigenvalues is adressed *)
+(* Invalid argument until number of eigenvalues is adressed 
+    TODO: finish once spectral thm application is figured out
+*)
 (* Lemma a5_right: forall {n} (psi phi: Vector n) (a p: C) (P Q: Square n),
     WF_Matrix psi -> WF_Matrix phi -> WF_Unitary P -> WF_Unitary Q ->
     Eigenpair (P ⊗ Q) (psi ⊗ phi, a * p) -> Eigenpair P (psi, a) /\ Eigenpair Q (phi, p).
@@ -315,5 +317,145 @@ destruct H3.
  apply H.
  apply H0.
  apply H2.
+}
+Qed.
+
+(* only defined over 2 qubit systems *)
+Definition partial_trace_l (M: Square 4): Square 2 := 
+    fun x y =>
+    match (x,y) with
+    | (0,0) => (M 0 0)%nat + (M 2 2)%nat
+    | (0,1) => (M 0 1)%nat + (M 2 3)%nat
+    | (1,0) => (M 1 0)%nat + (M 3 2)%nat
+    | (1,1) => (M 1 1)%nat + (M 3 3)%nat
+    | _ => C0
+    end.
+
+Lemma WF_partial_trace : forall (A : Square 4),
+    WF_Matrix (partial_trace_l A).
+Proof. 
+unfold WF_Matrix.
+intros.
+destruct H.
+{
+    unfold partial_trace_l.
+    destruct x as [|x'].
+    contradict H.
+    lia.
+    destruct x' as [|x''].
+    contradict H.
+    lia.
+    reflexivity.
+}
+{
+    unfold partial_trace_l.
+    destruct x as [|x'].
+    {
+        destruct y as [|y'].
+        contradict H.
+        lia.
+        destruct y' as [|y''].
+        contradict H.
+        lia.
+        reflexivity.
+    }
+    {
+        destruct x' as [|x''].
+        destruct y as [|y'].
+        contradict H.
+        lia.
+        destruct y' as [|y''].
+        contradict H.
+        lia.
+        reflexivity.
+        reflexivity.
+    }
+}
+Qed.
+
+Lemma kron_partial_trace_l : forall (P : Square 2) (Q: Square 2),
+    WF_Matrix Q -> 
+    partial_trace_l (P ⊗ Q) = (trace P) .* Q.
+Proof.
+intros.
+apply mat_equiv_eq.
+apply WF_partial_trace.
+apply WF_scale.
+apply H.
+by_cell.
+{
+    unfold partial_trace_l; unfold kron; unfold trace; unfold scale.
+    lca.   
+}
+{
+    unfold partial_trace_l; unfold kron; unfold trace; unfold scale.
+    lca.   
+}
+{
+    unfold partial_trace_l; unfold kron; unfold trace; unfold scale.
+    lca.   
+}
+{
+    unfold partial_trace_l; unfold kron; unfold trace; unfold scale.
+    lca.   
+}
+Qed.
+
+Lemma partial_trace_linear_l : forall (c:C) (A B : Square 4),
+  partial_trace_l (A .+ c .* B) = partial_trace_l A .+ c .* partial_trace_l B.
+Proof.
+intros.
+apply mat_equiv_eq.
+apply WF_partial_trace.
+apply WF_plus.
+apply WF_partial_trace.
+apply WF_scale.
+apply WF_partial_trace.
+by_cell.
+{
+    unfold partial_trace_l; unfold scale; unfold Mplus.
+    lca.
+}
+{
+    unfold partial_trace_l; unfold scale; unfold Mplus.
+    lca.
+}
+{
+    unfold partial_trace_l; unfold scale; unfold Mplus.
+    lca.
+}
+{
+    unfold partial_trace_l; unfold scale; unfold Mplus.
+    lca.
+}
+Qed.
+
+Lemma partial_trace_compat_l : forall (A B : Square 4),
+  A = B -> partial_trace_l A = partial_trace_l B.
+Proof.
+intros.
+apply mat_equiv_eq.
+apply WF_partial_trace.
+apply WF_partial_trace.
+by_cell.
+{
+    unfold partial_trace_l.
+    rewrite H.
+    reflexivity.
+}
+{
+    unfold partial_trace_l.
+    rewrite H.
+    reflexivity.
+}
+{
+    unfold partial_trace_l.
+    rewrite H.
+    reflexivity.
+}
+{
+    unfold partial_trace_l.
+    rewrite H.
+    reflexivity.
 }
 Qed.
