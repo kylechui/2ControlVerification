@@ -1,5 +1,8 @@
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
+Require Import QuantumLib.Matrix.
+Require Import List. 
+Import ListNotations.
 
 Theorem a3: 
 forall {n} (U: Square n), 
@@ -61,5 +64,256 @@ reflexivity.
 Qed.
 
 
+Lemma a5_left: forall {n} (psi phi: Vector n) (a p: C) (P Q: Square n),
+    WF_Matrix psi -> WF_Matrix phi -> WF_Unitary P -> WF_Unitary Q -> 
+    Eigenpair P (psi, a) -> Eigenpair Q (phi, p) -> Eigenpair (P ⊗ Q) (psi ⊗ phi, a * p).
+Proof.
+intros.
+unfold Eigenpair in *; simpl in *.
+assert (Step1: P ⊗ Q × (psi ⊗ phi) = (P × psi) ⊗ (Q × phi)).
+{
+    apply kron_mixed_product.
+}
+rewrite Step1 at 1. clear Step1.
+rewrite H3.
+rewrite H4.
+rewrite Mscale_kron_dist_r.
+rewrite Mscale_kron_dist_l.
+rewrite Mscale_assoc.
+rewrite Cmult_comm.
+reflexivity.
+Qed.
+
+(* Invalid argument until number of eigenvalues is adressed *)
+(* Lemma a5_right: forall {n} (psi phi: Vector n) (a p: C) (P Q: Square n),
+    WF_Matrix psi -> WF_Matrix phi -> WF_Unitary P -> WF_Unitary Q ->
+    Eigenpair (P ⊗ Q) (psi ⊗ phi, a * p) -> Eigenpair P (psi, a) /\ Eigenpair Q (phi, p).
+Proof.
+intros.
+unfold Eigenpair in *; simpl in *.
+revert H3.
+assert (Step1: P ⊗ Q × (psi ⊗ phi) = (P × psi) ⊗ (Q × phi)).
+{
+    apply kron_mixed_product.
+}
+rewrite Step1 at 1. clear Step1.
+rewrite <- Mscale_assoc.
+assert (Step2: a .* (p .* (psi ⊗ phi)) = (a .* psi) ⊗ (p .* phi)).
+{
+ rewrite <- Mscale_kron_dist_r.
+ rewrite <- Mscale_kron_dist_l.
+ reflexivity.   
+}
+rewrite Step2 at 1. clear Step2.
+rewrite <- kron_simplify.
+intros H3.
+rewrite <- Mscale_kron_dist_r in H3.
+rewrite <- Mscale_kron_dist_l at 2.
 
 
+
+intros H3.
+rewrite kron_mixed_product' in H3. *)
+
+(* Attempting to prove equality using sets *)
+Lemma a6_leftP: forall (c: C) (psi: Vector 2) (P Q: Square 2),
+    WF_Unitary P -> WF_Unitary Q -> WF_Matrix psi ->
+    Eigenpair P (psi,c) -> Eigenpair (∣0⟩⟨0∣ ⊗ P .+ ∣1⟩⟨1∣ ⊗ Q) ((∣0⟩⊗psi),c).
+Proof.
+intros.
+unfold Eigenpair in *; simpl in *.
+rewrite Mmult_plus_distr_r.
+assert (Step1: ∣0⟩⟨0∣ ⊗ P × (∣0⟩ ⊗ psi) = c .* (∣0⟩ ⊗ psi)).
+{
+    rewrite kron_mixed_product.
+    rewrite Mmult_assoc.
+    rewrite Mmult00.
+    rewrite Mmult_1_r.
+    rewrite H2.
+    rewrite Mscale_kron_dist_r. 
+    reflexivity.
+    apply WF_qubit0.
+}
+rewrite Step1 at 1. clear Step1.
+assert (Step2: ∣1⟩⟨1∣ ⊗ Q × (∣0⟩ ⊗ psi) = Zero).
+{
+    rewrite kron_mixed_product.
+    rewrite Mmult_assoc.
+    rewrite Mmult10.
+    rewrite Mmult_0_r.
+    rewrite kron_0_l.
+    reflexivity.
+}
+rewrite Step2 at 1. clear Step2.
+rewrite Mplus_0_r.
+reflexivity.
+Qed.
+
+Lemma a6_leftQ: forall (c: C) (phi: Vector 2) (P Q: Square 2),
+    WF_Unitary P -> WF_Unitary Q -> WF_Matrix phi ->
+    Eigenpair Q (phi,c) -> Eigenpair (∣0⟩⟨0∣ ⊗ P .+ ∣1⟩⟨1∣ ⊗ Q) ((∣1⟩⊗phi),c).
+Proof.
+intros.
+unfold Eigenpair in *; simpl in *.
+rewrite Mmult_plus_distr_r.
+assert (Step1: ∣0⟩⟨0∣ ⊗ P × (∣1⟩ ⊗ phi) = Zero).
+{
+    rewrite kron_mixed_product.
+    rewrite Mmult_assoc.
+    rewrite Mmult01.
+    rewrite Mmult_0_r.
+    rewrite kron_0_l.
+    reflexivity.
+}
+rewrite Step1 at 1. clear Step1.
+rewrite Mplus_0_l.
+assert (Step2: ∣1⟩⟨1∣ ⊗ Q × (∣1⟩ ⊗ phi) = c .* (∣1⟩ ⊗ phi)).
+{
+    rewrite kron_mixed_product.
+    rewrite Mmult_assoc.
+    rewrite Mmult11.
+    rewrite Mmult_1_r.
+    rewrite H2.
+    rewrite Mscale_kron_dist_r.
+    reflexivity.
+    apply WF_qubit1.
+}
+apply Step2.
+Qed.
+
+Lemma a6_left: forall (c: C) (phi psi: Vector 2) (P Q: Square 2),
+WF_Unitary P -> WF_Unitary Q -> WF_Matrix psi -> WF_Matrix phi ->
+(Eigenpair P (psi,c) \/ Eigenpair Q (phi,c)) -> 
+(Eigenpair (∣0⟩⟨0∣ ⊗ P .+ ∣1⟩⟨1∣ ⊗ Q) ((∣0⟩⊗psi),c) \/ Eigenpair (∣0⟩⟨0∣ ⊗ P .+ ∣1⟩⟨1∣ ⊗ Q) ((∣1⟩⊗phi),c)).
+Proof.
+intros.
+destruct H3.
+{
+ left.
+ apply a6_leftP.
+ apply H.
+ apply H0.
+ apply H1.
+ apply H3.  
+}
+{
+ right.
+ apply a6_leftQ.
+ apply H.
+ apply H0.
+ apply H2.
+ apply H3.
+}
+Qed.
+
+(*TODO: finish this proof after evaluating if its worth the time over just the |0>,|1> cases *)
+Lemma kron_const_equiv: forall {a b c d} (A : Matrix a b) (B C: Matrix c d), 
+A ⊗ B = A ⊗ C -> B = C.
+Proof.
+intros.
+revert H.
+Admitted.
+
+
+Lemma a6_rightP: forall (c: C) (psi: Vector 2) (P Q: Square 2),
+WF_Unitary P -> WF_Unitary Q -> WF_Matrix psi ->
+Eigenpair (∣0⟩⟨0∣ ⊗ P .+ ∣1⟩⟨1∣ ⊗ Q) ((∣0⟩⊗psi),c) -> Eigenpair P (psi,c).
+intros.
+unfold Eigenpair in *; simpl in *.
+revert H2.
+rewrite Mmult_plus_distr_r.
+assert (Step1: ∣1⟩⟨1∣ ⊗ Q × (∣0⟩ ⊗ psi) = Zero).
+{
+    rewrite kron_mixed_product.
+    rewrite Mmult_assoc.
+    rewrite Mmult10.
+    rewrite Mmult_0_r.
+    rewrite kron_0_l.
+    reflexivity.
+}
+rewrite Step1 at 1. clear Step1.
+rewrite Mplus_0_r.
+assert (Step2: ∣0⟩⟨0∣ ⊗ P × (∣0⟩ ⊗ psi) = ∣0⟩⊗ (P× psi)).
+{
+    rewrite kron_mixed_product.
+    rewrite Mmult_assoc.
+    rewrite Mmult00.
+    rewrite Mmult_1_r.
+    reflexivity.
+    apply WF_qubit0.
+}
+rewrite Step2 at 1. clear Step2.
+assert (Step3: c .* (∣0⟩ ⊗ psi) =  ∣0⟩ ⊗ (c .* psi)). 
+{
+    rewrite Mscale_kron_dist_r.
+    reflexivity.
+}
+rewrite Step3 at 1. clear Step3.
+set (B:= P × psi ).
+set (C:=c .* psi).
+apply kron_const_equiv.
+Qed.
+
+Lemma a6_rightQ: forall (c: C) (phi: Vector 2) (P Q: Square 2),
+WF_Unitary P -> WF_Unitary Q -> WF_Matrix phi ->
+Eigenpair (∣0⟩⟨0∣ ⊗ P .+ ∣1⟩⟨1∣ ⊗ Q) ((∣1⟩⊗phi),c) -> Eigenpair Q (phi,c).
+intros.
+unfold Eigenpair in *; simpl in *.
+revert H2.
+rewrite Mmult_plus_distr_r.
+assert (Step1: ∣0⟩⟨0∣ ⊗ P × (∣1⟩ ⊗ phi) = Zero).
+{
+    rewrite kron_mixed_product.
+    rewrite Mmult_assoc.
+    rewrite Mmult01.
+    rewrite Mmult_0_r.
+    rewrite kron_0_l.
+    reflexivity.
+}
+rewrite Step1 at 1. clear Step1.
+rewrite Mplus_0_l.
+assert (Step2: ∣1⟩⟨1∣ ⊗ Q × (∣1⟩ ⊗ phi) = ∣1⟩⊗ (Q× phi)).
+{
+    rewrite kron_mixed_product.
+    rewrite Mmult_assoc.
+    rewrite Mmult11.
+    rewrite Mmult_1_r.
+    reflexivity.
+    apply WF_qubit1.
+}
+rewrite Step2 at 1. clear Step2.
+assert (Step3: c .* (∣1⟩ ⊗ phi) =  ∣1⟩ ⊗ (c .* phi)). 
+{
+    rewrite Mscale_kron_dist_r.
+    reflexivity.
+}
+rewrite Step3 at 1. clear Step3.
+set (B:= Q × phi ).
+set (C:=c .* phi).
+apply kron_const_equiv.
+Qed.
+
+Lemma a6_right: forall (c: C) (phi psi: Vector 2) (P Q: Square 2),
+WF_Unitary P -> WF_Unitary Q -> WF_Matrix psi -> WF_Matrix phi ->
+(Eigenpair (∣0⟩⟨0∣ ⊗ P .+ ∣1⟩⟨1∣ ⊗ Q) ((∣0⟩⊗psi),c) \/ Eigenpair (∣0⟩⟨0∣ ⊗ P .+ ∣1⟩⟨1∣ ⊗ Q) ((∣1⟩⊗phi),c))
+-> (Eigenpair P (psi,c) \/ Eigenpair Q (phi,c)).
+Proof.
+intros.
+destruct H3.
+{
+ left.
+ revert H3.
+ apply a6_rightP.
+ apply H.
+ apply H0.
+ apply H1. 
+}
+{
+ right.
+ revert H3.
+ apply a6_rightQ.
+ apply H.
+ apply H0.
+ apply H2.
+}
+Qed.
