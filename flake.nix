@@ -9,26 +9,25 @@
   outputs = { self, nixpkgs }:
     let
       system = "x86_64-linux";
-      pkgs = import nixpkgs {
-        inherit system;
-        config.allowBroken = true;
-      };
-      pname = "quantumlib";
-      owner = "inQWIRE";
+      pkgs = nixpkgs.legacyPackages.${system};
+      quantumlib-version = "v1.1.0";
     in let
       coq_quantum_lib = pkgs.coqPackages.mkCoqDerivation {
-        inherit pname owner;
-        src = pkgs.fetchFromGitHub {
-          inherit owner;
-          repo = "QuantumLib";
-          rev = "main";
-          sha256 = "sha256-evIxqyjiOc+HkIl9Ft+7DZHYx74v7UGG5mHg6dlG6oA=";
+        pname = "quantumlib";
+        owner = "inQWIRE";
+        repo = "QuantumLib";
+
+        defaultVersion = quantumlib-version;
+        release.${quantumlib-version} = {
+          rev = "refs/tags/${quantumlib-version}";
+          sha256 = "sha256-YVDFLYAMFEfimIa1D6399z6Lo7RgSRJXrgEp2IEDQ0E=";
         };
+
         useDune = true;
-        buildInputs = [ pkgs.dune_3 pkgs.ocaml ];
+        buildInputs = [ pkgs.dune_2 pkgs.ocaml ];
         installPhase = ''
           runHook preInstall
-          dune install coq-${pname} --prefix=$out --mandir=$out/man
+          dune install coq-quantumlib --prefix=$out
           mv $out/lib/coq $out/lib/TEMPORARY
           mkdir $out/lib/coq/
           mv $out/lib/TEMPORARY $out/lib/coq/${pkgs.coq.coq-version}
