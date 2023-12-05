@@ -1,71 +1,51 @@
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
 Require Import QuantumLib.Matrix.
-Require Import List. 
+Require Import List.
 Import ListNotations.
 
-Theorem a3: 
-forall {n} (U: Square n), 
-    WF_Unitary U -> exists (V W: Square n), 
+Theorem a3:
+forall {n} (U: Square n),
+    WF_Unitary U -> exists (V W: Square n),
         WF_Unitary V -> WF_Diagonal W-> forall i : nat,
-         (i < n)%nat -> exists (v : Vector n), 
-            WF_Matrix v -> Eigenpair (U) (v, W i i).
+            (i < n)%nat -> exists (v : Vector n),
+                WF_Matrix v -> Eigenpair (U) (v, W i i).
 Proof.
-    Admitted.
+Admitted.
 
-Lemma a4_left: forall {n} (v: Vector n) (c: C) (U V : Square n), 
+Lemma a4: forall {n} (v: Vector n) (c: C) (U V : Square n),
     WF_Matrix v -> WF_Unitary U -> WF_Unitary V ->
-    Eigenpair V (U × v, c) -> Eigenpair (U† × V × U) (v,c).
+    Eigenpair V (v, c) <-> Eigenpair (U × V × U†) (U × v, c).
 Proof.
-(* TODO: Proof is adapted from QuantumLib.Eigenvectors to step through the proof. Replace with application.*)
-intros.
-destruct H0 as [H0 H3].
-unfold Eigenpair in *; simpl in *.
-do 2 (rewrite Mmult_assoc).
-rewrite H2.
-rewrite Mscale_mult_dist_r.
-rewrite <- Mmult_assoc.
-rewrite H3.
-rewrite Mmult_1_l.
-reflexivity.
-apply H.
+    (* TODO: Proof is adapted from QuantumLib.Eigenvectors to step through the proof. Replace with application.*)
+    intros.
+    destruct H0 as [H0 H2].
+    unfold Eigenpair in *; simpl in *.
+    do 2 (rewrite Mmult_assoc).
+    rewrite <- Mmult_assoc with (A := U†).
+    rewrite H2.
+    rewrite Mmult_1_l. 2: apply H.
+    split.
+    - intro H3.
+      rewrite H3.
+      rewrite Mscale_mult_dist_r.
+      reflexivity.
+    - intro H3.
+      rewrite <- Mmult_1_l with (A := V). 2: apply H1.
+      rewrite <- H2.
+      rewrite Mmult_assoc with (B := U).
+      rewrite Mmult_assoc with (B := (U × V)).
+      rewrite Mmult_assoc with (A := U).
+      rewrite H3.
+      rewrite Mscale_mult_dist_r.
+      rewrite <- Mmult_assoc.
+      rewrite H2.
+      rewrite Mmult_1_l. 2: apply H.
+      reflexivity.
 Qed.
-
-Lemma a4_right: forall {n} (v: Vector n) (c: C) (U V : Square n), 
-    WF_Matrix v -> WF_Unitary U -> WF_Unitary V ->
-    Eigenpair (U† × V × U) (v,c) -> Eigenpair V (U × v, c).
-Proof.
-intros.
-unfold Eigenpair in *; simpl in *.
-assert (Step1: I n × V × (U × v) = V × (U × v)).
-{
-    rewrite Mmult_assoc.
-    apply Mmult_1_l.
-    apply WF_mult.
-    apply H1.
-    apply WF_mult.
-    apply H0.
-    apply H.   
-}
-rewrite <- Step1. clear Step1.
-assert (Step2: WF_Unitary (U†)).
-{
-    apply transpose_unitary.
-    apply H0.
-}
-destruct Step2 as [Step2_1 Step2_2].
-rewrite <- Step2_2. clear Step2_1. clear Step2_2.
-rewrite adjoint_involutive.
-do 2 (rewrite Mmult_assoc).
-rewrite Mmult_assoc in H2. rewrite Mmult_assoc in H2.
-rewrite H2.
-rewrite Mscale_mult_dist_r.
-reflexivity.
-Qed.
-
 
 Lemma a5_left: forall {n} (psi phi: Vector n) (a p: C) (P Q: Square n),
-    WF_Matrix psi -> WF_Matrix phi -> WF_Unitary P -> WF_Unitary Q -> 
+    WF_Matrix psi -> WF_Matrix phi -> WF_Unitary P -> WF_Unitary Q ->
     Eigenpair P (psi, a) -> Eigenpair Q (phi, p) -> Eigenpair (P ⊗ Q) (psi ⊗ phi, a * p).
 Proof.
 intros.
@@ -84,7 +64,7 @@ rewrite Cmult_comm.
 reflexivity.
 Qed.
 
-(* Invalid argument until number of eigenvalues is adressed 
+(* Invalid argument until number of eigenvalues is adressed
     TODO: finish once spectral thm application is figured out
 *)
 (* Lemma a5_right: forall {n} (psi phi: Vector n) (a p: C) (P Q: Square n),
@@ -104,7 +84,7 @@ assert (Step2: a .* (p .* (psi ⊗ phi)) = (a .* psi) ⊗ (p .* phi)).
 {
  rewrite <- Mscale_kron_dist_r.
  rewrite <- Mscale_kron_dist_l.
- reflexivity.   
+ reflexivity.
 }
 rewrite Step2 at 1. clear Step2.
 rewrite <- kron_simplify.
@@ -132,7 +112,7 @@ assert (Step1: ∣0⟩⟨0∣ ⊗ P × (∣0⟩ ⊗ psi) = c .* (∣0⟩ ⊗ psi
     rewrite Mmult00.
     rewrite Mmult_1_r.
     rewrite H2.
-    rewrite Mscale_kron_dist_r. 
+    rewrite Mscale_kron_dist_r.
     reflexivity.
     apply WF_qubit0.
 }
@@ -185,7 +165,7 @@ Qed.
 
 Lemma a6_left: forall (c: C) (phi psi: Vector 2) (P Q: Square 2),
 WF_Unitary P -> WF_Unitary Q -> WF_Matrix psi -> WF_Matrix phi ->
-(Eigenpair P (psi,c) \/ Eigenpair Q (phi,c)) -> 
+(Eigenpair P (psi,c) \/ Eigenpair Q (phi,c)) ->
 (Eigenpair (∣0⟩⟨0∣ ⊗ P .+ ∣1⟩⟨1∣ ⊗ Q) ((∣0⟩⊗psi),c) \/ Eigenpair (∣0⟩⟨0∣ ⊗ P .+ ∣1⟩⟨1∣ ⊗ Q) ((∣1⟩⊗phi),c)).
 Proof.
 intros.
@@ -196,7 +176,7 @@ destruct H3.
  apply H.
  apply H0.
  apply H1.
- apply H3.  
+ apply H3.
 }
 {
  right.
@@ -209,7 +189,7 @@ destruct H3.
 Qed.
 
 (*TODO: finish this proof after evaluating if its worth the time over just the |0>,|1> cases *)
-Lemma kron_const_equiv: forall {a b c d} (A : Matrix a b) (B C: Matrix c d), 
+Lemma kron_const_equiv: forall {a b c d} (A : Matrix a b) (B C: Matrix c d),
 A ⊗ B = A ⊗ C -> B = C.
 Proof.
 intros.
@@ -245,7 +225,7 @@ assert (Step2: ∣0⟩⟨0∣ ⊗ P × (∣0⟩ ⊗ psi) = ∣0⟩⊗ (P× psi))
     apply WF_qubit0.
 }
 rewrite Step2 at 1. clear Step2.
-assert (Step3: c .* (∣0⟩ ⊗ psi) =  ∣0⟩ ⊗ (c .* psi)). 
+assert (Step3: c .* (∣0⟩ ⊗ psi) =  ∣0⟩ ⊗ (c .* psi)).
 {
     rewrite Mscale_kron_dist_r.
     reflexivity.
@@ -284,7 +264,7 @@ assert (Step2: ∣1⟩⟨1∣ ⊗ Q × (∣1⟩ ⊗ phi) = ∣1⟩⊗ (Q× phi))
     apply WF_qubit1.
 }
 rewrite Step2 at 1. clear Step2.
-assert (Step3: c .* (∣1⟩ ⊗ phi) =  ∣1⟩ ⊗ (c .* phi)). 
+assert (Step3: c .* (∣1⟩ ⊗ phi) =  ∣1⟩ ⊗ (c .* phi)).
 {
     rewrite Mscale_kron_dist_r.
     reflexivity.
@@ -308,7 +288,7 @@ destruct H3.
  apply a6_rightP.
  apply H.
  apply H0.
- apply H1. 
+ apply H1.
 }
 {
  right.
@@ -321,7 +301,7 @@ destruct H3.
 Qed.
 
 (* only defined over 2 qubit systems *)
-Definition partial_trace_l (M: Square 4): Square 2 := 
+Definition partial_trace_l (M: Square 4): Square 2 :=
     fun x y =>
     match (x,y) with
     | (0,0) => (M 0 0)%nat + (M 2 2)%nat
@@ -333,7 +313,7 @@ Definition partial_trace_l (M: Square 4): Square 2 :=
 
 Lemma WF_partial_trace : forall (A : Square 4),
     WF_Matrix (partial_trace_l A).
-Proof. 
+Proof.
 unfold WF_Matrix.
 intros.
 destruct H.
@@ -374,7 +354,7 @@ destruct H.
 Qed.
 
 Lemma kron_partial_trace_l : forall (P : Square 2) (Q: Square 2),
-    WF_Matrix Q -> 
+    WF_Matrix Q ->
     partial_trace_l (P ⊗ Q) = (trace P) .* Q.
 Proof.
 intros.
@@ -385,19 +365,19 @@ apply H.
 by_cell.
 {
     unfold partial_trace_l; unfold kron; unfold trace; unfold scale.
-    lca.   
+    lca.
 }
 {
     unfold partial_trace_l; unfold kron; unfold trace; unfold scale.
-    lca.   
+    lca.
 }
 {
     unfold partial_trace_l; unfold kron; unfold trace; unfold scale.
-    lca.   
+    lca.
 }
 {
     unfold partial_trace_l; unfold kron; unfold trace; unfold scale.
-    lca.   
+    lca.
 }
 Qed.
 
@@ -469,8 +449,8 @@ Proof.
   rewrite <- Mmult_plus_distr_l.
   repeat rewrite <- Mmult_assoc.
   rewrite <- Mmult_plus_distr_r.
-  assert (Step1 : ∣0⟩⟨0∣ .+ ∣1⟩⟨1∣ = I 2). 
-  { 
+  assert (Step1 : ∣0⟩⟨0∣ .+ ∣1⟩⟨1∣ = I 2).
+  {
     apply mat_equiv_eq.
     apply WF_plus.
     apply WF_braqubit0.
@@ -493,15 +473,15 @@ Proof.
   apply H.
 Qed.
 
-Lemma conj_mult_re_is_nonneg: forall (a: C), 
+Lemma conj_mult_re_is_nonneg: forall (a: C),
 Re (a^* * a) >= 0.
 Proof.
 intros.
 unfold Re; unfold Cconj; unfold Cmult.
 simpl.
 rewrite <- Ropp_mult_distr_l.
-assert (Step1: (fst a * fst a - - (snd a * snd a) = fst a * fst a + (snd a * snd a))%R). 
-{ 
+assert (Step1: (fst a * fst a - - (snd a * snd a) = fst a * fst a + (snd a * snd a))%R).
+{
     field.
 }
 rewrite Step1.
@@ -521,8 +501,8 @@ simpl.
 lra.
 Qed.
 
-Lemma sum_of_pos_c_is_0_implies_0: forall (a b: C), 
-Re a >= 0 -> Im a = 0 -> Re b >= 0 -> Im b = 0 -> 
+Lemma sum_of_pos_c_is_0_implies_0: forall (a b: C),
+Re a >= 0 -> Im a = 0 -> Re b >= 0 -> Im b = 0 ->
 a + b = C0 -> a = C0 /\ b = C0.
 Proof.
 intros.
@@ -561,7 +541,7 @@ Qed.
 
 Lemma complex_split: forall (a b: C),
 a = b  -> fst a = fst b /\ snd a = snd b.
-Proof. 
+Proof.
 intros.
 split.
 rewrite H.
@@ -571,7 +551,7 @@ reflexivity.
 Qed.
 
 
-Lemma squared_norm_eq_0_implies_0: forall (a: C), 
+Lemma squared_norm_eq_0_implies_0: forall (a: C),
 a^* * a = 0 -> a = 0.
 Proof.
 intros.
@@ -588,8 +568,8 @@ simpl in *.
     apply H2.
     {
         rewrite <- Ropp_mult_distr_l.
-        assert (Step1: (fst a * fst a - - (snd a * snd a) = fst a * fst a + (snd a * snd a))%R). 
-        { 
+        assert (Step1: (fst a * fst a - - (snd a * snd a) = fst a * fst a + (snd a * snd a))%R).
+        {
             field.
         }
         rewrite Step1.
@@ -597,11 +577,11 @@ simpl in *.
         set (c := snd a).
         set (d := (b * b)%R).
         set (e := (c*c)%R).
-        assert (Step2: 0 <= d). 
+        assert (Step2: 0 <= d).
         {
             apply Rle_0_sqr.
         }
-        assert (Step3: 0 <= e). 
+        assert (Step3: 0 <= e).
         {
             apply Rle_0_sqr.
         }
@@ -627,8 +607,8 @@ simpl in *.
     apply H2.
     {
         rewrite <- Ropp_mult_distr_l.
-        assert (Step1: (fst a * fst a - - (snd a * snd a) = fst a * fst a + (snd a * snd a))%R). 
-        { 
+        assert (Step1: (fst a * fst a - - (snd a * snd a) = fst a * fst a + (snd a * snd a))%R).
+        {
             field.
         }
         rewrite Step1.
@@ -658,11 +638,11 @@ intros.
 unfold Re, Cplus.
 simpl.
 rewrite <- Ropp_mult_distr_l. rewrite <- Ropp_mult_distr_l. rewrite <- Ropp_mult_distr_l.
-assert (Step1: (fst b * fst b - - (snd b * snd b) = fst b * fst b + snd b * snd b)%R). field. 
+assert (Step1: (fst b * fst b - - (snd b * snd b) = fst b * fst b + snd b * snd b)%R). field.
 rewrite Step1. clear Step1.
-assert (Step2: (fst c * fst c - - (snd c * snd c) = fst c * fst c + snd c * snd c)%R). field. 
+assert (Step2: (fst c * fst c - - (snd c * snd c) = fst c * fst c + snd c * snd c)%R). field.
 rewrite Step2. clear Step2.
-assert (Step3: (fst d * fst d - - (snd d * snd d) = fst d * fst d + snd d * snd d)%R). field. 
+assert (Step3: (fst d * fst d - - (snd d * snd d) = fst d * fst d + snd d * snd d)%R). field.
 rewrite Step3. clear Step3.
 apply Rle_ge.
 apply Rplus_le_le_0_compat.
@@ -687,7 +667,7 @@ simpl.
 lra.
 Qed.
 
-Lemma sum_of_squared_norms_eq_0_implies_0: forall (a b c d: C), 
+Lemma sum_of_squared_norms_eq_0_implies_0: forall (a b c d: C),
 a ^* * a + b ^* * b + c ^* * c + d ^* * d = 0 -> a = 0 /\ b = 0 /\ c = 0 /\ d= 0.
 Proof.
 intros.
@@ -714,7 +694,7 @@ split.
 split.
 {
     revert H.
-    assert (Step1: a ^* * a + b ^* * b + c ^* * c + d ^* * d = b ^* * b + a ^* * a  + c ^* * c + d ^* * d). 
+    assert (Step1: a ^* * a + b ^* * b + c ^* * c + d ^* * d = b ^* * b + a ^* * a  + c ^* * c + d ^* * d).
     {
         lca.
     }
@@ -739,7 +719,7 @@ split.
 split.
 {
     revert H.
-    assert (Step1: a ^* * a + b ^* * b + c ^* * c + d ^* * d = c ^* * c + a ^* * a + b ^* * b + d ^* * d). 
+    assert (Step1: a ^* * a + b ^* * b + c ^* * c + d ^* * d = c ^* * c + a ^* * a + b ^* * b + d ^* * d).
     {
         lca.
     }
@@ -785,7 +765,7 @@ Qed.
 
 
 (* Lemma a9_right: forall (V : Square 4) (P00 P01 P10 P11 : Square 2),
-WF_Unitary V -> WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 -> 
+WF_Unitary V -> WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 ->
 V = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 ->
 P01 = Zero -> P10 = Zero.
 Proof.
