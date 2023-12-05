@@ -492,3 +492,115 @@ Proof.
   apply transpose_unitary.
   apply H.
 Qed.
+
+Lemma conj_mult_re_is_nonneg: forall (a: C), 
+Re (a^* * a) >= 0.
+Proof.
+intros.
+unfold Re; unfold Cconj; unfold Cmult.
+simpl.
+rewrite <- Ropp_mult_distr_l.
+assert (Step1: (fst a * fst a - - (snd a * snd a) = fst a * fst a + (snd a * snd a))%R). 
+{ 
+    field.
+}
+rewrite Step1.
+intros.
+apply Rle_ge.
+apply Rplus_le_le_0_compat.
+apply Rle_0_sqr.
+apply Rle_0_sqr.
+Qed.
+
+Lemma conj_mult_im_is_0: forall (a: C),
+Im (a^* * a) = 0.
+Proof.
+intros.
+unfold Im; unfold Cconj; unfold Cmult.
+simpl.
+lra.
+Qed.
+
+Lemma sum_of_pos_c_is_0_implies_0: forall (a b: C), 
+Re a >= 0 -> Im a = 0 -> Re b >= 0 -> Im b = 0 -> 
+a + b = C0 -> a = C0 /\ b = C0.
+Proof.
+intros.
+unfold Re in *; unfold Im in *.
+unfold Cplus in H3.
+rewrite H0 in H3.
+rewrite H2 in H3.
+cut ((fst a + fst b = 0)%R).
+intros.
+split.
++
+    apply c_proj_eq.
+    simpl.
+    revert H4.
+    apply Rplus_eq_0_l.
+    apply Rge_le.
+    apply H.
+    apply Rge_le.
+    apply H1.
+    apply H0.
++
+    apply c_proj_eq.
+    simpl.
+    revert H4.
+    rewrite Rplus_comm.
+    apply Rplus_eq_0_l.
+    apply Rge_le.
+    apply H1.
+    apply Rge_le.
+    apply H.
+    apply H2.
++
+    inversion H3.
+    reflexivity.
+Qed.
+
+Lemma squared_norm_eq_0_implies_0: forall (a: C), 
+a^* * a = 0 -> a = 0.
+Proof.
+intros.
+apply c_proj_eq.
+unfold Cconj in *; unfold Cmult in *.
+simpl in *.
+inversion H.
+lca.
+
+Lemma sum_of_squared_norms_eq_0_implies_0: forall (a b c d: C), 
+a ^* * a + b ^* * b + c ^* * c + d ^* * d = 0 -> a = 0 /\ b = 0 /\ c = 0 /\ d= 0.
+Proof.
+intros.
+split.
+{
+    revert H.
+    rewrite <- Cplus_assoc.
+    rewrite <- Cplus_assoc.
+    set (f := a^* * a).
+    set (g := b ^* * b + (c ^* * c + d ^* * d)).
+    intros H.
+    apply sum_of_pos_c_is_0_implies_0.
+}
+
+
+
+(* Lemma a9_right: forall (V : Square 4) (P00 P01 P10 P11 : Square 2),
+WF_Unitary V -> WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 -> 
+V = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 ->
+P01 = Zero -> P10 = Zero.
+Proof.
+intros.
+cut (WF_Unitary V†).
+intros.
+apply mat_equiv_eq.
+apply H2.
+apply WF_Zero.
+cut ((P10 0 0)%nat ^* * (P10 0 0)%nat + (P10 0 1)%nat ^* * (P10 0 1)%nat + (P10 1 0)%nat ^* * (P10 1 0)%nat + (P10 1 1)%nat ^* * (P10 1 1)%nat = 0).
+intros.
+by_cell.
+
+lca.
+lma.
+ring. *).
