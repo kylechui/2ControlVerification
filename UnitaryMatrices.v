@@ -4,14 +4,12 @@ Require Import QuantumLib.Matrix.
 Require Import List.
 Import ListNotations.
 
-Theorem a3:
-forall {n} (U: Square n),
-    WF_Unitary U -> exists (V W: Square n),
-        WF_Unitary V -> WF_Diagonal W-> forall i : nat,
-            (i < n)%nat -> exists (v : Vector n),
-                WF_Matrix v -> Eigenpair (U) (v, W i i).
+Theorem a3: forall {n} (A : Square n), WF_Unitary A -> WF_Diagonalizable A.
 Proof.
-Admitted.
+  intros.
+  apply unit_implies_diagble.
+  apply H.
+Qed.
 
 Lemma a4: forall {n} (v: Vector n) (c: C) (U V : Square n),
     WF_Matrix v -> WF_Unitary U -> WF_Unitary V ->
