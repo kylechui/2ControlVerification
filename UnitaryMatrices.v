@@ -189,14 +189,39 @@ destruct H3.
 }
 Qed.
 
-(*TODO: finish this proof after evaluating if its worth the time over just the |0>,|1> cases *)
-Lemma kron_const_equiv: forall {a b c d} (A : Matrix a b) (B C: Matrix c d),
-A ⊗ B = A ⊗ C -> B = C.
+Lemma kron_0_vec2_equiv: forall (B C : Vector 2),
+WF_Matrix B -> WF_Matrix C -> ∣0⟩ ⊗ B = ∣0⟩ ⊗ C -> B = C.
 Proof.
 intros.
-revert H.
-Admitted.
+cut ((B 0 0 = (∣0⟩ ⊗ B) 0 0 )%nat).
+cut ((B 1 0 = (∣0⟩ ⊗ B) 1 0 )%nat).
+cut ((C 0 0 = (∣0⟩ ⊗ C) 0 0 )%nat).
+cut ((C 1 0 = (∣0⟩ ⊗ C) 1 0 )%nat).
+intros.
+apply mat_equiv_eq.
+apply H. apply H0.
+by_cell.
+rewrite H5. rewrite H3. rewrite H1. reflexivity.
+rewrite H4. rewrite H2. rewrite H1. reflexivity.
+lca. lca. lca. lca.
+Qed.
 
+Lemma kron_1_vec2_equiv: forall (B C: Vector 2),
+WF_Matrix B -> WF_Matrix C -> ∣1⟩ ⊗ B = ∣1⟩ ⊗ C -> B = C.
+Proof.
+intros.
+cut ((B 0 0 = (∣1⟩ ⊗ B) 2 0 )%nat).
+cut ((B 1 0 = (∣1⟩ ⊗ B) 3 0 )%nat).
+cut ((C 0 0 = (∣1⟩ ⊗ C) 2 0 )%nat).
+cut ((C 1 0 = (∣1⟩ ⊗ C) 3 0 )%nat).
+intros.
+apply mat_equiv_eq.
+apply H. apply H0.
+by_cell.
+rewrite H5. rewrite H3. rewrite H1. reflexivity.
+rewrite H4. rewrite H2. rewrite H1. reflexivity.
+lca. lca. lca. lca.
+Qed.
 
 Lemma a6_rightP: forall (c: C) (psi: Vector 2) (P Q: Square 2),
 WF_Unitary P -> WF_Unitary Q -> WF_Matrix psi ->
@@ -234,7 +259,17 @@ assert (Step3: c .* (∣0⟩ ⊗ psi) =  ∣0⟩ ⊗ (c .* psi)).
 rewrite Step3 at 1. clear Step3.
 set (B:= P × psi ).
 set (C:=c .* psi).
-apply kron_const_equiv.
+apply kron_0_vec2_equiv.
+{
+    apply WF_mult.
+    destruct H as [H2 _].
+    apply H2.
+    apply H1.
+}
+{
+    apply WF_scale.
+    apply H1.
+}
 Qed.
 
 Lemma a6_rightQ: forall (c: C) (phi: Vector 2) (P Q: Square 2),
@@ -273,7 +308,17 @@ assert (Step3: c .* (∣1⟩ ⊗ phi) =  ∣1⟩ ⊗ (c .* phi)).
 rewrite Step3 at 1. clear Step3.
 set (B:= Q × phi ).
 set (C:=c .* phi).
-apply kron_const_equiv.
+apply kron_1_vec2_equiv.
+{
+    apply WF_mult.
+    destruct H0 as [H2 _].
+    apply H2.
+    apply H1.
+}
+{
+    apply WF_scale.
+    apply H1.   
+}
 Qed.
 
 Lemma a6_right: forall (c: C) (phi psi: Vector 2) (P Q: Square 2),
