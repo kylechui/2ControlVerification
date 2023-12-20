@@ -1,6 +1,7 @@
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
 Require Import QuantumLib.Matrix.
+From Proof Require Import SquareMatrices.
 Require Import List.
 Import ListNotations.
 
@@ -762,9 +763,240 @@ split.
 }
 Qed.
 
+Lemma C_l_cancel: forall (a b c: C), 
+a + b = a + c -> b = c.
+(* Thanks Kyle *)
+Proof.
+  intros.
+  rewrite <- (Cplus_0_l b).
+  rewrite <- (Cplus_0_l c).
+  rewrite <- (Cplus_opp_l a).
+  rewrite <- Cplus_assoc.
+  rewrite H.
+  ring.
+Qed.
+
+Lemma WF_ket0bra1: WF_Matrix ∣0⟩⟨1∣.
+Proof.
+apply WF_mult.
+apply WF_qubit0.
+apply WF_adjoint.
+apply WF_qubit1.
+Qed.
+
+Lemma WF_ket1bra0: WF_Matrix ∣1⟩⟨0∣.
+Proof.
+apply WF_mult.
+apply WF_qubit1.
+apply WF_adjoint.
+apply WF_qubit0.
+Qed.
+
+Lemma WF_blockmatrix: forall (P00 P01 P10 P11: Square 2), 
+WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 ->
+WF_Matrix (∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11).
+Proof.
+intros.
+apply WF_plus.
+apply WF_plus.
+apply WF_plus.
+apply WF_kron.
+ring. ring.
+apply WF_braqubit0.
+apply H.
+apply WF_kron.
+ring. ring.
+apply WF_ket0bra1.
+apply H0.
+apply WF_kron.
+ring. ring.
+apply WF_ket1bra0.
+apply H1.
+apply WF_kron.
+ring. ring.
+apply WF_braqubit1.
+apply H2.
+Qed.
+
+Lemma block_multiply: forall (U V: Square 4) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square 2), 
+WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11
+-> WF_Matrix Q00 -> WF_Matrix Q01 -> WF_Matrix Q10 -> WF_Matrix Q11 ->
+U = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 -> 
+V = ∣0⟩⟨0∣ ⊗ Q00 .+ ∣0⟩⟨1∣ ⊗ Q01 .+ ∣1⟩⟨0∣ ⊗ Q10 .+ ∣1⟩⟨1∣ ⊗ Q11 -> 
+U × V = ∣0⟩⟨0∣ ⊗ (P00 × Q00 .+ P01 × Q10) .+ ∣0⟩⟨1∣ ⊗ (P00 × Q01 .+ P01×Q11) .+ ∣1⟩⟨0∣ ⊗ (P10×Q00 .+ P11 × Q10) .+ ∣1⟩⟨1∣ ⊗ (P10 × Q01 .+ P11 × Q11).
+Proof.
+intros U V P00 P01 P10 P11 Q00 Q01 Q10 Q11 H1 H2 H3 H4 H5 H6 H7 H8 H9 H10.
+rewrite H9. rewrite H10.
+apply mat_equiv_eq.
+{
+    apply WF_mult.
+    apply WF_blockmatrix.
+    apply H1. apply H2. apply H3. apply H4.
+    apply WF_blockmatrix.
+    apply H5. apply H6. apply H7. apply H8.
+}
+{
+    apply WF_blockmatrix.
+    apply WF_plus.
+    apply WF_mult.
+    apply H1. apply H5.
+    apply WF_mult.
+    apply H2. apply H7.
+    apply WF_plus.
+    apply WF_mult.
+    apply H1. apply H6.
+    apply WF_mult.
+    apply H2. apply H8.  
+    apply WF_plus.
+    apply WF_mult.
+    apply H3. apply H5.
+    apply WF_mult.
+    apply H4. apply H7.  
+    apply WF_plus.
+    apply WF_mult.
+    apply H3. apply H6.
+    apply WF_mult.
+    apply H4. apply H8.     
+}
+{
+    unfold Mmult. unfold Mplus. unfold kron.
+    by_cell.
+    lca. lca. lca. lca. lca. lca. lca. lca.
+    lca. lca. lca. lca. lca. lca. lca. lca.
+}
+Qed.
+
+Lemma block_equalities: forall (U V: Square 4) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square 2), 
+WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11
+-> WF_Matrix Q00 -> WF_Matrix Q01 -> WF_Matrix Q10 -> WF_Matrix Q11 ->
+U = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 -> 
+V = ∣0⟩⟨0∣ ⊗ Q00 .+ ∣0⟩⟨1∣ ⊗ Q01 .+ ∣1⟩⟨0∣ ⊗ Q10 .+ ∣1⟩⟨1∣ ⊗ Q11 -> 
+U = V -> P00 = Q00 /\ P01 = Q01 /\ P10 = Q10 /\ P11 = Q11.
+Proof.
+intros U V P00 P01 P10 P11 Q00 Q01 Q10 Q11 H1 H2 H3 H4 H5 H6 H7 H8 H9 H10 H11.
+split.
+{
+    apply mat_equiv_eq.
+    apply H1. apply H5.
+    by_cell.
+    cut (P00 0%nat 0%nat = U 0%nat 0%nat).
+    cut (Q00 0%nat 0%nat = V 0%nat 0%nat).
+    intros H12 H13.
+    rewrite H12. rewrite H13. rewrite H11. reflexivity.
+    rewrite H10. lca.
+    rewrite H9. lca.
+    cut (P00 0%nat 1%nat = U 0%nat 1%nat).
+    cut (Q00 0%nat 1%nat = V 0%nat 1%nat).
+    intros H12 H13.
+    rewrite H12. rewrite H13. rewrite H11. reflexivity.
+    rewrite H10. lca.
+    rewrite H9. lca.
+    cut (P00 1%nat 0%nat = U 1%nat 0%nat).
+    cut (Q00 1%nat 0%nat = V 1%nat 0%nat).
+    intros H12 H13.
+    rewrite H12. rewrite H13. rewrite H11. reflexivity.
+    rewrite H10. lca.
+    rewrite H9. lca.
+    cut (P00 1%nat 1%nat = U 1%nat 1%nat).
+    cut (Q00 1%nat 1%nat = V 1%nat 1%nat).
+    intros H12 H13.
+    rewrite H12. rewrite H13. rewrite H11. reflexivity.
+    rewrite H10. lca.
+    rewrite H9. lca.
+}
+split.
+{
+    apply mat_equiv_eq.
+    apply H2. apply H6.
+    by_cell.
+    cut (P01 0%nat 0%nat = U 0%nat 2%nat).
+    cut (Q01 0%nat 0%nat = V 0%nat 2%nat).
+    intros H12 H13.
+    rewrite H12. rewrite H13. rewrite H11. reflexivity.
+    rewrite H10. lca.
+    rewrite H9. lca.
+    cut (P01 0%nat 1%nat = U 0%nat 3%nat).
+    cut (Q01 0%nat 1%nat = V 0%nat 3%nat).
+    intros H12 H13.
+    rewrite H12. rewrite H13. rewrite H11. reflexivity.
+    rewrite H10. lca.
+    rewrite H9. lca.
+    cut (P01 1%nat 0%nat = U 1%nat 2%nat).
+    cut (Q01 1%nat 0%nat = V 1%nat 2%nat).
+    intros H12 H13.
+    rewrite H12. rewrite H13. rewrite H11. reflexivity.
+    rewrite H10. lca.
+    rewrite H9. lca.
+    cut (P01 1%nat 1%nat = U 1%nat 3%nat).
+    cut (Q01 1%nat 1%nat = V 1%nat 3%nat).
+    intros H12 H13.
+    rewrite H12. rewrite H13. rewrite H11. reflexivity.
+    rewrite H10. lca.
+    rewrite H9. lca.
+} 
+split.
+{
+    apply mat_equiv_eq.
+    apply H3. apply H7.
+    by_cell.
+    cut (P10 0%nat 0%nat = U 2%nat 0%nat).
+    cut (Q10 0%nat 0%nat = V 2%nat 0%nat).
+    intros H12 H13.
+    rewrite H12. rewrite H13. rewrite H11. reflexivity.
+    rewrite H10. lca.
+    rewrite H9. lca.
+    cut (P10 0%nat 1%nat = U 2%nat 1%nat).
+    cut (Q10 0%nat 1%nat = V 2%nat 1%nat).
+    intros H12 H13.
+    rewrite H12. rewrite H13. rewrite H11. reflexivity.
+    rewrite H10. lca.
+    rewrite H9. lca.
+    cut (P10 1%nat 0%nat = U 3%nat 0%nat).
+    cut (Q10 1%nat 0%nat = V 3%nat 0%nat).
+    intros H12 H13.
+    rewrite H12. rewrite H13. rewrite H11. reflexivity.
+    rewrite H10. lca.
+    rewrite H9. lca.
+    cut (P10 1%nat 1%nat = U 3%nat 1%nat).
+    cut (Q10 1%nat 1%nat = V 3%nat 1%nat).
+    intros H12 H13.
+    rewrite H12. rewrite H13. rewrite H11. reflexivity.
+    rewrite H10. lca.
+    rewrite H9. lca.
+}
+{
+    apply mat_equiv_eq.
+    apply H4. apply H8.
+    by_cell.
+    cut (P11 0%nat 0%nat = U 2%nat 2%nat).
+    cut (Q11 0%nat 0%nat = V 2%nat 2%nat).
+    intros H12 H13.
+    rewrite H12. rewrite H13. rewrite H11. reflexivity.
+    rewrite H10. lca.
+    rewrite H9. lca.
+    cut (P11 0%nat 1%nat = U 2%nat 3%nat).
+    cut (Q11 0%nat 1%nat = V 2%nat 3%nat).
+    intros H12 H13.
+    rewrite H12. rewrite H13. rewrite H11. reflexivity.
+    rewrite H10. lca.
+    rewrite H9. lca.
+    cut (P11 1%nat 0%nat = U 3%nat 2%nat).
+    cut (Q11 1%nat 0%nat = V 3%nat 2%nat).
+    intros H12 H13.
+    rewrite H12. rewrite H13. rewrite H11. reflexivity.
+    rewrite H10. lca.
+    rewrite H9. lca.
+    cut (P11 1%nat 1%nat = U 3%nat 3%nat).
+    cut (Q11 1%nat 1%nat = V 3%nat 3%nat).
+    intros H12 H13.
+    rewrite H12. rewrite H13. rewrite H11. reflexivity.
+    rewrite H10. lca.
+    rewrite H9. lca.
+}
+Qed.
 
 
-(* Lemma a9_right: forall (V : Square 4) (P00 P01 P10 P11 : Square 2),
+Lemma a9_right: forall (V : Square 4) (P00 P01 P10 P11 : Square 2),
 WF_Unitary V -> WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 ->
 V = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 ->
 P01 = Zero -> P10 = Zero.
@@ -775,10 +1007,173 @@ intros.
 apply mat_equiv_eq.
 apply H2.
 apply WF_Zero.
-cut ((P10 0 0)%nat ^* * (P10 0 0)%nat + (P10 0 1)%nat ^* * (P10 0 1)%nat + (P10 1 0)%nat ^* * (P10 1 0)%nat + (P10 1 1)%nat ^* * (P10 1 1)%nat = 0).
+cut ((P10 0%nat 0%nat = 0 /\ P10 0%nat 1%nat = 0 /\ P10 1%nat 0%nat = 0 /\ P10 1%nat 1%nat = 0)%C).
 intros.
 by_cell.
+apply H7. apply H7. apply H7. apply H7.
+apply sum_of_squared_norms_eq_0_implies_0.
+cut (trace (P10† × P10) = (P10 0%nat 0%nat) ^* * P10 0%nat 0%nat + (P10 0%nat 1%nat) ^* * P10 0%nat 1%nat +
+(P10 1%nat 0%nat) ^* * P10 1%nat 0%nat + (P10 1%nat 1%nat) ^* * P10 1%nat 1%nat).
+cut (trace (P10† × P10) = 0).
+intros.
+rewrite <- H8.
+apply H7.
+cut (trace (P00 × P00†) = trace (P00 × P00†) + trace(P10 † × P10)).
+intros.
+apply C_l_cancel with (a:=trace (P00 × (P00) †)).
+symmetry.
+rewrite Cplus_0_r.
+apply H7.
+rewrite a2 at 2.
+rewrite <- trace_plus_dist.
+cut (trace (P00 × P00†) = trace (P00† × P00 .+ P10† × P10)).
+intros.
+apply H7.
+cut (P00 × P00† = P00† × P00 .+ P10† × P10).
+intros.
+rewrite H7.
+reflexivity.
+cut (∣0⟩⟨0∣ ⊗ (P00 × P00†) .+ ∣0⟩⟨1∣ ⊗ (P00× P10†) .+ ∣1⟩⟨0∣ ⊗ (P10× P00†) .+ ∣1⟩⟨1∣ ⊗ (P10× P10† .+ P11× P11†)
+= ∣0⟩⟨0∣ ⊗ (P00† × P00 .+ P10† × P10) .+ ∣0⟩⟨1∣ ⊗ (P10† × P11) .+ ∣1⟩⟨0∣ ⊗ (P11† × P10) .+ ∣1⟩⟨1∣ ⊗ (P11† × P11)).
+intros.
+set (A:= P00 × (P00) †). fold A in H7.
+set (B := P00 × (P10) †). fold B in H7.
+set (C:= P10 × (P00) †). fold C in H7.
+set (D := P10 × (P10) † .+ P11 × (P11) †). fold D in H7.
+set (E:= (P00) † × P00 .+ (P10) † × P10). fold E in H7.
+set (F := (P10) † × P11). fold F in H7.
+set (G:= (P11) † × P10). fold G in H7.
+set (J := (P11) † × P11). fold J in H7.
+apply block_equalities with (P00:= A) (P01 := B) (P10:= C) (P11 := D)
+(Q00:= E) (Q01 := F) (Q10:= G) (Q11 := J) in H7.
+destruct H7 as [H8 _].
+apply H8.
+{
+    unfold A.
+    apply WF_mult. 
+    apply H0. 
+    apply WF_adjoint. 
+    apply H0.
+}
+{
+    unfold B. 
+    apply WF_mult. 
+    apply H0. 
+    apply WF_adjoint. 
+    apply H2.
+}
+{
+    unfold C. 
+    apply WF_mult. 
+    apply H2. 
+    apply WF_adjoint.
+    apply H0.
+}
+{
+    unfold D. 
+    apply WF_plus.
+    apply WF_mult. 
+    apply H2. 
+    apply WF_adjoint. 
+    apply H2.
+    apply WF_mult. 
+    apply H3. 
+    apply WF_adjoint. 
+    apply H3.
+}
+{
+    unfold E. 
+    apply WF_plus.
+    apply WF_mult. 
+    apply WF_adjoint. 
+    apply H0. 
+    apply H0.
+    apply WF_mult. 
+    apply WF_adjoint. 
+    apply H2. 
+    apply H2.
+}
+{
+    unfold F. 
+    apply WF_mult. 
+    apply WF_adjoint.
+    apply H2. 
+    apply H3.
+}
+{
+    unfold G. 
+    apply WF_mult. 
+    apply WF_adjoint.
+    apply H3. 
+    apply H2.
+}
+{
+    unfold J. 
+    apply WF_mult. 
+    apply WF_adjoint.
+    apply H3. 
+    apply H3.
+}
+reflexivity. reflexivity.
+cut (V × V† = ∣0⟩⟨0∣ ⊗ (P00 × (P00) †) .+ ∣0⟩⟨1∣ ⊗ (P00 × (P10) †)
+.+ ∣1⟩⟨0∣ ⊗ (P10 × (P00) †) .+ ∣1⟩⟨1∣ ⊗ (P10 × (P10) † .+ P11 × (P11) †)).
+cut (V† × V = ∣0⟩⟨0∣ ⊗ ((P00) † × P00 .+ (P10) † × P10) .+ ∣0⟩⟨1∣ ⊗ ((P10) † × P11)
+.+ ∣1⟩⟨0∣ ⊗ ((P11) † × P10) .+ ∣1⟩⟨1∣ ⊗ ((P11) † × P11)).
+intros.
+rewrite <- H7.
+rewrite <- H8.
+destruct H. rewrite H9.
+destruct H6. rewrite adjoint_involutive in H10. rewrite H10. reflexivity.
+{
+    rewrite H4.
+    cut ((∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11) † =
+    ∣0⟩⟨0∣ ⊗ P00† .+ ∣0⟩⟨1∣ ⊗ P10† .+ ∣1⟩⟨0∣ ⊗ P01† .+ ∣1⟩⟨1∣ ⊗ P11† ).
+    intros.
+    rewrite H7 at 1.
+    set (A := ∣0⟩⟨0∣ ⊗ P00† .+ ∣0⟩⟨1∣ ⊗ P10† .+ ∣1⟩⟨0∣ ⊗ P01† .+ ∣1⟩⟨1∣ ⊗ P11†).
+    set (B := (∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11)).
+    rewrite block_multiply with (P00 := (P00) †) (P01 := P10†) (P10 := P01†) (P11 := (P11) †)
+    (Q00 := (P00)) (Q01 := (P01)) (Q10 := (P10)) (Q11 := (P11)).
+    rewrite H5. rewrite zero_adjoint_eq. repeat rewrite Mmult_0_l. repeat rewrite Mmult_0_r.
+    repeat rewrite Mplus_0_l. reflexivity.
+    apply WF_adjoint. apply H0.
+    apply WF_adjoint. apply H2.
+    apply WF_adjoint. apply H1.
+    apply WF_adjoint. apply H3.
+    apply H0. apply H1. apply H2. apply H3.
+    unfold A. reflexivity.
+    unfold B. reflexivity.
+    lma.
+}
+{
+    rewrite H4.
+    cut ((∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11) † =
+    ∣0⟩⟨0∣ ⊗ P00† .+ ∣0⟩⟨1∣ ⊗ P10† .+ ∣1⟩⟨0∣ ⊗ P01† .+ ∣1⟩⟨1∣ ⊗ P11† ).
+    intros.
+    rewrite H7 at 1.
+    set (A := ∣0⟩⟨0∣ ⊗ P00† .+ ∣0⟩⟨1∣ ⊗ P10† .+ ∣1⟩⟨0∣ ⊗ P01† .+ ∣1⟩⟨1∣ ⊗ P11†).
+    set (B := (∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11)).
+    rewrite block_multiply with (Q00 := (P00) †) (Q01 := P10†) (Q10 := P01†) (Q11 := (P11) †)
+    (P00 := (P00)) (P01 := (P01)) (P10 := (P10)) (P11 := (P11)).
+    rewrite H5. rewrite zero_adjoint_eq. repeat rewrite Mmult_0_l. repeat rewrite Mmult_0_r.
+    repeat rewrite Mplus_0_r. reflexivity.
+    apply H0. apply H1. apply H2. apply H3.
+    apply WF_adjoint. apply H0.
+    apply WF_adjoint. apply H2.
+    apply WF_adjoint. apply H1.
+    apply WF_adjoint. apply H3.
+    unfold B. reflexivity.
+    unfold A. reflexivity.
+    lma.
+}
+lca.
+apply transpose_unitary. apply H.
+Qed.
+
+
+
+
 
 lca.
 lma.
-ring. *)
+ring.
