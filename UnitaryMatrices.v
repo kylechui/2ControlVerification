@@ -1169,11 +1169,3 @@ destruct H6. rewrite adjoint_involutive in H10. rewrite H10. reflexivity.
 lca.
 apply transpose_unitary. apply H.
 Qed.
-
-
-
-
-
-lca.
-lma.
-ring.
