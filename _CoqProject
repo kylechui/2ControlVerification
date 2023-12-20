@@ -1,4 +1,8 @@
 -Q . Proof
+# Helper Lemmas
+MatrixHelpers.v
+PartialTraceDefinitions.v
+AlgebraHelpers.v
 # Appendix of proof
 SquareMatrices.v
 UnitaryMatrices.v
