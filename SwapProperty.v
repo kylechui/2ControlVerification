@@ -1,12 +1,24 @@
-From Proof Require Import Real.
-From Proof Require Import Complex.
-From Proof Require Import Matrix.
-From Proof Require Import Qubit.
-From Proof Require Import Multiqubit.
+Require Import QuantumLib.Quantum.
+From Proof Require Import GateHelpers.
+From Proof Require Import SwapHelpers.
 
-Property swap_helper : forall (U : Unitary 4),
-  (I 2 ⊗ SWAP) × (U ⊗ I 2) × (I 2 ⊗ SWAP) ==
-  (SWAP ⊗ I 2) × (I 2 ⊗ U) × (SWAP ⊗ I 2).
+Property swap_helper : forall (U : Square 4),
+  WF_Matrix U -> 
+  acgate U = swapab × bcgate U × swapab.
 Proof.
-  intros. lma. (* Takes a minute *)
+  intros. 
+  apply mat_equiv_eq.
+  apply WF_acgate. apply H.
+  apply WF_mult. apply WF_mult. apply WF_swapab. apply WF_bcgate. apply H. apply WF_swapab.
+  unfold acgate; unfold bcgate; unfold abgate.
+  by_cell.
+  (* The lma that YT used fails, so running lcas by cell. Still takes a while. *)
+  lca. lca. lca. lca. lca. lca. lca. lca.
+  lca. lca. lca. lca. lca. lca. lca. lca.
+  lca. lca. lca. lca. lca. lca. lca. lca.
+  lca. lca. lca. lca. lca. lca. lca. lca.
+  lca. lca. lca. lca. lca. lca. lca. lca.
+  lca. lca. lca. lca. lca. lca. lca. lca.
+  lca. lca. lca. lca. lca. lca. lca. lca.
+  lca. lca. lca. lca. lca. lca. lca. lca.
 Qed.

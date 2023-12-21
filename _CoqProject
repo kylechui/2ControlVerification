@@ -5,6 +5,7 @@ PartialTraceDefinitions.v
 AlgebraHelpers.v
 SwapHelpers.v
 GateHelpers.v
+SwapProperty.v
 
 # Appendix of proof
 SquareMatrices.v
