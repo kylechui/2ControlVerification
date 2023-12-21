@@ -23,19 +23,10 @@
           sha256 = "sha256-YVDFLYAMFEfimIa1D6399z6Lo7RgSRJXrgEp2IEDQ0E=";
         };
 
-        useDune = true;
-        buildInputs = [ pkgs.dune_2 pkgs.ocaml ];
-        installPhase = ''
-          runHook preInstall
-          dune install coq-quantumlib --prefix=$out
-          mv $out/lib/coq $out/lib/TEMPORARY
-          mkdir $out/lib/coq/
-          mv $out/lib/TEMPORARY $out/lib/coq/${pkgs.coq.coq-version}
-          runHook postInstall
-        '';
+        useDune2 = true;
       };
     in {
       devShell.${system} =
-        pkgs.mkShell { nativeBuildInputs = [ pkgs.coq coq_quantum_lib ]; };
+        pkgs.mkShell { packages = [ pkgs.coq coq_quantum_lib ]; };
     };
 }
