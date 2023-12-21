@@ -1,98 +1,62 @@
-From Proof Require Import Matrix.
-From Proof Require Import Qubit.
-From Proof Require Import Multiqubit.
-From Proof Require Import HelperProperties.
+Require Import QuantumLib.Quantum.
+From Proof Require Import SwapHelpers.
+From Proof Require Import GateHelpers.
 From Proof Require Import SwapProperty.
-From Proof Require Import Definitions.
-Lemma a7 : forall (a b : Vector 2),
-  SWAP × (a ⊗ b) == b ⊗ a.
-Proof.
-  lma.
-Qed.
-
-Lemma a7_a : forall (a b c : Vector 2),
-  (I 2 ⊗ SWAP) × (a ⊗ b ⊗ c) == (a ⊗ c ⊗ b).
+Lemma a10 : forall (a b : Vector 2),
+  WF_Matrix a -> WF_Matrix b -> 
+  swap × (a ⊗ b) = b ⊗ a.
 Proof.
   intros.
-  rewrite kron_assoc_vect.
-  rewrite kron_mixed_product.
-  rewrite Mmult_1_l.
-  rewrite a7.
-  lma.
+  apply mat_equiv_eq.
+  apply WF_mult.
+  apply WF_swap.
+  apply WF_kron. reflexivity. reflexivity. apply H. apply H0.
+  apply WF_kron. reflexivity. reflexivity. apply H0. apply H.
+  by_cell.
+  lca. lca. lca. lca.
 Qed.
 
-Lemma a8 : forall (A B : Unitary 2),
-  SWAP × (A ⊗ B) × SWAP == B ⊗ A.
-Proof.
-  lma.
-Qed.
-
-Definition SWAPBC := I 2 ⊗ SWAP.
-
-Lemma a8_a : forall (A B C : Matrix 2 2),
-  SWAPBC × (A ⊗ B ⊗ C) × SWAPBC == (A ⊗ C ⊗ B).
+Lemma a11 : forall (A B : Square 2),
+  WF_Matrix A -> WF_Matrix B ->
+  swap × (A ⊗ B) × swap = B ⊗ A.
 Proof.
   intros.
-  rewrite kron_assoc_mat.
-  rewrite (kron_mixed_product (I 2) SWAP A (B ⊗ C)).
-  rewrite Mmult_1_l.
-  rewrite (kron_mixed_product A (SWAP × (B ⊗ C)) (I 2) SWAP).
-  rewrite Mmult_1_r.
-  rewrite a8.
-  rewrite <- kron_assoc_mat.
-  reflexivity.
+  apply mat_equiv_eq.
+  apply WF_mult. apply WF_mult.
+  apply WF_swap.
+  apply WF_kron. reflexivity. reflexivity. apply H. apply H0.
+  apply WF_swap.
+  apply WF_kron. reflexivity. reflexivity. apply H0. apply H.
+  by_cell.
+  lca. lca. lca. lca. lca. lca. lca. lca.
+  lca. lca. lca. lca. lca. lca. lca. lca.
 Qed.
 
-Definition SWAPAB := SWAP ⊗ I 2.
-
-Lemma a8_b : forall (A B C : Matrix 2 2),
-  SWAPAB × (A ⊗ B ⊗ C) × SWAPAB == (B ⊗ A ⊗ C).
+Lemma a12 : forall (U : Square 4),
+  WF_Matrix U -> swapab × acgate U × swapab = bcgate U.
 Proof.
-  intros.
-  rewrite (kron_mixed_product SWAP (I 2) (A ⊗ B) C).
-  rewrite Mmult_1_l.
-  rewrite (kron_mixed_product (SWAP × (A ⊗ B)) C SWAP (I 2)).
-  rewrite Mmult_1_r.
-  rewrite a8.
-  reflexivity.
+intros.
+apply mat_equiv_eq.
+apply WF_mult. apply WF_mult. apply WF_swapab. apply WF_acgate. apply H. apply WF_swapab.
+apply WF_bcgate. apply H.
+unfold acgate. unfold swapbc. unfold abgate.
+rewrite swap_helper.
+fold swapab.
+rewrite <- Mmult_assoc.
+rewrite <- Mmult_assoc with (A:= swapab) (B:= swapab) (C:=(I 2 ⊗ U)).
+rewrite swapab_inverse. 
+rewrite Mmult_1_l.
+rewrite Mmult_assoc.
+rewrite swapab_inverse at 1.
+rewrite Mmult_1_r.
+unfold bcgate.
+apply mat_equiv_refl.
+apply WF_kron. reflexivity. reflexivity. apply WF_I. apply H.
+apply WF_kron. reflexivity. reflexivity. apply WF_I. apply H.
+apply H.
 Qed.
 
-Definition SWAPAC := SWAPBC × SWAPAB × SWAPBC.
-
-Lemma a8_c : forall (A B C : Square 2), 
-  SWAPAC × (A ⊗ B ⊗ C) × SWAPAC == (C ⊗ B ⊗ A).
-Proof. 
-  intros.
-  unfold SWAPAC.
-  rewrite <- Mmult_assoc.
-  rewrite <- Mmult_assoc.
-  rewrite Mmult_assoc with (A := SWAPBC × SWAPAB).
-  rewrite Mmult_assoc with (A := SWAPBC × SWAPAB).
-  rewrite a8_a.
-  rewrite Mmult_assoc with (A := SWAPBC).
-  rewrite Mmult_assoc with (A := SWAPBC).
-  rewrite a8_b.
-  rewrite a8_a.
-  reflexivity.
-Qed.
-
-Lemma a9 : forall (V : Unitary 4),
-  SWAPAB × SWAPBC × (V ⊗ I 2) × SWAPBC × SWAPAB == (I 2 ⊗ V).
-Proof.
-  intros.
-  rewrite (Mmult_assoc (SWAP ⊗ I 2)).
-  rewrite (Mmult_assoc (SWAP ⊗ I 2)).
-  rewrite swap_helper.
-  repeat rewrite <- Mmult_assoc.
-  assert (H : SWAP ⊗ I 2 × (SWAP ⊗ I 2) == I 8). lma.
-  rewrite H.
-  rewrite Mmult_1_l.
-  rewrite (Mmult_assoc (I 2 ⊗ V)).
-  rewrite H.
-  rewrite Mmult_1_r.
-  reflexivity.
-Qed.
-
+(* 
 (* TODO: This proof has changed between versions. Is it better to outline the steps in the proof, 
 if lma is sufficient to verify the lemma? *)
 Lemma a10_1 : forall (D: Unitary 2), SWAPAB × CCU (D) × SWAPAB  == CCU (D).
@@ -157,4 +121,4 @@ assert (Main3 : SWAPAC × (∣ 1 ⟩ × (∣ 1 ⟩) † ⊗ (∣ 1 ⟩ × (∣ 1
 }
 rewrite Main3.
 lma.
-Qed.
+Qed. *)
