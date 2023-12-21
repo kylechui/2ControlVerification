@@ -253,9 +253,26 @@ split.
 }
 Qed.
 
-(* TODO: figure this out *)
-Lemma neq_implies_const_div_neq: forall (i j m: nat), (m <> 0)%nat -> ~ eq_nat i j -> (i / m)%nat <> (j / m)%nat.
-Proof. Admitted.
+Lemma neq_implies_const_div_neq: forall (i j m: nat), (m <> 0)%nat -> (i <> j)%nat -> (i / m <> j / m)%nat \/ (i mod m <> j mod m)%nat.
+Proof.
+  intros.
+  assert (H1 : ({i mod m = j mod m} + {i mod m <> j mod m})%nat).
+  {
+    intros.
+    apply Nat.eq_dec.
+  }
+  destruct H1 as [H1|H1].
+  - left.
+    intro.
+    apply H0.
+    rewrite Nat.div_mod with (x := i) (y := m). 2: assumption.
+    rewrite Nat.div_mod with (x := j) (y := m). 2: assumption.
+    rewrite H2.
+    rewrite H1.
+    reflexivity.
+  - right.
+    assumption.
+Qed.
 
 Lemma kron_I {n m : nat} : (n > 0)%nat -> (m > 0)%nat -> I n ⊗ I m = I (n * m).
 Proof.
@@ -319,19 +336,28 @@ destruct (eq_nat_decide i j) as [Heq | Hneq].
     intros.
     rewrite H1.
     unfold kron.
-    unfold I at 1.
-    cut (((i / m =? j / m) && (i / m <? n)) = false).
+    unfold I.
+    cut (((i / m =? j / m) && (i / m <? n)) = false \/ (i mod m =? j mod m) && (i mod m <? m) = false).
     intros.
+    destruct H2.
     rewrite H2.
     lca.
-    cut ((i / m =? j / m) = false).
-    intros.
     rewrite H2.
+    lca.
+    cut ((i / m =? j / m) = false \/ (i mod m =? j mod m) = false).
+    intros.
+    destruct H2.
+    rewrite H2.
+    left.
     apply Coq.Bool.Bool.andb_false_l.
-    apply Nat.eqb_neq.
-    revert Hneq.
+    rewrite H2.
+    right.
+    apply Coq.Bool.Bool.andb_false_l.
+    rewrite Nat.eqb_neq. rewrite Nat.eqb_neq.
     apply neq_implies_const_div_neq.
     lia.
+    rewrite eq_nat_is_eq in Hneq.
+    assumption.
     cut ((i =? j) = false).
     intros.
     rewrite H1.
