@@ -1,8 +1,11 @@
 -Q . Proof
-# Helper Lemmas
+# Helper Lemmas and Definitions
 MatrixHelpers.v
 PartialTraceDefinitions.v
 AlgebraHelpers.v
+SwapHelpers.v
+GateHelpers.v
+
 # Appendix of proof
 SquareMatrices.v
 UnitaryMatrices.v
