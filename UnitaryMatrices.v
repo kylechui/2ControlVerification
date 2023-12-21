@@ -549,3 +549,49 @@ destruct H6. rewrite adjoint_involutive in H10. rewrite H10. reflexivity.
 lca.
 apply transpose_unitary. apply H.
 Qed.
+
+Lemma a9_left: forall (V : Square 4) (P00 P01 P10 P11 : Square 2),
+WF_Unitary V -> WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 ->
+V = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 ->
+P10 = Zero -> P01 = Zero.
+Proof.
+intros.
+rewrite <- adjoint_involutive at 1. rewrite <- adjoint_involutive.
+apply Madjoint_simplify.
+rewrite zero_adjoint_eq.
+cut (P10 † = Zero).
+intros.
+set (U := ∣0⟩⟨0∣ ⊗ (P00 †) .+ ∣0⟩⟨1∣ ⊗ (P10 †) .+ ∣1⟩⟨0∣ ⊗ (P01 †) .+ ∣1⟩⟨1∣ ⊗ (P11 †)).
+apply a9_right with (V := U) (P00 := P00 †) (P01 := P10 †) (P10 := P01 †) (P11 := P11 †).
+assert (Step1: U = V†).
+{
+    unfold U. rewrite H4. lma.
+}
+rewrite Step1. clear Step1.
+apply transpose_unitary. apply H.
+apply WF_adjoint. apply H0.
+apply WF_adjoint. apply H2.
+apply WF_adjoint. apply H1.
+apply WF_adjoint. apply H3.
+trivial.
+apply H6.
+rewrite H5. rewrite zero_adjoint_eq. reflexivity.
+Qed.
+
+Lemma a9: forall (V : Square 4) (P00 P01 P10 P11 : Square 2),
+WF_Unitary V -> WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 ->
+V = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 ->
+P01 = Zero <-> P10 = Zero.
+Proof.
+split.
+{
+    intros.
+    apply a9_right with (V:= V) (P00 := P00) (P01 := P01) (P10 := P10) (P11 := P11).
+    apply H. apply H0. apply H1. apply H2. apply H3. apply H4. apply H5.
+}
+{
+    intros.
+    apply a9_left with (V:= V) (P00 := P00) (P01 := P01) (P10 := P10) (P11 := P11).
+    apply H. apply H0. apply H1. apply H2. apply H3. apply H4. apply H5.
+}
+Qed.
