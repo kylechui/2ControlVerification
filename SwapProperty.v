@@ -1,12 +1,28 @@
-From Proof Require Import Real.
-From Proof Require Import Complex.
-From Proof Require Import Matrix.
-From Proof Require Import Qubit.
-From Proof Require Import Multiqubit.
+Require Import QuantumLib.Quantum.
 
-Property swap_helper : forall (U : Unitary 4),
-  (I 2 ⊗ SWAP) × (U ⊗ I 2) × (I 2 ⊗ SWAP) ==
-  (SWAP ⊗ I 2) × (I 2 ⊗ U) × (SWAP ⊗ I 2).
+(* used no helper definitions to remove all dependences from this *)
+Property swap_helper : forall (U : Square 4),
+  WF_Matrix U -> 
+  (I 2 ⊗ swap) × (U ⊗ I 2) × (I 2 ⊗ swap) = (swap ⊗ I 2) × (I 2 ⊗ U) × (swap ⊗ I 2).
 Proof.
-  intros. lma. (* Takes a minute *)
+  intros. 
+  apply mat_equiv_eq.
+  apply WF_mult. apply WF_mult.
+  apply WF_kron. reflexivity. reflexivity. apply WF_I. apply WF_swap.
+  apply WF_kron. reflexivity. reflexivity. apply H. apply WF_I.
+  apply WF_kron. reflexivity. reflexivity. apply WF_I. apply WF_swap.
+  apply WF_mult. apply WF_mult.
+  apply WF_kron. reflexivity. reflexivity. apply WF_swap. apply WF_I.
+  apply WF_kron. reflexivity. reflexivity. apply WF_I. apply H.
+  apply WF_kron. reflexivity. reflexivity. apply WF_swap. apply WF_I.
+  by_cell.
+  (* The lma that YT used fails, so running lcas by cell. Still takes a while. *)
+  lca. lca. lca. lca. lca. lca. lca. lca.
+  lca. lca. lca. lca. lca. lca. lca. lca.
+  lca. lca. lca. lca. lca. lca. lca. lca.
+  lca. lca. lca. lca. lca. lca. lca. lca.
+  lca. lca. lca. lca. lca. lca. lca. lca.
+  lca. lca. lca. lca. lca. lca. lca. lca.
+  lca. lca. lca. lca. lca. lca. lca. lca.
+  lca. lca. lca. lca. lca. lca. lca. lca.
 Qed.
