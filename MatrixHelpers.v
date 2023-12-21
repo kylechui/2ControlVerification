@@ -286,49 +286,44 @@ destruct (eq_nat_decide i j) as [Heq | Hneq].
     apply eq_nat_is_eq in Heq.
     rewrite Heq.
     unfold I at 3.
-    cut ((j =? j) = true).
-    intros H1.
-    rewrite H1.
+    rewrite Nat.eqb_refl.
     simpl.
     destruct (j <? n * m) eqn:Hlt.
     {
         unfold kron.
         unfold I.
-        cut ((j / m =? j / m) = true).
-        cut ((j mod m =? j mod m) = true).
+        rewrite Nat.eqb_refl.
+        rewrite Nat.eqb_refl.
+        simpl.
         cut ((j / m <? n) = true).
         cut ((j mod m <? m) = true).
-        intros H2 H3 H4 H5.
-        rewrite H2. rewrite H3. rewrite H4. rewrite H5.
+        intros H4 H5.
+        rewrite H4. rewrite H5.
         simpl. lca.
         apply Nat.ltb_lt.
         apply Nat.mod_upper_bound.
         lia.
         apply Nat.ltb_lt. apply Nat.ltb_lt in Hlt.
         apply Nat.div_lt_upper_bound.
-        lia. rewrite Nat.mul_comm. apply Hlt.
-        apply Nat.eqb_refl. apply Nat.eqb_refl.
+        lia. rewrite Nat.mul_comm.
+        apply Hlt.
     }
     {
         apply Nat.ltb_ge in Hlt.
         unfold kron. unfold I at 1.
-        cut ((j / m =? j / m) && (j / m <? n) = false).
-        intros.
-        rewrite H2.
-        lca.
         cut ((j / m <? n) = false).
         intros.
-        rewrite H2.
-        apply Coq.Bool.Bool.andb_false_r.
+        rewrite H1.
+        rewrite Coq.Bool.Bool.andb_false_r.
+        lca.
         apply Nat.ltb_ge.
-        cut ((n = (n*m)/m)%nat).
+        cut ((n = (n * m) / m)%nat).
         intros.
-        rewrite H2.
+        rewrite H1.
         apply Nat.div_le_mono.
         lia. apply Hlt.
         rewrite Nat.div_mul; try lia.
     }
-    apply Nat.eqb_refl.
 }
 {
     unfold I at 3.
