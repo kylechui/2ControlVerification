@@ -315,7 +315,7 @@ destruct H3.
 }
 Qed.
 
-Lemma a9_2q_a : forall (P : Square 2) (Q: Square 2),
+Lemma a7_2q_a : forall (P : Square 2) (Q: Square 2),
     WF_Matrix Q ->
     partial_trace_2q_a (P ⊗ Q) = (trace P) .* Q.
 Proof.
@@ -325,22 +325,70 @@ apply WF_partial_trace_2q_a.
 apply WF_scale.
 apply H.
 by_cell.
-{
-    unfold partial_trace_2q_a; unfold kron; unfold trace; unfold scale.
-    lca.
-}
-{
-    unfold partial_trace_2q_a; unfold kron; unfold trace; unfold scale.
-    lca.
-}
-{
-    unfold partial_trace_2q_a; unfold kron; unfold trace; unfold scale.
-    lca.
-}
-{
-    unfold partial_trace_2q_a; unfold kron; unfold trace; unfold scale.
-    lca.
-}
+unfold partial_trace_2q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_2q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_2q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_2q_a; unfold kron; unfold trace; unfold scale. lca.
+Qed.
+
+Lemma a7_3q_a : forall (A B C: Square 2),
+    WF_Matrix B -> WF_Matrix C ->
+    partial_trace_3q_a (A ⊗ B ⊗ C) = (trace A) .* (B ⊗ C).
+Proof.
+intros.
+apply mat_equiv_eq.
+apply WF_partial_trace_3q_a.
+apply WF_scale.
+apply WF_kron.
+lia. lia.
+apply H. apply H0.
+by_cell.
+unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
+Qed.
+
+Lemma a7_3q_c : forall (A B C: Square 2),
+    WF_Matrix A -> WF_Matrix B ->
+    partial_trace_3q_c (A ⊗ B ⊗ C) = (trace C) .* (A ⊗ B).
+Proof.
+intros.
+apply mat_equiv_eq.
+apply WF_partial_trace_3q_c.
+apply WF_scale.
+apply WF_kron.
+lia. lia.
+apply H. apply H0.
+by_cell.
+unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
+unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
 Qed.
 
 Lemma a8 : forall (Q : Square 2),
