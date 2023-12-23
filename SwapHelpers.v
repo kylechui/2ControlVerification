@@ -95,3 +95,76 @@ rewrite <- swapab_inverse.
 apply mat_equiv_refl.
 apply WF_swapab. apply WF_swapbc.
 Qed.
+
+Lemma swap_2q : forall (A B : Square 2),
+  WF_Matrix A -> WF_Matrix B ->
+  swap × (A ⊗ B) × swap = B ⊗ A.
+Proof.
+  intros.
+  apply mat_equiv_eq.
+  apply WF_mult. apply WF_mult.
+  apply WF_swap.
+  apply WF_kron. reflexivity. reflexivity. apply H. apply H0.
+  apply WF_swap.
+  apply WF_kron. reflexivity. reflexivity. apply H0. apply H.
+  by_cell.
+  lca. lca. lca. lca. lca. lca. lca. lca.
+  lca. lca. lca. lca. lca. lca. lca. lca.
+Qed.
+
+Lemma swapab_3q : forall (A B C : Square 2), WF_Matrix A -> WF_Matrix B -> WF_Matrix C -> swapab × (A ⊗ B ⊗ C) × swapab = (B ⊗ A ⊗ C).
+Proof. 
+intros.
+unfold swapab.
+rewrite kron_mixed_product.
+rewrite Mmult_1_l. 2: apply H1.
+rewrite kron_mixed_product.
+rewrite Mmult_1_r. 2: apply H1.
+rewrite swap_2q. 3: apply H0. 2: apply H.
+reflexivity.
+Qed.
+
+Lemma swapbc_3q : forall (A B C : Square 2), WF_Matrix A -> WF_Matrix B -> WF_Matrix C -> swapbc × (A ⊗ B ⊗ C) × swapbc = (A ⊗ C ⊗ B).
+Proof. 
+intros.
+unfold swapbc.
+rewrite kron_assoc. 4: apply H1. 3: apply H0. 2: apply H.
+rewrite Mmult_assoc.
+assert (A ⊗ (B ⊗ C) × (I 2 ⊗ swap) = (A × I 2) ⊗ ((B ⊗ C) × swap)).
+{
+    apply kron_mixed_product.
+}
+rewrite H2 at 1.
+rewrite Mmult_1_r. 2: apply H.
+assert (I 2 ⊗ swap × (A ⊗ (B ⊗ C × swap)) =
+(I 2 × A) ⊗ (swap × (B ⊗ C × swap))).
+{
+    apply kron_mixed_product.
+}
+rewrite H3 at 1.
+rewrite Mmult_1_l. 2: apply H.
+rewrite <- Mmult_assoc.
+rewrite swap_2q. 3: apply H1. 2: apply H0.
+rewrite <- kron_assoc. 4: apply H0. 3: apply H1. 2: apply H. 
+reflexivity.
+Qed.
+
+Lemma swapac_3q : forall (A B C : Square 2), WF_Matrix A -> WF_Matrix B -> WF_Matrix C -> swapac × (A ⊗ B ⊗ C) × swapac = (C ⊗ B ⊗ A).
+Proof.
+intros.
+unfold swapac.
+repeat rewrite <- Mmult_assoc.
+rewrite Mmult_assoc. rewrite Mmult_assoc. rewrite Mmult_assoc. rewrite Mmult_assoc.
+rewrite <- Mmult_assoc with (A:=swapab) (B:= A ⊗ B ⊗ C) (C:= (swapab × (swapbc × swapab))).
+rewrite <- Mmult_assoc with (A := swapab) (B:= swapbc) (C:= swapab).
+rewrite <- Mmult_assoc with (A:= swapab × (A ⊗ B ⊗ C)) (B :=swapab × swapbc) (C:= swapab).
+rewrite <- Mmult_assoc with (A:= swapab × (A ⊗ B ⊗ C)) (B :=swapab) (C:= swapbc).
+rewrite swapab_3q. 4: apply H1. 3: apply H0. 2: apply H.
+rewrite Mmult_assoc.
+rewrite <- Mmult_assoc with (A:=swapbc) (B:= B ⊗ A ⊗ C × swapbc) (C:= swapab).
+rewrite <- Mmult_assoc with (A:=swapab) (B:= swapbc × (B ⊗ A ⊗ C × swapbc)) (C:= swapab).
+rewrite <- Mmult_assoc with (A:= swapbc) (B:= B ⊗ A ⊗ C) (C:= swapbc).
+rewrite swapbc_3q. 4: apply H1. 3: apply H. 2: apply H0.
+rewrite swapab_3q. 4: apply H. 3: apply H1. 2: apply H0.
+reflexivity.
+Qed.  

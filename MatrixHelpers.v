@@ -1,5 +1,44 @@
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
+
+Definition diag2 (c1 c2 : C) : Square 2 :=
+    fun x y =>
+    match (x,y) with
+    | (0,0) => c1
+    | (1,1) => c2
+    | _ => C0
+    end.
+
+Lemma WF_diag2: forall (c1 c2 : C), WF_Matrix (diag2 c1 c2).
+Proof.
+unfold WF_Matrix.
+intros.
+destruct H.
+{
+    unfold diag2.
+    destruct x as [|x'].
+    contradict H.
+    lia.
+    destruct x' as [|x''].
+    contradict H.
+    lia. reflexivity.
+}
+{
+    unfold diag2.
+    destruct x as [|x'].
+    destruct y as [|y'].
+    contradict H.
+    lia. reflexivity.
+    destruct x' as [|x''].
+    destruct y as [|y'].
+    contradict H.
+    lia.
+    destruct y' as [|y''].
+    contradict H.
+    lia. reflexivity. reflexivity.
+}
+Qed.
+
 Lemma kron_0_vec2_equiv: forall (B C : Vector 2),
 WF_Matrix B -> WF_Matrix C -> ∣0⟩ ⊗ B = ∣0⟩ ⊗ C -> B = C.
 Proof.
@@ -254,6 +293,7 @@ split.
 Qed.
 
 Lemma neq_implies_const_div_neq: forall (i j m: nat), (m <> 0)%nat -> (i <> j)%nat -> (i / m <> j / m)%nat \/ (i mod m <> j mod m)%nat.
+(* Thanks Kyle *)
 Proof.
   intros.
   assert (H1 : ({i mod m = j mod m} + {i mod m <> j mod m})%nat).
