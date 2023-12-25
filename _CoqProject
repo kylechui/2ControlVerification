@@ -6,8 +6,10 @@ AlgebraHelpers.v
 SwapHelpers.v
 GateHelpers.v
 SwapProperty.v
+QubitHelpers.v
 
 # Appendix of proof
 SquareMatrices.v
 UnitaryMatrices.v
 Swaps.v
+Vectors.v
