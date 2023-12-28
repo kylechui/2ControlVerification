@@ -224,81 +224,75 @@ destruct (eq_nat_decide i j) as [Heq | Hneq].
 {
     apply eq_nat_is_eq in Heq.
     rewrite Heq.
-    unfold I at 3.
+    unfold I at 3, kron.
     rewrite Nat.eqb_refl.
     simpl.
     destruct (j <? n * m) eqn:Hlt.
     {
-        unfold kron.
         unfold I.
-        rewrite Nat.eqb_refl.
-        rewrite Nat.eqb_refl.
-        simpl.
-        cut ((j / m <? n) = true).
-        cut ((j mod m <? m) = true).
-        intros H4 H5.
-        rewrite H4. rewrite H5.
-        simpl. lca.
-        apply Nat.ltb_lt.
-        apply Nat.mod_upper_bound.
-        lia.
-        apply Nat.ltb_lt. apply Nat.ltb_lt in Hlt.
-        apply Nat.div_lt_upper_bound.
-        lia. rewrite Nat.mul_comm.
-        apply Hlt.
+        rewrite Nat.eqb_refl. rewrite Nat.eqb_refl. simpl.
+        assert ((j / m <? n) = true). 
+        {
+            apply Nat.ltb_lt. apply Nat.ltb_lt in Hlt.
+            apply Nat.div_lt_upper_bound. lia.
+            rewrite Nat.mul_comm.
+            apply Hlt.
+        }
+        rewrite H1.
+        assert ((j mod m <? m) = true).
+        {
+            apply Nat.ltb_lt.
+            apply Nat.mod_upper_bound. lia. 
+        }
+        rewrite H2.
+        lca.
     }
     {
         apply Nat.ltb_ge in Hlt.
-        unfold kron. unfold I at 1.
-        cut ((j / m <? n) = false).
-        intros.
-        rewrite H1.
+        unfold I at 1.
+        assert ((n = (n * m) / m)%nat). rewrite Nat.div_mul; try lia.
+        assert ((j / m <? n) = false).
+        {
+            apply Nat.ltb_ge.
+            rewrite H1.
+            apply Nat.div_le_mono. lia.
+            apply Hlt.
+        }
+        rewrite H2.
         rewrite Coq.Bool.Bool.andb_false_r.
         lca.
-        apply Nat.ltb_ge.
-        cut ((n = (n * m) / m)%nat).
-        intros.
-        rewrite H1.
-        apply Nat.div_le_mono.
-        lia. apply Hlt.
-        rewrite Nat.div_mul; try lia.
     }
 }
 {
+    rewrite eq_nat_is_eq in Hneq.
     unfold I at 3.
-    cut ((i =? j) && (i <? n * m) = false).
-    intros.
+    assert ((i =? j) = false).
+    {
+        apply Nat.eqb_neq.
+        assumption.
+    }
+    assert ((i =? j) && (i <? n * m) = false). 
+    {
+        rewrite H1.
+        apply Coq.Bool.Bool.andb_false_l.
+    }
     rewrite H1.
     unfold kron.
     unfold I.
-    cut (((i / m =? j / m) && (i / m <? n)) = false \/ (i mod m =? j mod m) && (i mod m <? m) = false).
-    intros.
-    destruct H2.
-    rewrite H2.
-    lca.
-    rewrite H2.
-    lca.
-    cut ((i / m =? j / m) = false \/ (i mod m =? j mod m) = false).
-    intros.
-    destruct H2.
-    rewrite H2.
-    left.
-    apply Coq.Bool.Bool.andb_false_l.
-    rewrite H2.
-    right.
-    apply Coq.Bool.Bool.andb_false_l.
-    rewrite Nat.eqb_neq. rewrite Nat.eqb_neq.
-    apply neq_implies_const_div_neq.
-    lia.
-    rewrite eq_nat_is_eq in Hneq.
-    assumption.
-    cut ((i =? j) = false).
-    intros.
-    rewrite H1.
-    apply Coq.Bool.Bool.andb_false_l.
-    apply Nat.eqb_neq.
-    unfold not in Hneq.
-    rewrite eq_nat_is_eq in Hneq.
-    trivial.
+    assert ((i / m =? j / m) = false \/ (i mod m =? j mod m) = false).
+    {
+        rewrite Nat.eqb_neq. rewrite Nat.eqb_neq.
+        apply neq_implies_const_div_neq. lia.
+        assumption.
+    }
+    assert (((i / m =? j / m) && (i / m <? n)) = false \/ (i mod m =? j mod m) && (i mod m <? m) = false).
+    {
+        destruct H3.
+        rewrite H3. left. apply Coq.Bool.Bool.andb_false_l.
+        rewrite H3. right. apply Coq.Bool.Bool.andb_false_l.
+    }
+    destruct H4.
+    rewrite H4. lca.
+    rewrite H4. lca.
 }
 Qed.
