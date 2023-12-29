@@ -8,13 +8,7 @@ Lemma a10 : forall (a b : Vector 2),
   swap × (a ⊗ b) = b ⊗ a.
 Proof.
   intros.
-  apply mat_equiv_eq.
-  apply WF_mult.
-  apply WF_swap.
-  apply WF_kron. reflexivity. reflexivity. apply H. apply H0.
-  apply WF_kron. reflexivity. reflexivity. apply H0. apply H.
-  by_cell.
-  lca. lca. lca. lca.
+  lma'.
 Qed.
 
 Lemma a11 : forall (A B : Square 2),
@@ -29,20 +23,17 @@ Lemma a12 : forall (U : Square 4),
 Proof.
 intros.
 unfold acgate. unfold swapbc. unfold abgate.
-rewrite swap_helper.
+rewrite swap_helper. 2: apply H.
 fold swapab.
 rewrite <- Mmult_assoc.
 rewrite <- Mmult_assoc with (A:= swapab) (B:= swapab) (C:=(I 2 ⊗ U)).
 rewrite swapab_inverse. 
 rewrite Mmult_assoc.
 rewrite Mmult_1_l.
-rewrite swapab_inverse at 1.
-rewrite Mmult_1_r.
+rewrite swapab_inverse at 1. 2: solve_WF_matrix.
+rewrite Mmult_1_r. 2: solve_WF_matrix.
 unfold bcgate.
 reflexivity.
-apply WF_kron. reflexivity. reflexivity. apply WF_I. apply H.
-apply WF_kron. reflexivity. reflexivity. apply WF_I. apply H.
-apply H.
 Qed.
 
 Lemma a10_1 : forall (D: Square 2), WF_Matrix D -> swapab × ccu (D) × swapab  = ccu (D).
@@ -69,10 +60,8 @@ assert (Help : ccu (diag2 1 c1) =
 {
   lma'.
   apply WF_ccu. apply WF_diag2.
-  apply WF_plus. apply WF_kron. reflexivity. reflexivity. apply WF_braqubit0. apply WF_I.
-  apply WF_kron. reflexivity. reflexivity. apply WF_braqubit1.
-  apply WF_control. apply WF_diag2.
-  unfold ccu. unfold diag2. unfold control.
+  solve_WF_matrix. apply WF_diag2.
+  unfold ccu, diag2, control.
   lca.
 }
 rewrite Help; clear Help.
@@ -81,9 +70,8 @@ repeat rewrite Mmult_plus_distr_r.
 assert (Help : control (diag2 1 c1) = ∣0⟩⟨0∣ ⊗ I 2 .+ ∣1⟩⟨1∣ ⊗ diag2 1 c1).
 {
   lma'.
-  apply WF_control. apply WF_diag2. 
-  apply WF_plus. apply WF_kron. reflexivity. reflexivity. apply WF_braqubit0. apply WF_I.
-  apply WF_kron. reflexivity. reflexivity. apply WF_braqubit1. apply WF_diag2.
+  apply WF_control. apply WF_diag2.
+  solve_WF_matrix. apply WF_diag2. 
   unfold control, diag2.  lca.
 }
 rewrite Help; clear Help.
@@ -119,18 +107,6 @@ diag2 C1 c1 ⊗ ∣1⟩⟨1∣ ⊗ ∣1⟩⟨1∣).
   apply swapac_3q. 3: apply WF_diag2. 2: apply WF_braqubit1. apply WF_braqubit1.
 }
 rewrite Main3 at 1.
-lma'.
-{
-  apply WF_plus. apply WF_plus.
-  apply WF_kron. reflexivity. reflexivity. apply WF_I. apply WF_braqubit0.
-  apply WF_kron. reflexivity. reflexivity. apply WF_kron. reflexivity. reflexivity. apply WF_I. apply WF_braqubit0. apply WF_braqubit1.
-  apply WF_kron. reflexivity. reflexivity. apply WF_kron. reflexivity. reflexivity. apply WF_diag2. apply WF_braqubit1. apply WF_braqubit1.
-}
-{
-  apply WF_plus.
-  apply WF_kron. reflexivity. reflexivity. apply WF_braqubit0. apply WF_I.
-  apply WF_plus.
-  apply WF_kron. reflexivity. reflexivity. apply WF_braqubit1. apply WF_kron. reflexivity. reflexivity.  apply WF_braqubit0. apply WF_I.
-  apply WF_kron. reflexivity. reflexivity. apply WF_braqubit1. apply WF_kron. reflexivity. reflexivity.  apply WF_braqubit1. apply WF_diag2.
-}
+lma'. 2: solve_WF_matrix. 1: solve_WF_matrix.
+apply WF_diag2. apply WF_diag2.
 Qed.
