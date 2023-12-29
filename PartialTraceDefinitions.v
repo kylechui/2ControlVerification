@@ -17,36 +17,23 @@ intros.
 destruct H.
 {
     unfold partial_trace_2q_a.
-    destruct x as [|x'].
-    contradict H.
-    lia.
-    destruct x' as [|x''].
-    contradict H.
-    lia.
+    destruct x as [|x']. contradict H. lia.
+    destruct x' as [|x'']. contradict H. lia.
     reflexivity.
 }
 {
     unfold partial_trace_2q_a.
     destruct x as [|x'].
     {
-        destruct y as [|y'].
-        contradict H.
-        lia.
-        destruct y' as [|y''].
-        contradict H.
-        lia.
+        destruct y as [|y']. contradict H. lia.
+        destruct y' as [|y'']. contradict H. lia.
         reflexivity.
     }
     {
         destruct x' as [|x''].
-        destruct y as [|y'].
-        contradict H.
-        lia.
-        destruct y' as [|y''].
-        contradict H.
-        lia.
-        reflexivity.
-        reflexivity.
+        destruct y as [|y']. contradict H. lia.
+        destruct y' as [|y'']. contradict H. lia.
+        reflexivity. reflexivity.
     }
 }
 Qed.
@@ -55,59 +42,25 @@ Lemma partial_trace_2q_a_linear : forall (c:C) (A B : Square 4),
   partial_trace_2q_a (A .+ c .* B) = partial_trace_2q_a A .+ c .* partial_trace_2q_a B.
 Proof.
 intros.
-apply mat_equiv_eq.
+lma'.
 apply WF_partial_trace_2q_a.
 apply WF_plus.
 apply WF_partial_trace_2q_a.
 apply WF_scale.
 apply WF_partial_trace_2q_a.
-by_cell.
-{
-    unfold partial_trace_2q_a; unfold scale; unfold Mplus.
-    lca.
-}
-{
-    unfold partial_trace_2q_a; unfold scale; unfold Mplus.
-    lca.
-}
-{
-    unfold partial_trace_2q_a; unfold scale; unfold Mplus.
-    lca.
-}
-{
-    unfold partial_trace_2q_a; unfold scale; unfold Mplus.
-    lca.
-}
 Qed.
 
 Lemma partial_trace_2q_a_compat : forall (A B : Square 4),
   A = B -> partial_trace_2q_a A = partial_trace_2q_a B.
 Proof.
 intros.
-apply mat_equiv_eq.
+lma'.
 apply WF_partial_trace_2q_a.
 apply WF_partial_trace_2q_a.
-by_cell.
-{
-    unfold partial_trace_2q_a.
-    rewrite H.
-    reflexivity.
-}
-{
-    unfold partial_trace_2q_a.
-    rewrite H.
-    reflexivity.
-}
-{
-    unfold partial_trace_2q_a.
-    rewrite H.
-    reflexivity.
-}
-{
-    unfold partial_trace_2q_a.
-    rewrite H.
-    reflexivity.
-}
+unfold partial_trace_2q_a. rewrite H. reflexivity.
+unfold partial_trace_2q_a. rewrite H. reflexivity.
+unfold partial_trace_2q_a. rewrite H. reflexivity.
+unfold partial_trace_2q_a. rewrite H. reflexivity.
 Qed.
 
 Definition partial_trace_3q_a (M: Square 8): Square 4 :=
@@ -140,84 +93,44 @@ intros.
 destruct H.
 {
     unfold partial_trace_3q_a.
-    destruct x as [|x'].
-    contradict H.
-    lia.
-    destruct x' as [|x''].
-    contradict H.
-    lia.
-    destruct x'' as [|x'''].
-    contradict H.
-    lia.
-    destruct x''' as [|x''''].
-    contradict H.
-    lia.
+    destruct x as [|x']. contradict H. lia.
+    destruct x' as [|x'']. contradict H. lia.
+    destruct x'' as [|x''']. contradict H. lia.
+    destruct x''' as [|x'''']. contradict H. lia.
     reflexivity.
 }
 {
     unfold partial_trace_3q_a.
     destruct x as [|x'].
     {
-        destruct y as [|y'].
-        contradict H.
-        lia.
-        destruct y' as [|y''].
-        contradict H.
-        lia.
-        destruct y'' as [|y'''].
-        contradict H.
-        lia.
-        destruct y''' as [|y''''].
-        contradict H.
-        lia.
+        destruct y as [|y']. contradict H. lia.
+        destruct y' as [|y'']. contradict H. lia.
+        destruct y'' as [|y''']. contradict H. lia.
+        destruct y''' as [|y'''']. contradict H. lia.
         reflexivity.
     }
     destruct x' as [|x''].
     { 
-        destruct y as [|y'].
-        contradict H.
-        lia.
-        destruct y' as [|y''].
-        contradict H.
-        lia.
-        destruct y'' as [|y'''].
-        contradict H.
-        lia.
-        destruct y''' as [|y''''].
-        contradict H.
-        lia.
+        destruct y as [|y']. contradict H. lia.
+        destruct y' as [|y'']. contradict H. lia.
+        destruct y'' as [|y''']. contradict H. lia.
+        destruct y''' as [|y'''']. contradict H. lia.
         reflexivity.
     }
     destruct x'' as [|x'''].
     { 
-        destruct y as [|y'].
-        contradict H.
-        lia.
-        destruct y' as [|y''].
-        contradict H.
-        lia.
-        destruct y'' as [|y'''].
-        contradict H.
-        lia.
-        destruct y''' as [|y''''].
-        contradict H.
-        lia.
+        destruct y as [|y']. contradict H. lia.
+        destruct y' as [|y'']. contradict H. lia.
+        destruct y'' as [|y''']. contradict H. lia.
+        destruct y''' as [|y'''']. contradict H. lia.
         reflexivity.
     }
     destruct x''' as [|x''''].
     { 
-        destruct y as [|y'].
-        contradict H.
-        lia.
-        destruct y' as [|y''].
-        contradict H.
-        lia.
-        destruct y'' as [|y'''].
-        contradict H.
-        lia.
-        destruct y''' as [|y''''].
-        contradict H.
-        lia.
+        destruct y as [|y']. contradict H. lia.
+        destruct y' as [|y'']. contradict H. lia.
+        destruct y'' as [|y''']. contradict H. lia.
+        destruct y''' as [|y'''']. contradict H. lia.
         reflexivity.
     }
     reflexivity.
@@ -228,39 +141,21 @@ Lemma partial_trace_3q_a_linear : forall (c:C) (A B : Square 4),
   partial_trace_3q_a (A .+ c .* B) = partial_trace_3q_a A .+ c .* partial_trace_3q_a B.
 Proof.
 intros.
-apply mat_equiv_eq.
+lma'.
 apply WF_partial_trace_3q_a.
 apply WF_plus.
 apply WF_partial_trace_3q_a.
 apply WF_scale.
 apply WF_partial_trace_3q_a.
-by_cell.
-unfold partial_trace_3q_a; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_a; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_a; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_a; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_a; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_a; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_a; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_a; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_a; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_a; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_a; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_a; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_a; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_a; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_a; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_a; unfold scale; unfold Mplus. lca.
 Qed.
 
 Lemma partial_trace_3q_a_compat : forall (A B : Square 4),
   A = B -> partial_trace_3q_a A = partial_trace_3q_a B.
 Proof.
 intros.
-apply mat_equiv_eq.
+lma'.
 apply WF_partial_trace_3q_a.
 apply WF_partial_trace_3q_a.
-by_cell.
 unfold partial_trace_3q_a. rewrite H. reflexivity.
 unfold partial_trace_3q_a. rewrite H. reflexivity.
 unfold partial_trace_3q_a. rewrite H. reflexivity.
@@ -309,84 +204,44 @@ intros.
 destruct H.
 {
     unfold partial_trace_3q_c.
-    destruct x as [|x'].
-    contradict H.
-    lia.
-    destruct x' as [|x''].
-    contradict H.
-    lia.
-    destruct x'' as [|x'''].
-    contradict H.
-    lia.
-    destruct x''' as [|x''''].
-    contradict H.
-    lia.
+    destruct x as [|x']. contradict H. lia.
+    destruct x' as [|x'']. contradict H. lia.
+    destruct x'' as [|x''']. contradict H. lia.
+    destruct x''' as [|x'''']. contradict H. lia.
     reflexivity.
 }
 {
     unfold partial_trace_3q_c.
     destruct x as [|x'].
     {
-        destruct y as [|y'].
-        contradict H.
-        lia.
-        destruct y' as [|y''].
-        contradict H.
-        lia.
-        destruct y'' as [|y'''].
-        contradict H.
-        lia.
-        destruct y''' as [|y''''].
-        contradict H.
-        lia.
+        destruct y as [|y']. contradict H. lia.
+        destruct y' as [|y'']. contradict H. lia.
+        destruct y'' as [|y''']. contradict H. lia.
+        destruct y''' as [|y'''']. contradict H. lia.
         reflexivity.
     }
     destruct x' as [|x''].
     { 
-        destruct y as [|y'].
-        contradict H.
-        lia.
-        destruct y' as [|y''].
-        contradict H.
-        lia.
-        destruct y'' as [|y'''].
-        contradict H.
-        lia.
-        destruct y''' as [|y''''].
-        contradict H.
-        lia.
+        destruct y as [|y']. contradict H. lia.
+        destruct y' as [|y'']. contradict H. lia.
+        destruct y'' as [|y''']. contradict H. lia.
+        destruct y''' as [|y'''']. contradict H. lia.
         reflexivity.
     }
     destruct x'' as [|x'''].
     { 
-        destruct y as [|y'].
-        contradict H.
-        lia.
-        destruct y' as [|y''].
-        contradict H.
-        lia.
-        destruct y'' as [|y'''].
-        contradict H.
-        lia.
-        destruct y''' as [|y''''].
-        contradict H.
-        lia.
+        destruct y as [|y']. contradict H. lia.
+        destruct y' as [|y'']. contradict H. lia.
+        destruct y'' as [|y''']. contradict H. lia.
+        destruct y''' as [|y'''']. contradict H. lia.
         reflexivity.
     }
     destruct x''' as [|x''''].
     { 
-        destruct y as [|y'].
-        contradict H.
-        lia.
-        destruct y' as [|y''].
-        contradict H.
-        lia.
-        destruct y'' as [|y'''].
-        contradict H.
-        lia.
-        destruct y''' as [|y''''].
-        contradict H.
-        lia.
+        destruct y as [|y']. contradict H. lia.
+        destruct y' as [|y'']. contradict H. lia.
+        destruct y'' as [|y''']. contradict H. lia.
+        destruct y''' as [|y'''']. contradict H. lia.
         reflexivity.
     }
     reflexivity.
@@ -397,39 +252,21 @@ Lemma partial_trace_3q_c_linear : forall (c:C) (A B : Square 4),
   partial_trace_3q_c (A .+ c .* B) = partial_trace_3q_c A .+ c .* partial_trace_3q_c B.
 Proof.
 intros.
-apply mat_equiv_eq.
+lma'.
 apply WF_partial_trace_3q_c.
 apply WF_plus.
 apply WF_partial_trace_3q_c.
 apply WF_scale.
 apply WF_partial_trace_3q_c.
-by_cell.
-unfold partial_trace_3q_c; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_c; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_c; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_c; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_c; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_c; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_c; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_c; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_c; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_c; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_c; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_c; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_c; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_c; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_c; unfold scale; unfold Mplus. lca.
-unfold partial_trace_3q_c; unfold scale; unfold Mplus. lca.
 Qed.
 
 Lemma partial_trace_3q_c_compat : forall (A B : Square 4),
   A = B -> partial_trace_3q_c A = partial_trace_3q_c B.
 Proof.
 intros.
-apply mat_equiv_eq.
+lma'.
 apply WF_partial_trace_3q_c.
 apply WF_partial_trace_3q_c.
-by_cell.
 unfold partial_trace_3q_c. rewrite H. reflexivity.
 unfold partial_trace_3q_c. rewrite H. reflexivity.
 unfold partial_trace_3q_c. rewrite H. reflexivity.
