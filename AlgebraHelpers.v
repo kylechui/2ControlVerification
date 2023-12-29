@@ -102,128 +102,77 @@ Proof.
 intros.
 unfold Re, Cplus.
 simpl.
-rewrite <- Ropp_mult_distr_l. rewrite <- Ropp_mult_distr_l. rewrite <- Ropp_mult_distr_l.
-assert (Step1: (fst b * fst b - - (snd b * snd b) = fst b * fst b + snd b * snd b)%R). field.
-rewrite Step1. clear Step1.
-assert (Step2: (fst c * fst c - - (snd c * snd c) = fst c * fst c + snd c * snd c)%R). field.
-rewrite Step2. clear Step2.
-assert (Step3: (fst d * fst d - - (snd d * snd d) = fst d * fst d + snd d * snd d)%R). field.
-rewrite Step3. clear Step3.
+unfold Rminus.
+repeat (rewrite <- Ropp_mult_distr_l; rewrite Ropp_involutive).
 apply Rle_ge.
-apply Rplus_le_le_0_compat.
-apply Rplus_le_le_0_compat.
-apply Rle_0_sqr.
-apply Rle_0_sqr.
-apply Rplus_le_le_0_compat.
-apply Rplus_le_le_0_compat.
-apply Rle_0_sqr.
-apply Rle_0_sqr.
-apply Rplus_le_le_0_compat.
-apply Rle_0_sqr.
-apply Rle_0_sqr.
+repeat (try apply Rplus_le_le_0_compat; try apply Rle_0_sqr).
 Qed.
 
 Lemma sum_of_adjoints_im_0: forall (b c d: C),
 Im (b ^* * b + (c ^* * c + d ^* * d)) = 0.
 Proof.
 intros.
-unfold Im, Cplus.
-simpl.
+unfold Im, Cplus. simpl.
 lra.
 Qed.
+
+Lemma sum_of_squared_norms_eq_0_implies_single_0: forall (a b c d: C),
+a ^* * a + b ^* * b + c ^* * c + d ^* * d = 0 -> a = 0.
+Proof.
+intros.
+repeat rewrite <- Cplus_assoc in H.
+set (f := a^* * a).
+set (g := b ^* * b + (c ^* * c + d ^* * d)).
+assert (f+g = 0 -> f = 0).
+{
+    apply sum_of_pos_c_is_0_implies_0.
+    apply conj_mult_re_is_nonneg.
+    apply conj_mult_im_is_0.
+    apply sum_of_adjoints_re_nonneg.
+    apply sum_of_adjoints_im_0.
+}
+apply squared_norm_eq_0_implies_0.
+apply H0.
+apply H.
+Qed.
+
 
 Lemma sum_of_squared_norms_eq_0_implies_0: forall (a b c d: C),
 a ^* * a + b ^* * b + c ^* * c + d ^* * d = 0 -> a = 0 /\ b = 0 /\ c = 0 /\ d= 0.
 Proof.
-intros.
 split.
 {
-    revert H.
-    rewrite <- Cplus_assoc.
-    rewrite <- Cplus_assoc.
-    set (f := a^* * a).
-    set (g := b ^* * b + (c ^* * c + d ^* * d)).
-    cut (f+g = 0 -> f = 0).
-    cut (f = 0 -> a = 0).
-    intros.
+    apply sum_of_squared_norms_eq_0_implies_single_0 with (a:=a) (b:=b) (c:=c) (d:=d).  
     apply H.
-    apply H0.
-    apply H1.
-    apply squared_norm_eq_0_implies_0.
-    apply sum_of_pos_c_is_0_implies_0.
-    apply conj_mult_re_is_nonneg.
-    apply conj_mult_im_is_0.
-    apply sum_of_adjoints_re_nonneg.
-    apply sum_of_adjoints_im_0.
 }
 split.
 {
-    revert H.
     assert (Step1: a ^* * a + b ^* * b + c ^* * c + d ^* * d = b ^* * b + a ^* * a  + c ^* * c + d ^* * d).
     {
         lca.
     }
-    rewrite Step1.
-    rewrite <- Cplus_assoc.
-    rewrite <- Cplus_assoc.
-    set (f := b^* * b).
-    set (g := a ^* * a + (c ^* * c + d ^* * d)).
-    cut (f+g = 0 -> f = 0).
-    cut (f = 0 -> b = 0).
-    intros.
+    rewrite Step1 in H.
+    apply sum_of_squared_norms_eq_0_implies_single_0 with (a:=b) (b:=a) (c:=c) (d:=d).
     apply H.
-    apply H0.
-    apply H1.
-    apply squared_norm_eq_0_implies_0.
-    apply sum_of_pos_c_is_0_implies_0.
-    apply conj_mult_re_is_nonneg.
-    apply conj_mult_im_is_0.
-    apply sum_of_adjoints_re_nonneg.
-    apply sum_of_adjoints_im_0.
 }
 split.
 {
-    revert H.
     assert (Step1: a ^* * a + b ^* * b + c ^* * c + d ^* * d = c ^* * c + a ^* * a + b ^* * b + d ^* * d).
     {
         lca.
     }
-    rewrite Step1.
-    rewrite <- Cplus_assoc.
-    rewrite <- Cplus_assoc.
-    set (f := c^* * c).
-    set (g := a ^* * a + (b ^* * b + d ^* * d)).
-    cut (f+g = 0 -> f = 0).
-    cut (f = 0 -> c = 0).
-    intros.
+    rewrite Step1 in H.
+    apply sum_of_squared_norms_eq_0_implies_single_0 with (a:=c) (b:=a) (c:=b) (d:=d).
     apply H.
-    apply H0.
-    apply H1.
-    apply squared_norm_eq_0_implies_0.
-    apply sum_of_pos_c_is_0_implies_0.
-    apply conj_mult_re_is_nonneg.
-    apply conj_mult_im_is_0.
-    apply sum_of_adjoints_re_nonneg.
-    apply sum_of_adjoints_im_0.
 }
 {
-    revert H.
-    rewrite Cplus_comm.
-    rewrite <- Cplus_assoc.
-    set (f := d^* * d).
-    set (g := a ^* * a + (b ^* * b + c ^* * c)).
-    cut (f+g = 0 -> f = 0).
-    cut (f = 0 -> d = 0).
-    intros.
+    assert (Step1: a ^* * a + b ^* * b + c ^* * c + d ^* * d = d ^* * d + a ^* * a + b ^* * b + c ^* * c).
+    {
+        lca.
+    }
+    rewrite Step1 in H.
+    apply sum_of_squared_norms_eq_0_implies_single_0 with (a:=d) (b:=a) (c:=b) (d:=c).
     apply H.
-    apply H0.
-    apply H1.
-    apply squared_norm_eq_0_implies_0.
-    apply sum_of_pos_c_is_0_implies_0.
-    apply conj_mult_re_is_nonneg.
-    apply conj_mult_im_is_0.
-    apply sum_of_adjoints_re_nonneg.
-    apply sum_of_adjoints_im_0.
 }
 Qed.
 
@@ -233,9 +182,8 @@ a + b = a + c -> b = c.
 Proof.
   intros.
   rewrite <- (Cplus_0_l b).
-  rewrite <- (Cplus_0_l c).
   rewrite <- (Cplus_opp_l a).
   rewrite <- Cplus_assoc.
   rewrite H.
-  ring.
+  lca.
 Qed.
