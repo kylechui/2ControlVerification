@@ -7,22 +7,18 @@ Definition swapac := swapab × swapbc × swapab.
 
 Lemma WF_swapab : WF_Matrix swapab.
 Proof.
-apply WF_kron.
-reflexivity. reflexivity.
-apply WF_swap. apply WF_I.
+solve_WF_matrix.
 Qed.
 
 Lemma WF_swapbc : WF_Matrix swapbc.
 Proof.
-apply WF_kron.
-reflexivity. reflexivity.
-apply WF_I. apply WF_swap.
+solve_WF_matrix.
 Qed.
 
 Lemma WF_swapac : WF_Matrix swapac.
 Proof.
-apply WF_mult. apply WF_mult.
-apply WF_swapab. apply WF_swapbc. apply WF_swapab.
+apply WF_mult. solve_WF_matrix.
+apply WF_swapab.
 Qed.
 
 Lemma swapab_unitary : WF_Unitary swapab.
@@ -50,30 +46,24 @@ Qed.
 
 Lemma swapab_inverse : swapab × swapab = I 8.
 Proof.
-apply mat_equiv_eq.
-apply WF_mult. apply WF_swapab. apply WF_swapab.
-apply WF_I.
+apply mat_equiv_eq. solve_WF_matrix. apply WF_I. 
 unfold swapab.
 rewrite kron_mixed_product.
 rewrite swap_swap.
-rewrite Mmult_1_l.
-rewrite kron_I.
-simpl. apply mat_equiv_refl.
-lia. lia. apply WF_I.
+rewrite Mmult_1_l. 2: apply WF_I.
+rewrite kron_I. 3: lia. 2: lia.
+apply mat_equiv_refl.
 Qed.
 
 Lemma swapbc_inverse : swapbc × swapbc = I 8.
 Proof.
-apply mat_equiv_eq.
-apply WF_mult. apply WF_swapbc. apply WF_swapbc.
-apply WF_I.
+apply mat_equiv_eq. solve_WF_matrix. apply WF_I.
 unfold swapbc.
 rewrite kron_mixed_product.
 rewrite swap_swap.
-rewrite Mmult_1_l.
-rewrite kron_I.
-simpl. apply mat_equiv_refl.
-lia. lia. apply WF_I.
+rewrite Mmult_1_l. 2: apply WF_I.
+rewrite kron_I. 3: lia. 2: lia.
+apply mat_equiv_refl.
 Qed.
 
 Lemma swapac_inverse : swapac × swapac = I 8.
@@ -86,14 +76,13 @@ repeat rewrite Mmult_assoc.
 rewrite <- Mmult_assoc with (A := swapab) (B := swapab) (C:= swapbc × swapab).
 rewrite <- Mmult_assoc with (A := swapbc) (B := swapab × swapab) (C:= swapbc × swapab).
 rewrite swapab_inverse.
-rewrite Mmult_1_r.
+rewrite Mmult_1_r. 2: apply WF_swapbc.
 rewrite <- Mmult_assoc with (A := swapbc) (B:= swapbc) (C:=swapab).
 rewrite <- Mmult_assoc with (A := swapab) (B:= swapbc × swapbc) (C:=swapab).
 rewrite swapbc_inverse.
-rewrite Mmult_1_r.
+rewrite Mmult_1_r. 2: apply WF_swapab.
 rewrite <- swapab_inverse.
 apply mat_equiv_refl.
-apply WF_swapab. apply WF_swapbc.
 Qed.
 
 Lemma swap_2q : forall (A B : Square 2),
@@ -101,15 +90,7 @@ Lemma swap_2q : forall (A B : Square 2),
   swap × (A ⊗ B) × swap = B ⊗ A.
 Proof.
   intros.
-  apply mat_equiv_eq.
-  apply WF_mult. apply WF_mult.
-  apply WF_swap.
-  apply WF_kron. reflexivity. reflexivity. apply H. apply H0.
-  apply WF_swap.
-  apply WF_kron. reflexivity. reflexivity. apply H0. apply H.
-  by_cell.
-  lca. lca. lca. lca. lca. lca. lca. lca.
-  lca. lca. lca. lca. lca. lca. lca. lca.
+  lma'.
 Qed.
 
 Lemma swapab_3q : forall (A B C : Square 2), WF_Matrix A -> WF_Matrix B -> WF_Matrix C -> swapab × (A ⊗ B ⊗ C) × swapab = (B ⊗ A ⊗ C).

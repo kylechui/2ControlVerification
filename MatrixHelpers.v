@@ -20,6 +20,7 @@ Ltac solve_WF_matrix :=
         try apply WF_braqubit0; 
         try apply WF_braqubit1;
         try apply WF_swap;
+        try apply WF_control;
         try solve [intros; exfalso; auto]
       )  
     ).

@@ -1,4 +1,5 @@
-Require Import QuantumLib.Quantum. 
+Require Import QuantumLib.Quantum.
+From Proof Require Import MatrixHelpers. 
 From Proof Require Import SwapHelpers.
 
 Definition abgate (U : Square 4) := U ⊗ I 2.
@@ -8,32 +9,24 @@ Definition ccu (U : Square 2) := control (control U).
 
 Lemma WF_abgate : forall (U : Square 4), WF_Matrix U -> WF_Matrix (abgate U).
 Proof.
-intros.
-apply WF_kron.
-reflexivity. reflexivity.
-apply H. apply WF_I.
+intros. solve_WF_matrix.
 Qed.
 
 Lemma WF_bcgate : forall (U : Square 4), WF_Matrix U -> WF_Matrix (bcgate U).
 Proof.
-intros.
-apply WF_kron.
-reflexivity. reflexivity.
-apply WF_I. apply H. 
+intros. solve_WF_matrix.
 Qed.
 
 Lemma WF_acgate : forall (U : Square 4), WF_Matrix U -> WF_Matrix (acgate U).
 Proof.
 intros.
-apply WF_mult. apply WF_mult.
-apply WF_swapbc.
-apply WF_abgate. apply H.
+apply WF_mult. solve_WF_matrix.
 apply WF_swapbc.
 Qed.
 
 Lemma WF_ccu : forall (U : Square 2), WF_Matrix U -> WF_Matrix (ccu U).
 Proof.
-intros. apply WF_control. apply WF_control. apply H.
+intros. solve_WF_matrix.
 Qed.
 
 Lemma abgate_unitary : forall (U : Square 4), WF_Unitary U -> WF_Unitary (abgate U).
