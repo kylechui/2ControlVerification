@@ -38,6 +38,22 @@ Proof.
     unfold Eigenpair.
 Admitted.
 
+Lemma Mplus_cancel_l : forall {m n} (A B C : Matrix m n),
+  A .+ B = A .+ C -> B = C.
+Proof.
+  intros.
+  apply (f_equal (fun f => Mopp A .+ f)) in H.
+  rewrite <- Mscale_1_l with (A := A) in H at 2 4.
+  unfold Mopp in H.
+  repeat rewrite Mplus_assoc in H.
+  repeat rewrite <- Mplus_assoc in H.
+  rewrite <- Mscale_plus_distr_l with (A := A) in H.
+  rewrite Cplus_opp_l in H.
+  rewrite Mscale_0_l in H.
+  repeat rewrite Mplus_0_l in H.
+  exact H.
+Qed.
+
 Lemma Mplus_cancel_r : forall {m n} (A B C : Matrix m n),
   A .+ C = B .+ C -> A = B.
 Proof.
