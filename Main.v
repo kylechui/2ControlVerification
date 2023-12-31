@@ -77,14 +77,12 @@ Lemma m4_2 : forall (u0 u1 : C),
     WF_Unitary Q ->
     let beta : Vector 2 := Q × ∣0⟩ in
     let beta_perp := Q × ∣1⟩ in
-    exists (P0 P1 : Square 2),
-      WF_Unitary P0 -> WF_Unitary P1 ->
-      I 2 ⊗ I 2 ⊗ (beta × beta†) .+ P0 ⊗ P1 ⊗ (beta_perp × beta_perp†) = ccu (diag2 u0 u1)
+    (exists (P0 P1 : Square 2),
+    WF_Unitary P0 -> WF_Unitary P1 ->
+    I 2 ⊗ I 2 ⊗ (beta × beta†) .+ P0 ⊗ P1 ⊗ (beta_perp × beta_perp†) = ccu (diag2 u0 u1))
       <-> u0 = 1 /\ u1 = 1.
 Proof.
   intros.
-  exists (I 2), (I 2).
-  intros _ _.
   assert (WF_Q : WF_Matrix Q).
   {
     unfold WF_Unitary in H1.
@@ -96,15 +94,13 @@ Proof.
   pose (a := beta 0%nat 0%nat).
   pose (b := beta 1%nat 0%nat).
   split.
-  intros.
-  - destruct (Ceq_dec a C0) as [a_zero | a_nonzero].
+  - intros.
+    destruct (Ceq_dec a C0) as [a_zero | a_nonzero].
     + assert (unit_b : b^* * b = 1).
       {
         destruct H1.
         apply (f_equal (fun f => f 0%nat 0%nat)) in H3.
-        unfold Mmult in H3.
-        unfold adjoint in H3.
-        unfold I in H3.
+        unfold Mmult, adjoint, I in H3.
         simpl in H3.
         replace (Q 0%nat 0%nat) with a in H3 by lca.
         replace (Q 1%nat 0%nat) with b in H3 by lca.
@@ -120,19 +116,16 @@ Proof.
         simpl.
         replace (Q 0%nat 0%nat) with a by lca.
         rewrite a_zero.
-        repeat rewrite Cmult_0_r.
         lca.
         unfold beta, adjoint, qubit0, qubit1, Mmult.
         simpl.
         replace (Q 0%nat 0%nat) with a by lca.
         rewrite a_zero.
-        repeat rewrite Cmult_0_r.
         lca.
         unfold beta, adjoint, qubit0, qubit1, Mmult.
         simpl.
         replace (Q 0%nat 0%nat) with a by lca.
         rewrite a_zero.
-        repeat rewrite Cmult_0_r.
         lca.
         unfold beta, adjoint, qubit0, qubit1, Mmult.
         simpl.
@@ -151,44 +144,19 @@ Proof.
         replace (Q × ∣0⟩) with beta in H3 by reflexivity.
         replace (Q × ∣1⟩) with beta_perp in H3 by reflexivity.
         rewrite beta_mult_1_1 in H3.
-        rewrite <- Mplus01 in H3.
-        rewrite Mplus_comm in H3.
-        apply Mplus_cancel_r with (C := ∣1⟩⟨1∣).
+        rewrite <- Mplus10 in H3.
+        apply Mplus_cancel_l in H3.
         assumption.
       }
-      assert (id_comp : I 2 ⊗ I 2 ⊗ (beta × (beta) †) .+ I 2 ⊗ I 2 ⊗ (beta_perp × (beta_perp) †) = I 8).
-      {
-        rewrite <- kron_plus_distr_l.
-        rewrite beta_mult_1_1.
-        rewrite beta_perp_mult_0_0.
-        rewrite Mplus10.
-        repeat rewrite id_kron.
-        reflexivity.
-      }
-      rewrite id_comp in H2.
-      assert (u0_eq_1 : (ccu (diag2 u0 u1)) 6%nat 6%nat = I 8 6%nat 6%nat).
-      {
-        apply (f_equal (fun f => f 6%nat 6%nat)).
-        symmetry.
-        assumption.
-      }
-      assert (u1_eq_1 : (ccu (diag2 u0 u1)) 7%nat 7%nat = I 8 7%nat 7%nat).
-      {
-        apply (f_equal (fun f => f 7%nat 7%nat)).
-        symmetry.
-        assumption.
-      }
-      split.
-      assumption.
-      assumption.
+      rewrite beta_mult_1_1 in H2.
+      rewrite beta_perp_mult_0_0 in H2.
+      admit. (* TODO: Eigenvalues! *)
     + destruct (Ceq_dec b C0) as [b_zero | b_nonzero].
       * assert (unit_a : a^* * a = 1).
         {
           destruct H1.
           apply (f_equal (fun f => f 0%nat 0%nat)) in H3.
-          unfold Mmult in H3.
-          unfold adjoint in H3.
-          unfold I in H3.
+          unfold Mmult, adjoint, I in H3.
           simpl in H3.
           replace (Q 0%nat 0%nat) with a in H3 by lca.
           replace (Q 1%nat 0%nat) with b in H3 by lca.
@@ -215,13 +183,11 @@ Proof.
           simpl.
           replace (Q 1%nat 0%nat) with b by lca.
           rewrite b_zero.
-          repeat rewrite Cmult_0_r.
           lca.
           unfold beta, adjoint, qubit0, qubit1, Mmult.
           simpl.
           replace (Q 1%nat 0%nat) with b by lca.
           rewrite b_zero.
-          repeat rewrite Cmult_0_r.
           lca.
           unfold beta, adjoint, qubit0, qubit1, Mmult.
           simpl.
@@ -229,8 +195,28 @@ Proof.
           rewrite b_zero.
           lca.
         }
-      * 
+        assert (beta_perp_mult_1_1 : beta_perp × (beta_perp) † = ∣1⟩⟨1∣).
+        {
+          pose proof (a8 Q H1) as H3.
+          replace (Q × ∣0⟩) with beta in H3 by reflexivity.
+          replace (Q × ∣1⟩) with beta_perp in H3 by reflexivity.
+          rewrite beta_mult_0_0 in H3.
+          rewrite <- Mplus01 in H3.
+          apply Mplus_cancel_l in H3.
+          assumption.
+        }
+        admit. (* TODO: Eigenvalues! *)
+      * admit. (* TODO: a <> 0 /\ b <> 0 case! *)
   - intros.
     destruct H2.
-    (* TODO: Finish this proof! *)
+    exists (I 2), (I 2).
+    intros _ _.
+    rewrite <- kron_plus_distr_l.
+    unfold beta, beta_perp.
+    rewrite a8. 2: assumption.
+    rewrite H2, H3.
+    lma'.
+    apply WF_control with (n := 4%nat).
+    apply WF_control with (n := 2%nat).
+    show_wf.
 Qed.
