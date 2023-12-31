@@ -47,13 +47,12 @@ Proof.
   apply (f_equal (fun f => Mopp A .+ f)) in H.
   rewrite <- Mscale_1_l with (A := A) in H at 2 4.
   unfold Mopp in H.
-  repeat rewrite Mplus_assoc in H.
   repeat rewrite <- Mplus_assoc in H.
-  rewrite <- Mscale_plus_distr_l with (A := A) in H.
+  rewrite <- Mscale_plus_distr_l in H.
   rewrite Cplus_opp_l in H.
   rewrite Mscale_0_l in H.
   repeat rewrite Mplus_0_l in H.
-  exact H.
+  assumption.
 Qed.
 
 Lemma Mplus_cancel_r : forall {m n} (A B C : Matrix m n),
@@ -64,11 +63,11 @@ Proof.
   rewrite <- Mscale_1_l with (A := C) in H at 1 3.
   unfold Mopp in H.
   repeat rewrite Mplus_assoc in H.
-  rewrite <- Mscale_plus_distr_l with (A := C) in H.
+  rewrite <- Mscale_plus_distr_l in H.
   rewrite Cplus_opp_r in H.
   rewrite Mscale_0_l in H.
   repeat rewrite Mplus_0_r in H.
-  exact H.
+  assumption.
 Qed.
 
 Lemma m4_2 : forall (u0 u1 : C),
@@ -85,12 +84,18 @@ Proof.
   intros.
   assert (WF_Q : WF_Matrix Q).
   {
-    unfold WF_Unitary in H1.
     destruct H1.
     assumption.
   }
   assert (WF_beta : WF_Matrix beta) by solve_WF_matrix.
   assert (WF_beta_perp : WF_Matrix beta_perp) by solve_WF_matrix.
+  assert (WF_beta_beta : WF_Matrix (beta × beta†)).
+  {
+    apply WF_mult.
+    assumption.
+    apply WF_adjoint.
+    assumption.
+  }
   pose (a := beta 0%nat 0%nat).
   pose (b := beta 1%nat 0%nat).
   split.
@@ -104,31 +109,24 @@ Proof.
         simpl in H3.
         replace (Q 0%nat 0%nat) with a in H3 by lca.
         replace (Q 1%nat 0%nat) with b in H3 by lca.
-        rewrite a_zero in H3.
-        rewrite Cmult_0_r in H3.
-        repeat rewrite Cplus_0_l in H3.
-        assumption.
+        rewrite <- H3.
+        rewrite a_zero.
+        lca.
       }
       assert (beta_mult_1_1 : beta × beta† = ∣1⟩⟨1∣).
       {
+        unfold beta, adjoint, qubit0, qubit1, Mmult.
+        simpl.
         lma'.
-        unfold beta, adjoint, qubit0, qubit1, Mmult.
-        simpl.
         replace (Q 0%nat 0%nat) with a by lca.
         rewrite a_zero.
         lca.
-        unfold beta, adjoint, qubit0, qubit1, Mmult.
-        simpl.
         replace (Q 0%nat 0%nat) with a by lca.
         rewrite a_zero.
         lca.
-        unfold beta, adjoint, qubit0, qubit1, Mmult.
-        simpl.
         replace (Q 0%nat 0%nat) with a by lca.
         rewrite a_zero.
         lca.
-        unfold beta, adjoint, qubit0, qubit1, Mmult.
-        simpl.
         replace (Q 1%nat 0%nat) with b by lca.
         rewrite Cmult_0_r.
         repeat rewrite Cplus_0_l.
@@ -160,17 +158,15 @@ Proof.
           simpl in H3.
           replace (Q 0%nat 0%nat) with a in H3 by lca.
           replace (Q 1%nat 0%nat) with b in H3 by lca.
-          rewrite b_zero in H3.
-          rewrite Cmult_0_r in H3.
-          rewrite Cplus_0_l in H3.
-          rewrite Cplus_0_r in H3.
-          assumption.
+          rewrite <- H3.
+          rewrite b_zero.
+          lca.
         }
         assert (beta_mult_0_0 : beta × beta† = ∣0⟩⟨0∣).
         {
-          lma'.
           unfold beta, adjoint, qubit0, qubit1, Mmult.
           simpl.
+          lma'.
           replace (Q 0%nat 0%nat) with a by lca.
           rewrite Cmult_0_r.
           repeat rewrite Cplus_0_l.
@@ -179,18 +175,12 @@ Proof.
           rewrite Cmult_comm.
           rewrite unit_a.
           lca.
-          unfold beta, adjoint, qubit0, qubit1, Mmult.
-          simpl.
           replace (Q 1%nat 0%nat) with b by lca.
           rewrite b_zero.
           lca.
-          unfold beta, adjoint, qubit0, qubit1, Mmult.
-          simpl.
           replace (Q 1%nat 0%nat) with b by lca.
           rewrite b_zero.
           lca.
-          unfold beta, adjoint, qubit0, qubit1, Mmult.
-          simpl.
           replace (Q 1%nat 0%nat) with b by lca.
           rewrite b_zero.
           lca.
@@ -205,8 +195,14 @@ Proof.
           apply Mplus_cancel_l in H3.
           assumption.
         }
+        rewrite beta_mult_0_0 in H2.
+        rewrite beta_perp_mult_1_1 in H2.
         admit. (* TODO: Eigenvalues! *)
-      * admit. (* TODO: a <> 0 /\ b <> 0 case! *)
+      * destruct H2 as [P0 [P1 H2]].
+        apply (f_equal (fun f => f × (∣1⟩ ⊗ ∣1⟩ ⊗ beta))) in H2.
+        admit. (* TODO: a <> 0 /\ b <> 0 case! *)
+      admit.
+    admit.
   - intros.
     destruct H2.
     exists (I 2), (I 2).
