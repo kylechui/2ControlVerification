@@ -1,36 +1,36 @@
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
 
-Ltac solve_WF_matrix := 
-    repeat (
-      progress (
-        try reflexivity;
-        try assumption; 
-        try apply WF_Zero;
-        try apply WF_I;
-        try apply WF_mult;
-        try apply WF_plus;
-        try apply WF_scale;
-        try apply WF_adjoint;
-        try apply WF_kron;
-        try apply WF_bra0;
-        try apply WF_bra1; 
-        try apply WF_qubit0; 
-        try apply WF_qubit1; 
-        try apply WF_braqubit0; 
-        try apply WF_braqubit1;
-        try apply WF_swap;
-        try apply WF_control;
-        try solve [intros; exfalso; auto]
-      )  
-    ).
+Ltac solve_WF_matrix :=
+  repeat (
+    progress (
+      try reflexivity;
+      try assumption;
+      try apply WF_Zero;
+      try apply WF_I;
+      try apply WF_mult;
+      try apply WF_plus;
+      try apply WF_scale;
+      try apply WF_adjoint;
+      try apply WF_kron;
+      try apply WF_bra0;
+      try apply WF_bra1;
+      try apply WF_qubit0;
+      try apply WF_qubit1;
+      try apply WF_braqubit0;
+      try apply WF_braqubit1;
+      try apply WF_swap;
+      try apply WF_control;
+      try solve [intros; exfalso; auto]
+    )
+  ).
 
 Definition diag2 (c1 c2 : C) : Square 2 :=
-    fun x y =>
+  fun x y =>
     match (x,y) with
-    | (0,0) => c1
-    | (1,1) => c2
-    | _ => C0
+    | (0, 0) => c1
+    | (1, 1) => c2
+    | _      => C0
     end.
 
 Lemma WF_diag2: forall (c1 c2 : C), WF_Matrix (diag2 c1 c2).
@@ -99,7 +99,7 @@ Proof.
 solve_WF_matrix.
 Qed.
 
-Lemma WF_blockmatrix: forall (P00 P01 P10 P11: Square 2), 
+Lemma WF_blockmatrix: forall (P00 P01 P10 P11: Square 2),
 WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 ->
 WF_Matrix (∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11).
 Proof.
@@ -107,11 +107,11 @@ intros.
 solve_WF_matrix.
 Qed.
 
-Lemma block_multiply: forall (U V: Square 4) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square 2), 
+Lemma block_multiply: forall (U V: Square 4) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square 2),
 WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11
 -> WF_Matrix Q00 -> WF_Matrix Q01 -> WF_Matrix Q10 -> WF_Matrix Q11 ->
-U = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 -> 
-V = ∣0⟩⟨0∣ ⊗ Q00 .+ ∣0⟩⟨1∣ ⊗ Q01 .+ ∣1⟩⟨0∣ ⊗ Q10 .+ ∣1⟩⟨1∣ ⊗ Q11 -> 
+U = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 ->
+V = ∣0⟩⟨0∣ ⊗ Q00 .+ ∣0⟩⟨1∣ ⊗ Q01 .+ ∣1⟩⟨0∣ ⊗ Q10 .+ ∣1⟩⟨1∣ ⊗ Q11 ->
 U × V = ∣0⟩⟨0∣ ⊗ (P00 × Q00 .+ P01 × Q10) .+ ∣0⟩⟨1∣ ⊗ (P00 × Q01 .+ P01×Q11) .+ ∣1⟩⟨0∣ ⊗ (P10×Q00 .+ P11 × Q10) .+ ∣1⟩⟨1∣ ⊗ (P10 × Q01 .+ P11 × Q11).
 Proof.
 intros.
@@ -121,11 +121,11 @@ solve_WF_matrix.
 solve_WF_matrix.
 Qed.
 
-Lemma block_equalities: forall (U V: Square 4) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square 2), 
+Lemma block_equalities: forall (U V: Square 4) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square 2),
 WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11
 -> WF_Matrix Q00 -> WF_Matrix Q01 -> WF_Matrix Q10 -> WF_Matrix Q11 ->
-U = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 -> 
-V = ∣0⟩⟨0∣ ⊗ Q00 .+ ∣0⟩⟨1∣ ⊗ Q01 .+ ∣1⟩⟨0∣ ⊗ Q10 .+ ∣1⟩⟨1∣ ⊗ Q11 -> 
+U = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 ->
+V = ∣0⟩⟨0∣ ⊗ Q00 .+ ∣0⟩⟨1∣ ⊗ Q01 .+ ∣1⟩⟨0∣ ⊗ Q10 .+ ∣1⟩⟨1∣ ⊗ Q11 ->
 U = V -> P00 = Q00 /\ P01 = Q01 /\ P10 = Q10 /\ P11 = Q11.
 Proof.
 intros U V P00 P01 P10 P11 Q00 Q01 Q10 Q11 WF_P00 WF_P01 WF_P10 WF_P11 WF_Q00 WF_Q01 WF_Q10 WF_Q11
@@ -232,7 +232,7 @@ destruct (eq_nat_decide i j) as [Heq | Hneq].
     {
         unfold I.
         rewrite Nat.eqb_refl. rewrite Nat.eqb_refl. simpl.
-        assert ((j / m <? n) = true). 
+        assert ((j / m <? n) = true).
         {
             apply Nat.ltb_lt. apply Nat.ltb_lt in Hlt.
             apply Nat.div_lt_upper_bound. lia.
@@ -243,7 +243,7 @@ destruct (eq_nat_decide i j) as [Heq | Hneq].
         assert ((j mod m <? m) = true).
         {
             apply Nat.ltb_lt.
-            apply Nat.mod_upper_bound. lia. 
+            apply Nat.mod_upper_bound. lia.
         }
         rewrite H2.
         lca.
@@ -272,7 +272,7 @@ destruct (eq_nat_decide i j) as [Heq | Hneq].
         apply Nat.eqb_neq.
         assumption.
     }
-    assert ((i =? j) && (i <? n * m) = false). 
+    assert ((i =? j) && (i <? n * m) = false).
     {
         rewrite H1.
         apply Coq.Bool.Bool.andb_false_l.
