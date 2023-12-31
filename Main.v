@@ -40,36 +40,6 @@ Proof.
     unfold Eigenpair.
 Admitted.
 
-Lemma Mplus_cancel_l : forall {m n} (A B C : Matrix m n),
-  A .+ B = A .+ C -> B = C.
-Proof.
-  intros.
-  apply (f_equal (fun f => Mopp A .+ f)) in H.
-  rewrite <- Mscale_1_l with (A := A) in H at 2 4.
-  unfold Mopp in H.
-  repeat rewrite <- Mplus_assoc in H.
-  rewrite <- Mscale_plus_distr_l in H.
-  rewrite Cplus_opp_l in H.
-  rewrite Mscale_0_l in H.
-  repeat rewrite Mplus_0_l in H.
-  assumption.
-Qed.
-
-Lemma Mplus_cancel_r : forall {m n} (A B C : Matrix m n),
-  A .+ C = B .+ C -> A = B.
-Proof.
-  intros.
-  apply (f_equal (fun f => f .+ Mopp C)) in H.
-  rewrite <- Mscale_1_l with (A := C) in H at 1 3.
-  unfold Mopp in H.
-  repeat rewrite Mplus_assoc in H.
-  rewrite <- Mscale_plus_distr_l in H.
-  rewrite Cplus_opp_r in H.
-  rewrite Mscale_0_l in H.
-  repeat rewrite Mplus_0_r in H.
-  assumption.
-Qed.
-
 Lemma m4_2 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
   forall (Q : Square 2),
