@@ -1,4 +1,6 @@
 Require Import Proof.UnitaryMatrices.
+Require Import Proof.MatrixHelpers.
+Require Import Proof.GateHelpers.
 Require Import QuantumLib.Complex.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
@@ -17,7 +19,7 @@ Definition Csqrt (x : C) : C :=
 
 Definition get_eigenvalues (A : Square 2) : list C :=
   let a := A 0%nat 0%nat in
- let b := A 0%nat 1%nat in
+  let b := A 0%nat 1%nat in
   let c := A 1%nat 0%nat in
   let d := A 1%nat 1%nat in
   let discriminant := (a + d)^2 - (4 * (a * d - b * c)) in
@@ -77,7 +79,7 @@ Lemma m4_2 : forall (u0 u1 : C),
     let beta_perp := Q × ∣1⟩ in
     exists (P0 P1 : Square 2),
       WF_Unitary P0 -> WF_Unitary P1 ->
-      I 2 ⊗ I 2 ⊗ beta ⊗ beta† .+ P0 ⊗ P1 ⊗ beta_perp ⊗ beta_perp† = control (control (list2D_to_matrix [[u0; C0]; [C0; u1]]))
+      I 2 ⊗ I 2 ⊗ (beta × beta†) .+ P0 ⊗ P1 ⊗ (beta_perp × beta_perp†) = ccu (diag2 u0 u1)
       <-> u0 = 1 /\ u1 = 1.
 Proof.
   intros.
@@ -89,41 +91,29 @@ Proof.
     destruct H1.
     assumption.
   }
-  assert (WF_beta : WF_Matrix beta).
-  {
-    unfold beta.
-    apply WF_mult.
-    exact WF_Q.
-    exact WF_qubit0.
-  }
-  assert (WF_beta_perp : WF_Matrix beta_perp).
-  {
-    unfold beta.
-    apply WF_mult.
-    exact WF_Q.
-    exact WF_qubit1.
-  }
+  assert (WF_beta : WF_Matrix beta) by solve_WF_matrix.
+  assert (WF_beta_perp : WF_Matrix beta_perp) by solve_WF_matrix.
   pose (a := beta 0%nat 0%nat).
   pose (b := beta 1%nat 0%nat).
   split.
+  intros.
   - destruct (Ceq_dec a C0) as [a_zero | a_nonzero].
     + assert (unit_b : b^* * b = 1).
       {
-        unfold WF_Unitary in H1.
         destruct H1.
-        apply (f_equal (fun f => f 0%nat 0%nat)) in H2.
-        unfold Mmult in H2.
-        unfold adjoint in H2.
-        unfold I in H2.
-        simpl in H2.
-        replace (Q 0%nat 0%nat) with a in H2 by lca.
-        replace (Q 1%nat 0%nat) with b in H2 by lca.
-        rewrite a_zero in H2.
-        rewrite Cmult_0_r in H2.
-        repeat rewrite Cplus_0_l in H2.
+        apply (f_equal (fun f => f 0%nat 0%nat)) in H3.
+        unfold Mmult in H3.
+        unfold adjoint in H3.
+        unfold I in H3.
+        simpl in H3.
+        replace (Q 0%nat 0%nat) with a in H3 by lca.
+        replace (Q 1%nat 0%nat) with b in H3 by lca.
+        rewrite a_zero in H3.
+        rewrite Cmult_0_r in H3.
+        repeat rewrite Cplus_0_l in H3.
         assumption.
       }
-      assert (bmult_1_1 : beta × beta† = ∣1⟩⟨1∣).
+      assert (beta_mult_1_1 : beta × beta† = ∣1⟩⟨1∣).
       {
         lma'.
         unfold beta, adjoint, qubit0, qubit1, Mmult.
@@ -147,30 +137,98 @@ Proof.
         unfold beta, adjoint, qubit0, qubit1, Mmult.
         simpl.
         replace (Q 1%nat 0%nat) with b by lca.
-        repeat rewrite Cmult_0_l.
-        repeat rewrite Cmult_0_r.
+        rewrite Cmult_0_r.
         repeat rewrite Cplus_0_l.
-        repeat rewrite Cplus_0_r.
-        repeat rewrite Cmult_1_l.
-        repeat rewrite Cmult_1_r.
+        rewrite Cplus_0_r.
+        rewrite Cmult_1_r.
         rewrite Cmult_comm.
         rewrite unit_b.
         lca.
       }
-      pose proof (a8 Q H1) as H2.
-      replace (Q × ∣0⟩) with beta in H2 by reflexivity.
-      replace (Q × ∣1⟩) with beta_perp in H2 by reflexivity.
-      rewrite bmult_1_1 in H2.
-      assert (H3 : beta_perp × (beta_perp) † = ∣0⟩⟨0∣).
+      assert (beta_perp_mult_0_0 : beta_perp × (beta_perp) † = ∣0⟩⟨0∣).
       {
-        rewrite <- Mplus01 in H2.
-        rewrite Mplus_comm in H2.
+        pose proof (a8 Q H1) as H3.
+        replace (Q × ∣0⟩) with beta in H3 by reflexivity.
+        replace (Q × ∣1⟩) with beta_perp in H3 by reflexivity.
+        rewrite beta_mult_1_1 in H3.
+        rewrite <- Mplus01 in H3.
+        rewrite Mplus_comm in H3.
         apply Mplus_cancel_r with (C := ∣1⟩⟨1∣).
         assumption.
       }
-      (* TODO: Finish this section! *)
+      assert (id_comp : I 2 ⊗ I 2 ⊗ (beta × (beta) †) .+ I 2 ⊗ I 2 ⊗ (beta_perp × (beta_perp) †) = I 8).
+      {
+        rewrite <- kron_plus_distr_l.
+        rewrite beta_mult_1_1.
+        rewrite beta_perp_mult_0_0.
+        rewrite Mplus10.
+        repeat rewrite id_kron.
+        reflexivity.
+      }
+      rewrite id_comp in H2.
+      assert (u0_eq_1 : (ccu (diag2 u0 u1)) 6%nat 6%nat = I 8 6%nat 6%nat).
+      {
+        apply (f_equal (fun f => f 6%nat 6%nat)).
+        symmetry.
+        assumption.
+      }
+      assert (u1_eq_1 : (ccu (diag2 u0 u1)) 7%nat 7%nat = I 8 7%nat 7%nat).
+      {
+        apply (f_equal (fun f => f 7%nat 7%nat)).
+        symmetry.
+        assumption.
+      }
+      split.
+      assumption.
+      assumption.
     + destruct (Ceq_dec b C0) as [b_zero | b_nonzero].
-      * assumption.
+      * assert (unit_a : a^* * a = 1).
+        {
+          destruct H1.
+          apply (f_equal (fun f => f 0%nat 0%nat)) in H3.
+          unfold Mmult in H3.
+          unfold adjoint in H3.
+          unfold I in H3.
+          simpl in H3.
+          replace (Q 0%nat 0%nat) with a in H3 by lca.
+          replace (Q 1%nat 0%nat) with b in H3 by lca.
+          rewrite b_zero in H3.
+          rewrite Cmult_0_r in H3.
+          rewrite Cplus_0_l in H3.
+          rewrite Cplus_0_r in H3.
+          assumption.
+        }
+        assert (beta_mult_0_0 : beta × beta† = ∣0⟩⟨0∣).
+        {
+          lma'.
+          unfold beta, adjoint, qubit0, qubit1, Mmult.
+          simpl.
+          replace (Q 0%nat 0%nat) with a by lca.
+          rewrite Cmult_0_r.
+          repeat rewrite Cplus_0_l.
+          rewrite Cplus_0_r.
+          rewrite Cmult_1_r.
+          rewrite Cmult_comm.
+          rewrite unit_a.
+          lca.
+          unfold beta, adjoint, qubit0, qubit1, Mmult.
+          simpl.
+          replace (Q 1%nat 0%nat) with b by lca.
+          rewrite b_zero.
+          repeat rewrite Cmult_0_r.
+          lca.
+          unfold beta, adjoint, qubit0, qubit1, Mmult.
+          simpl.
+          replace (Q 1%nat 0%nat) with b by lca.
+          rewrite b_zero.
+          repeat rewrite Cmult_0_r.
+          lca.
+          unfold beta, adjoint, qubit0, qubit1, Mmult.
+          simpl.
+          replace (Q 1%nat 0%nat) with b by lca.
+          rewrite b_zero.
+          lca.
+        }
       * 
   - intros.
     destruct H2.
