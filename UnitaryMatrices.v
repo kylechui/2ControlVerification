@@ -398,17 +398,7 @@ Proof.
   rewrite <- Mmult_plus_distr_l.
   repeat rewrite <- Mmult_assoc.
   rewrite <- Mmult_plus_distr_r.
-  assert (Step1 : ∣0⟩⟨0∣ .+ ∣1⟩⟨1∣ = I 2).
-  {
-    apply mat_equiv_eq.
-    apply WF_plus.
-    apply WF_braqubit0.
-    apply WF_braqubit1.
-    apply WF_I.
-    by_cell.
-    lca. lca. lca. lca.
-  }
-  rewrite Step1. clear Step1.
+  rewrite Mplus01.
   rewrite Mmult_1_l.
   assert (Step2: WF_Unitary (Q†)).
   {
