@@ -162,66 +162,66 @@ Proof.
   def_U def_V H.
   split.
   {
-      lma'.
-      assert (peq: P00 0%nat 0%nat = U 0%nat 0%nat). rewrite def_U. lca.
-      assert (qeq: Q00 0%nat 0%nat = V 0%nat 0%nat). rewrite def_V. lca.
-      rewrite peq. rewrite qeq. rewrite H. reflexivity.
-      assert (peq: P00 0%nat 1%nat = U 0%nat 1%nat). rewrite def_U. lca.
-      assert (qeq: Q00 0%nat 1%nat = V 0%nat 1%nat). rewrite def_V. lca.
-      rewrite peq. rewrite qeq. rewrite H. reflexivity.
-      assert (peq: P00 1%nat 0%nat = U 1%nat 0%nat). rewrite def_U. lca.
-      assert (qeq: Q00 1%nat 0%nat = V 1%nat 0%nat). rewrite def_V. lca.
-      rewrite peq. rewrite qeq. rewrite H. reflexivity.
-      assert (peq: P00 1%nat 1%nat = U 1%nat 1%nat). rewrite def_U. lca.
-      assert (qeq: Q00 1%nat 1%nat = V 1%nat 1%nat). rewrite def_V. lca.
-      rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    lma'.
+    assert (peq: P00 0%nat 0%nat = U 0%nat 0%nat). rewrite def_U. lca.
+    assert (qeq: Q00 0%nat 0%nat = V 0%nat 0%nat). rewrite def_V. lca.
+    rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    assert (peq: P00 0%nat 1%nat = U 0%nat 1%nat). rewrite def_U. lca.
+    assert (qeq: Q00 0%nat 1%nat = V 0%nat 1%nat). rewrite def_V. lca.
+    rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    assert (peq: P00 1%nat 0%nat = U 1%nat 0%nat). rewrite def_U. lca.
+    assert (qeq: Q00 1%nat 0%nat = V 1%nat 0%nat). rewrite def_V. lca.
+    rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    assert (peq: P00 1%nat 1%nat = U 1%nat 1%nat). rewrite def_U. lca.
+    assert (qeq: Q00 1%nat 1%nat = V 1%nat 1%nat). rewrite def_V. lca.
+    rewrite peq. rewrite qeq. rewrite H. reflexivity.
   }
   split.
   {
-      lma'.
-      assert (peq: P01 0%nat 0%nat = U 0%nat 2%nat). rewrite def_U. lca.
-      assert (qeq: Q01 0%nat 0%nat = V 0%nat 2%nat). rewrite def_V. lca.
-      rewrite peq. rewrite qeq. rewrite H. reflexivity.
-      assert (peq: P01 0%nat 1%nat = U 0%nat 3%nat). rewrite def_U. lca.
-      assert (qeq: Q01 0%nat 1%nat = V 0%nat 3%nat). rewrite def_V. lca.
-      rewrite peq. rewrite qeq. rewrite H. reflexivity.
-      assert (peq: P01 1%nat 0%nat = U 1%nat 2%nat). rewrite def_U. lca.
-      assert (qeq: Q01 1%nat 0%nat = V 1%nat 2%nat). rewrite def_V. lca.
-      rewrite peq. rewrite qeq. rewrite H. reflexivity.
-      assert (peq: P01 1%nat 1%nat = U 1%nat 3%nat). rewrite def_U. lca.
-      assert (qeq: Q01 1%nat 1%nat = V 1%nat 3%nat). rewrite def_V. lca.
-      rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    lma'.
+    assert (peq: P01 0%nat 0%nat = U 0%nat 2%nat). rewrite def_U. lca.
+    assert (qeq: Q01 0%nat 0%nat = V 0%nat 2%nat). rewrite def_V. lca.
+    rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    assert (peq: P01 0%nat 1%nat = U 0%nat 3%nat). rewrite def_U. lca.
+    assert (qeq: Q01 0%nat 1%nat = V 0%nat 3%nat). rewrite def_V. lca.
+    rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    assert (peq: P01 1%nat 0%nat = U 1%nat 2%nat). rewrite def_U. lca.
+    assert (qeq: Q01 1%nat 0%nat = V 1%nat 2%nat). rewrite def_V. lca.
+    rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    assert (peq: P01 1%nat 1%nat = U 1%nat 3%nat). rewrite def_U. lca.
+    assert (qeq: Q01 1%nat 1%nat = V 1%nat 3%nat). rewrite def_V. lca.
+    rewrite peq. rewrite qeq. rewrite H. reflexivity.
   }
   split.
   {
-      lma'.
-      assert (peq: P10 0%nat 0%nat = U 2%nat 0%nat). rewrite def_U. lca.
-      assert (qeq: Q10 0%nat 0%nat = V 2%nat 0%nat). rewrite def_V. lca.
-      rewrite peq. rewrite qeq. rewrite H. reflexivity.
-      assert (peq: P10 0%nat 1%nat = U 2%nat 1%nat). rewrite def_U. lca.
-      assert (qeq: Q10 0%nat 1%nat = V 2%nat 1%nat). rewrite def_V. lca.
-      rewrite peq. rewrite qeq. rewrite H. reflexivity.
-      assert (peq: P10 1%nat 0%nat = U 3%nat 0%nat). rewrite def_U. lca.
-      assert (qeq: Q10 1%nat 0%nat = V 3%nat 0%nat). rewrite def_V. lca.
-      rewrite peq. rewrite qeq. rewrite H. reflexivity.
-      assert (peq: P10 1%nat 1%nat = U 3%nat 1%nat). rewrite def_U. lca.
-      assert (qeq: Q10 1%nat 1%nat = V 3%nat 1%nat). rewrite def_V. lca.
-      rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    lma'.
+    assert (peq: P10 0%nat 0%nat = U 2%nat 0%nat). rewrite def_U. lca.
+    assert (qeq: Q10 0%nat 0%nat = V 2%nat 0%nat). rewrite def_V. lca.
+    rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    assert (peq: P10 0%nat 1%nat = U 2%nat 1%nat). rewrite def_U. lca.
+    assert (qeq: Q10 0%nat 1%nat = V 2%nat 1%nat). rewrite def_V. lca.
+    rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    assert (peq: P10 1%nat 0%nat = U 3%nat 0%nat). rewrite def_U. lca.
+    assert (qeq: Q10 1%nat 0%nat = V 3%nat 0%nat). rewrite def_V. lca.
+    rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    assert (peq: P10 1%nat 1%nat = U 3%nat 1%nat). rewrite def_U. lca.
+    assert (qeq: Q10 1%nat 1%nat = V 3%nat 1%nat). rewrite def_V. lca.
+    rewrite peq. rewrite qeq. rewrite H. reflexivity.
   }
   {
-      lma'.
-      assert (peq: P11 0%nat 0%nat = U 2%nat 2%nat). rewrite def_U. lca.
-      assert (qeq: Q11 0%nat 0%nat = V 2%nat 2%nat). rewrite def_V. lca.
-      rewrite peq. rewrite qeq. rewrite H. reflexivity.
-      assert (peq: P11 0%nat 1%nat = U 2%nat 3%nat). rewrite def_U. lca.
-      assert (qeq: Q11 0%nat 1%nat = V 2%nat 3%nat). rewrite def_V. lca.
-      rewrite peq. rewrite qeq. rewrite H. reflexivity.
-      assert (peq: P11 1%nat 0%nat = U 3%nat 2%nat). rewrite def_U. lca.
-      assert (qeq: Q11 1%nat 0%nat = V 3%nat 2%nat). rewrite def_V. lca.
-      rewrite peq. rewrite qeq. rewrite H. reflexivity.
-      assert (peq: P11 1%nat 1%nat = U 3%nat 3%nat). rewrite def_U. lca.
-      assert (qeq: Q11 1%nat 1%nat = V 3%nat 3%nat). rewrite def_V. lca.
-      rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    lma'.
+    assert (peq: P11 0%nat 0%nat = U 2%nat 2%nat). rewrite def_U. lca.
+    assert (qeq: Q11 0%nat 0%nat = V 2%nat 2%nat). rewrite def_V. lca.
+    rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    assert (peq: P11 0%nat 1%nat = U 2%nat 3%nat). rewrite def_U. lca.
+    assert (qeq: Q11 0%nat 1%nat = V 2%nat 3%nat). rewrite def_V. lca.
+    rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    assert (peq: P11 1%nat 0%nat = U 3%nat 2%nat). rewrite def_U. lca.
+    assert (qeq: Q11 1%nat 0%nat = V 3%nat 2%nat). rewrite def_V. lca.
+    rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    assert (peq: P11 1%nat 1%nat = U 3%nat 3%nat). rewrite def_U. lca.
+    assert (qeq: Q11 1%nat 1%nat = V 3%nat 3%nat). rewrite def_V. lca.
+    rewrite peq. rewrite qeq. rewrite H. reflexivity.
   }
 Qed.
 
