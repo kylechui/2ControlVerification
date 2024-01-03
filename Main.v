@@ -91,21 +91,21 @@ Proof.
         lma'.
         replace (Q 0%nat 0%nat) with a by lca.
         rewrite a_zero.
-        lca.
+        Csimpl.
+        reflexivity.
         replace (Q 0%nat 0%nat) with a by lca.
         rewrite a_zero.
-        lca.
+        Csimpl.
+        reflexivity.
         replace (Q 0%nat 0%nat) with a by lca.
         rewrite a_zero.
-        lca.
+        Csimpl.
+        reflexivity.
         replace (Q 1%nat 0%nat) with b by lca.
-        rewrite Cmult_0_r.
-        repeat rewrite Cplus_0_l.
-        rewrite Cplus_0_r.
-        rewrite Cmult_1_r.
+        Csimpl.
         rewrite Cmult_comm.
         rewrite unit_b.
-        lca.
+        reflexivity.
       }
       assert (beta_perp_mult_0_0 : beta_perp × (beta_perp) † = ∣0⟩⟨0∣).
       {
@@ -139,22 +139,22 @@ Proof.
           simpl.
           lma'.
           replace (Q 0%nat 0%nat) with a by lca.
-          rewrite Cmult_0_r.
-          repeat rewrite Cplus_0_l.
-          rewrite Cplus_0_r.
-          rewrite Cmult_1_r.
+          Csimpl.
           rewrite Cmult_comm.
           rewrite unit_a.
-          lca.
+          reflexivity.
           replace (Q 1%nat 0%nat) with b by lca.
           rewrite b_zero.
-          lca.
+          Csimpl.
+          reflexivity.
           replace (Q 1%nat 0%nat) with b by lca.
           rewrite b_zero.
-          lca.
+          Csimpl.
+          reflexivity.
           replace (Q 1%nat 0%nat) with b by lca.
           rewrite b_zero.
-          lca.
+          Csimpl.
+          reflexivity.
         }
         assert (beta_perp_mult_1_1 : beta_perp × (beta_perp) † = ∣1⟩⟨1∣).
         {
@@ -171,26 +171,40 @@ Proof.
         admit. (* TODO: Eigenvalues! *)
       * destruct H2 as [P0 [P1 [WF_P0 [WF_P1 H2]]]].
         apply (f_equal (fun f => f × (∣1⟩ ⊗ ∣1⟩ ⊗ beta))) in H2.
-        assert (perp_inner_prod_0 : ⟨beta, beta_perp⟩ = C0).
+        assert (H3 : beta_perp† × beta = Zero).
         {
-          unfold inner_product, beta_perp, beta.
+          unfold beta_perp, beta.
           rewrite Mmult_adjoint.
           rewrite <- Mmult_assoc.
-          rewrite Mmult_assoc with (A := ⟨0∣).
           destruct H1.
+          rewrite Mmult_assoc with (A := ⟨1∣).
           rewrite H3.
-          rewrite Mmult_1_r. 2: apply (WF_bra 0).
-          rewrite Mmult01.
-          unfold Zero; simpl.
+          rewrite Mmult_1_r. 2: apply (WF_bra 1).
+          rewrite Mmult10.
           reflexivity.
         }
         rewrite Mmult_plus_distr_r in H2.
         assert (step1 : I 2 ⊗ I 2 ⊗ (beta × (beta) †) × (∣1⟩ ⊗ ∣1⟩ ⊗ beta) = ∣1⟩ ⊗ ∣1⟩ ⊗ beta).
-        {}
-        assert (step2 : P0 ⊗ P1 ⊗ (beta_perp × (beta_perp) †) × (∣1⟩ ⊗ ∣1⟩ ⊗ beta) = Zero). {}
+        {
+          repeat rewrite kron_mixed_product.
+          Msimpl.
+          unfold beta at 1 2.
+          admit.
+        }
+        assert (step2 : P0 ⊗ P1 ⊗ (beta_perp × (beta_perp) †) × (∣1⟩ ⊗ ∣1⟩ ⊗ beta) = Zero).
+        {
+          repeat rewrite kron_mixed_product.
+          rewrite Mmult_assoc.
+          rewrite H3.
+          Msimpl.
+          reflexivity.
+        }
         rewrite step1, step2 in H2; clear step1 step2.
         rewrite Mplus_0_r in H2.
-        assert (step3 : ccu (diag2 u0 u1) × (∣1⟩ ⊗ ∣1⟩ ⊗ beta) = ∣1⟩ ⊗ ∣1⟩ ⊗ (diag2 u0 u1 × beta)). {}
+        assert (step3 : ccu (diag2 u0 u1) × (∣1⟩ ⊗ ∣1⟩ ⊗ beta) = ∣1⟩ ⊗ ∣1⟩ ⊗ (diag2 u0 u1 × beta)).
+        {
+          admit.
+        }
         rewrite step3 in H2 at 1; clear step3.
         do 2 rewrite kron_assoc in H2.
         do 2 apply kron_1_cancel_l in H2.
@@ -198,11 +212,8 @@ Proof.
         {
           apply (f_equal (fun f => f 0%nat 0%nat)) in H2.
           unfold diag2, Mmult in H2; simpl in H2.
-          replace (beta 0%nat 0%nat) with a in H2 by reflexivity.
-          rewrite Cmult_0_l in H2.
-          rewrite Cplus_0_l in H2.
-          rewrite Cplus_0_r in H2.
-          apply Cmult_cancel_r with (a := a).
+          revert H2; Csimpl; intro H2.
+          apply Cmult_cancel_r with (a := beta 0%nat 0%nat).
           exact a_nonzero.
           rewrite <- H2.
           rewrite Cmult_1_l.
@@ -212,10 +223,8 @@ Proof.
         {
           apply (f_equal (fun f => f 1%nat 0%nat)) in H2.
           unfold diag2, Mmult in H2; simpl in H2.
-          replace (beta 1%nat 0%nat) with b in H2 by reflexivity.
-          rewrite Cmult_0_l in H2.
-          repeat rewrite Cplus_0_l in H2.
-          apply Cmult_cancel_r with (a := b).
+          revert H2; Csimpl; intro H2.
+          apply Cmult_cancel_r with (a := beta 1%nat 0%nat).
           exact b_nonzero.
           rewrite <- H2.
           rewrite Cmult_1_l.
