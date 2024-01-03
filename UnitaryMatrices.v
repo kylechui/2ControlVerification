@@ -19,31 +19,31 @@ Lemma a4: forall {n} (v: Vector n) (c: C) (U V : Square n),
     WF_Matrix v -> WF_Unitary U -> WF_Unitary V ->
     Eigenpair V (v, c) <-> Eigenpair (U × V × U†) (U × v, c).
 Proof.
-    (* TODO: Proof is adapted from QuantumLib.Eigenvectors to step through the proof. Replace with application.*)
-    intros.
-    destruct H0 as [H0 H2].
-    unfold Eigenpair in *; simpl in *.
-    do 2 (rewrite Mmult_assoc).
-    rewrite <- Mmult_assoc with (A := U†).
+  (* TODO: Proof is adapted from QuantumLib.Eigenvectors to step through the proof. Replace with application.*)
+  intros.
+  destruct H0 as [H0 H2].
+  unfold Eigenpair in *; simpl in *.
+  do 2 (rewrite Mmult_assoc).
+  rewrite <- Mmult_assoc with (A := U†).
+  rewrite H2.
+  rewrite Mmult_1_l. 2: apply H.
+  split.
+  - intro H3.
+    rewrite H3.
+    rewrite Mscale_mult_dist_r.
+    reflexivity.
+  - intro H3.
+    rewrite <- Mmult_1_l with (A := V). 2: apply H1.
+    rewrite <- H2.
+    rewrite Mmult_assoc with (B := U).
+    rewrite Mmult_assoc with (B := (U × V)).
+    rewrite Mmult_assoc with (A := U).
+    rewrite H3.
+    rewrite Mscale_mult_dist_r.
+    rewrite <- Mmult_assoc.
     rewrite H2.
     rewrite Mmult_1_l. 2: apply H.
-    split.
-    - intro H3.
-      rewrite H3.
-      rewrite Mscale_mult_dist_r.
-      reflexivity.
-    - intro H3.
-      rewrite <- Mmult_1_l with (A := V). 2: apply H1.
-      rewrite <- H2.
-      rewrite Mmult_assoc with (B := U).
-      rewrite Mmult_assoc with (B := (U × V)).
-      rewrite Mmult_assoc with (A := U).
-      rewrite H3.
-      rewrite Mscale_mult_dist_r.
-      rewrite <- Mmult_assoc.
-      rewrite H2.
-      rewrite Mmult_1_l. 2: apply H.
-      reflexivity.
+    reflexivity.
 Qed.
 
 Lemma a5_left: forall {n} (psi phi: Vector n) (a p: C) (P Q: Square n),
@@ -226,7 +226,7 @@ assert (Step3: c .* (∣0⟩ ⊗ psi) =  ∣0⟩ ⊗ (c .* psi)).
 rewrite Step3 at 1. clear Step3.
 set (B:= P × psi ).
 set (C:=c .* psi).
-apply kron_0_vec2_equiv.
+apply kron_0_cancel_l.
 {
     apply WF_mult.
     destruct H as [H2 _].
@@ -275,7 +275,7 @@ assert (Step3: c .* (∣1⟩ ⊗ phi) =  ∣1⟩ ⊗ (c .* phi)).
 rewrite Step3 at 1. clear Step3.
 set (B:= Q × phi ).
 set (C:=c .* phi).
-apply kron_1_vec2_equiv.
+apply kron_1_cancel_l.
 {
     apply WF_mult.
     destruct H0 as [H2 _].
@@ -349,17 +349,18 @@ Proof.
   rewrite <- Mmult_plus_distr_l.
   repeat rewrite <- Mmult_assoc.
   rewrite <- Mmult_plus_distr_r.
-  assert (Step1 : ∣0⟩⟨0∣ .+ ∣1⟩⟨1∣ = I 2). lma'.
-  rewrite Step1. clear Step1.
-  rewrite Mmult_1_l. 2: apply WF_adjoint. 2: apply H.
-  assert (Step2: WF_Unitary (Q†)).
+  rewrite Mplus01.
+  rewrite Mmult_1_l.
+  assert (Q_adjoint_unitary : WF_Unitary (Q†)).
   {
     apply transpose_unitary.
-    apply H.
+    assumption.
   }
-  destruct Step2 as [Step2_1 Step2_2].
-  rewrite adjoint_involutive in Step2_2.
-  apply Step2_2.
+  destruct Q_adjoint_unitary.
+  rewrite adjoint_involutive in H1.
+  assumption.
+  apply transpose_unitary.
+  assumption.
 Qed.
 
 Lemma a9_right: forall (V : Square 4) (P00 P01 P10 P11 : Square 2),
