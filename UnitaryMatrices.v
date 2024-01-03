@@ -351,14 +351,16 @@ Proof.
   rewrite <- Mmult_plus_distr_r.
   rewrite Mplus01.
   rewrite Mmult_1_l.
-  assert (Step2: WF_Unitary (Q†)).
+  assert (Q_adjoint_unitary : WF_Unitary (Q†)).
   {
     apply transpose_unitary.
-    apply H.
+    assumption.
   }
-  destruct Step2 as [Step2_1 Step2_2].
-  rewrite adjoint_involutive in Step2_2.
-  apply Step2_2.
+  destruct Q_adjoint_unitary.
+  rewrite adjoint_involutive in H1.
+  assumption.
+  apply transpose_unitary.
+  assumption.
 Qed.
 
 Lemma a9_right: forall (V : Square 4) (P00 P01 P10 P11 : Square 2),
