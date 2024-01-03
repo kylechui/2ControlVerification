@@ -188,8 +188,18 @@ Proof.
         {
           repeat rewrite kron_mixed_product.
           Msimpl.
-          unfold beta at 1 2.
-          admit.
+          unfold beta at 2 3.
+          rewrite Mmult_adjoint.
+          destruct H1.
+          rewrite <- Mmult_assoc with (A := beta).
+          rewrite Mmult_assoc with (B := Q†).
+          rewrite <- Mmult_assoc with (B := Q).
+          rewrite H4.
+          Msimpl.
+          rewrite Mmult_assoc.
+          rewrite Mmult00.
+          Msimpl.
+          reflexivity.
         }
         assert (step2 : P0 ⊗ P1 ⊗ (beta_perp × (beta_perp) †) × (∣1⟩ ⊗ ∣1⟩ ⊗ beta) = Zero).
         {
