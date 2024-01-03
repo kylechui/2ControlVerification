@@ -19,8 +19,8 @@
 
         defaultVersion = coq-quantumlib-version;
         release.${coq-quantumlib-version} = {
-          rev = "refs/tags/${coq-quantumlib-version}";
-          sha256 = "sha256-YVDFLYAMFEfimIa1D6399z6Lo7RgSRJXrgEp2IEDQ0E=";
+          rev = "71b5b228baa6e2f0c06cc73416ac4a9820f1fd4f";
+          sha256 = "sha256-evIxqyjiOc+HkIl9Ft+7DZHYx74v7UGG5mHg6dlG6oA=";
         };
         useDune = true;
       };
