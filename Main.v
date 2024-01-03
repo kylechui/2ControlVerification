@@ -89,33 +89,32 @@ Proof.
         unfold beta, adjoint, qubit0, qubit1, Mmult.
         simpl.
         lma'.
-        replace (Q 0%nat 0%nat) with a by lca.
-        rewrite a_zero.
-        Csimpl.
-        reflexivity.
-        replace (Q 0%nat 0%nat) with a by lca.
-        rewrite a_zero.
-        Csimpl.
-        reflexivity.
-        replace (Q 0%nat 0%nat) with a by lca.
-        rewrite a_zero.
-        Csimpl.
-        reflexivity.
-        replace (Q 1%nat 0%nat) with b by lca.
-        Csimpl.
-        rewrite Cmult_comm.
-        rewrite unit_b.
-        reflexivity.
+        all: replace (Q 0%nat 0%nat) with a by lca.
+        all: replace (Q 1%nat 0%nat) with b by lca.
+        - rewrite a_zero.
+          Csimpl.
+          reflexivity.
+        - rewrite a_zero.
+          Csimpl.
+          reflexivity.
+        - rewrite a_zero.
+          Csimpl.
+          reflexivity.
+        - Csimpl.
+          rewrite Cmult_comm.
+          rewrite unit_b.
+          reflexivity.
       }
       assert (beta_perp_mult_0_0 : beta_perp × (beta_perp) † = ∣0⟩⟨0∣).
       {
         pose proof (a8 Q H1) as H3.
-        replace (Q × ∣0⟩) with beta in H3 by reflexivity.
-        replace (Q × ∣1⟩) with beta_perp in H3 by reflexivity.
-        rewrite beta_mult_1_1 in H3.
-        rewrite <- Mplus10 in H3.
-        apply Mplus_cancel_l in H3.
-        assumption.
+        unfold beta, beta_perp.
+        apply Mplus_cancel_l with (A := ∣1⟩⟨1∣).
+        rewrite Mplus10.
+        rewrite <- H3.
+        rewrite <- beta_mult_1_1.
+        unfold beta.
+        reflexivity.
       }
       rewrite beta_mult_1_1 in H2.
       rewrite beta_perp_mult_0_0 in H2.
@@ -138,20 +137,18 @@ Proof.
           unfold beta, adjoint, qubit0, qubit1, Mmult.
           simpl.
           lma'.
-          replace (Q 0%nat 0%nat) with a by lca.
+          all: replace (Q 0%nat 0%nat) with a by lca.
+          all: replace (Q 1%nat 0%nat) with b by lca.
           Csimpl.
           rewrite Cmult_comm.
           rewrite unit_a.
           reflexivity.
-          replace (Q 1%nat 0%nat) with b by lca.
           rewrite b_zero.
           Csimpl.
           reflexivity.
-          replace (Q 1%nat 0%nat) with b by lca.
           rewrite b_zero.
           Csimpl.
           reflexivity.
-          replace (Q 1%nat 0%nat) with b by lca.
           rewrite b_zero.
           Csimpl.
           reflexivity.
@@ -179,25 +176,27 @@ Proof.
           destruct H1.
           rewrite Mmult_assoc with (A := ⟨1∣).
           rewrite H3.
-          rewrite Mmult_1_r. 2: apply (WF_bra 1).
-          rewrite Mmult10.
-          reflexivity.
+          rewrite Mmult_1_r. 2: exact (WF_bra 1).
+          exact Mmult10.
+        }
+        assert (H4 : beta† × beta = I 1).
+        {
+          unfold beta, beta_perp.
+          rewrite Mmult_adjoint.
+          rewrite <- Mmult_assoc.
+          do 2 rewrite Mmult_assoc.
+          rewrite <- Mmult_assoc with (B := Q).
+          destruct H1.
+          rewrite H4.
+          Msimpl.
+          exact Mmult00.
         }
         rewrite Mmult_plus_distr_r in H2.
         assert (step1 : I 2 ⊗ I 2 ⊗ (beta × (beta) †) × (∣1⟩ ⊗ ∣1⟩ ⊗ beta) = ∣1⟩ ⊗ ∣1⟩ ⊗ beta).
         {
           repeat rewrite kron_mixed_product.
-          Msimpl.
-          unfold beta at 2 3.
-          rewrite Mmult_adjoint.
-          destruct H1.
-          rewrite <- Mmult_assoc with (A := beta).
-          rewrite Mmult_assoc with (B := Q†).
-          rewrite <- Mmult_assoc with (B := Q).
-          rewrite H4.
-          Msimpl.
           rewrite Mmult_assoc.
-          rewrite Mmult00.
+          rewrite H4.
           Msimpl.
           reflexivity.
         }
