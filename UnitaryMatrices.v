@@ -226,7 +226,7 @@ assert (Step3: c .* (∣0⟩ ⊗ psi) =  ∣0⟩ ⊗ (c .* psi)).
 rewrite Step3 at 1. clear Step3.
 set (B:= P × psi ).
 set (C:=c .* psi).
-apply kron_0_vec2_equiv.
+apply kron_0_cancel_l.
 {
     apply WF_mult.
     destruct H as [H2 _].
@@ -275,7 +275,7 @@ assert (Step3: c .* (∣1⟩ ⊗ phi) =  ∣1⟩ ⊗ (c .* phi)).
 rewrite Step3 at 1. clear Step3.
 set (B:= Q × phi ).
 set (C:=c .* phi).
-apply kron_1_vec2_equiv.
+apply kron_1_cancel_l.
 {
     apply WF_mult.
     destruct H0 as [H2 _].

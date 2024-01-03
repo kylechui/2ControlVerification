@@ -93,30 +93,30 @@ Proof.
   }
 Qed.
 
-Lemma kron_0_vec2_equiv : forall (B C : Vector 2),
+Lemma kron_0_cancel_l: forall {m n} (B C : Matrix m n),
   WF_Matrix B -> WF_Matrix C -> ∣0⟩ ⊗ B = ∣0⟩ ⊗ C -> B = C.
 Proof.
+  assert (inner_product_0_0 : ⟨0∣ × ∣0⟩ = I 1) by solve_matrix.
   intros.
-  lma'.
-  assert ((B 0 0 = (∣0⟩ ⊗ B) 0 0)%nat) by lca.
-  assert ((C 0 0 = (∣0⟩ ⊗ C) 0 0)%nat) by lca.
-  rewrite H2, H3, H1; reflexivity.
-  assert ((B 1 0 = (∣0⟩ ⊗ B) 1 0)%nat) by lca.
-  assert ((C 1 0 = (∣0⟩ ⊗ C) 1 0)%nat) by lca.
-  rewrite H2, H3, H1; reflexivity.
+  apply f_equal with (f := fun f => ⟨0∣ ⊗ I m × f) in H1.
+  do 2 rewrite kron_mixed_product in H1.
+  rewrite inner_product_0_0 in H1.
+  do 2 rewrite Mmult_1_l in H1. 2: assumption. 2: assumption. 2: assumption.
+  do 2 rewrite kron_1_l in H1. 2: assumption. 2: assumption. 2: assumption.
+  assumption.
 Qed.
 
-Lemma kron_1_vec2_equiv: forall (B C: Vector 2),
+Lemma kron_1_cancel_l: forall {m n} (B C : Matrix m n),
   WF_Matrix B -> WF_Matrix C -> ∣1⟩ ⊗ B = ∣1⟩ ⊗ C -> B = C.
 Proof.
+  assert (inner_product_1_1 : ⟨1∣ × ∣1⟩ = I 1) by solve_matrix.
   intros.
-  lma'.
-  assert ((B 0 0 = (∣1⟩ ⊗ B) 2 0)%nat) by lca.
-  assert ((C 0 0 = (∣1⟩ ⊗ C) 2 0)%nat) by lca.
-  rewrite H2, H3, H1; reflexivity.
-  assert ((B 1 0 = (∣1⟩ ⊗ B) 3 0)%nat) by lca.
-  assert ((C 1 0 = (∣1⟩ ⊗ C) 3 0)%nat) by lca.
-  rewrite H2, H3, H1; reflexivity.
+  apply f_equal with (f := fun f => ⟨1∣ ⊗ I m × f) in H1.
+  do 2 rewrite kron_mixed_product in H1.
+  rewrite inner_product_1_1 in H1.
+  do 2 rewrite Mmult_1_l in H1. 2: assumption. 2: assumption. 2: assumption.
+  do 2 rewrite kron_1_l in H1. 2: assumption. 2: assumption. 2: assumption.
+  assumption.
 Qed.
 
 Lemma WF_ket0bra1: WF_Matrix ∣0⟩⟨1∣.
