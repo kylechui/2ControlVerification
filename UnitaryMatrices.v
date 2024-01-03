@@ -19,31 +19,31 @@ Lemma a4: forall {n} (v: Vector n) (c: C) (U V : Square n),
     WF_Matrix v -> WF_Unitary U -> WF_Unitary V ->
     Eigenpair V (v, c) <-> Eigenpair (U × V × U†) (U × v, c).
 Proof.
-    (* TODO: Proof is adapted from QuantumLib.Eigenvectors to step through the proof. Replace with application.*)
-    intros.
-    destruct H0 as [H0 H2].
-    unfold Eigenpair in *; simpl in *.
-    do 2 (rewrite Mmult_assoc).
-    rewrite <- Mmult_assoc with (A := U†).
+  (* TODO: Proof is adapted from QuantumLib.Eigenvectors to step through the proof. Replace with application.*)
+  intros.
+  destruct H0 as [H0 H2].
+  unfold Eigenpair in *; simpl in *.
+  do 2 (rewrite Mmult_assoc).
+  rewrite <- Mmult_assoc with (A := U†).
+  rewrite H2.
+  rewrite Mmult_1_l. 2: apply H.
+  split.
+  - intro H3.
+    rewrite H3.
+    rewrite Mscale_mult_dist_r.
+    reflexivity.
+  - intro H3.
+    rewrite <- Mmult_1_l with (A := V). 2: apply H1.
+    rewrite <- H2.
+    rewrite Mmult_assoc with (B := U).
+    rewrite Mmult_assoc with (B := (U × V)).
+    rewrite Mmult_assoc with (A := U).
+    rewrite H3.
+    rewrite Mscale_mult_dist_r.
+    rewrite <- Mmult_assoc.
     rewrite H2.
     rewrite Mmult_1_l. 2: apply H.
-    split.
-    - intro H3.
-      rewrite H3.
-      rewrite Mscale_mult_dist_r.
-      reflexivity.
-    - intro H3.
-      rewrite <- Mmult_1_l with (A := V). 2: apply H1.
-      rewrite <- H2.
-      rewrite Mmult_assoc with (B := U).
-      rewrite Mmult_assoc with (B := (U × V)).
-      rewrite Mmult_assoc with (A := U).
-      rewrite H3.
-      rewrite Mscale_mult_dist_r.
-      rewrite <- Mmult_assoc.
-      rewrite H2.
-      rewrite Mmult_1_l. 2: apply H.
-      reflexivity.
+    reflexivity.
 Qed.
 
 Lemma a5_left: forall {n} (psi phi: Vector n) (a p: C) (P Q: Square n),
@@ -318,15 +318,8 @@ Lemma a7_2q_a : forall (P : Square 2) (Q: Square 2),
     partial_trace_2q_a (P ⊗ Q) = (trace P) .* Q.
 Proof.
 intros.
-apply mat_equiv_eq.
+lma'.
 apply WF_partial_trace_2q_a.
-apply WF_scale.
-apply H.
-by_cell.
-unfold partial_trace_2q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_2q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_2q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_2q_a; unfold kron; unfold trace; unfold scale. lca.
 Qed.
 
 Lemma a7_3q_a : forall (A B C: Square 2),
@@ -334,29 +327,8 @@ Lemma a7_3q_a : forall (A B C: Square 2),
     partial_trace_3q_a (A ⊗ B ⊗ C) = (trace A) .* (B ⊗ C).
 Proof.
 intros.
-apply mat_equiv_eq.
+lma'.
 apply WF_partial_trace_3q_a.
-apply WF_scale.
-apply WF_kron.
-lia. lia.
-apply H. apply H0.
-by_cell.
-unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_a; unfold kron; unfold trace; unfold scale. lca.
 Qed.
 
 Lemma a7_3q_c : forall (A B C: Square 2),
@@ -364,29 +336,8 @@ Lemma a7_3q_c : forall (A B C: Square 2),
     partial_trace_3q_c (A ⊗ B ⊗ C) = (trace C) .* (A ⊗ B).
 Proof.
 intros.
-apply mat_equiv_eq.
+lma'.
 apply WF_partial_trace_3q_c.
-apply WF_scale.
-apply WF_kron.
-lia. lia.
-apply H. apply H0.
-by_cell.
-unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
-unfold partial_trace_3q_c; unfold kron; unfold trace; unfold scale. lca.
 Qed.
 
 Lemma a8 : forall (Q : Square 2),
@@ -408,8 +359,6 @@ Proof.
   destruct Step2 as [Step2_1 Step2_2].
   rewrite adjoint_involutive in Step2_2.
   apply Step2_2.
-  apply transpose_unitary.
-  apply H.
 Qed.
 
 Lemma a9_right: forall (V : Square 4) (P00 P01 P10 P11 : Square 2),
@@ -417,173 +366,94 @@ WF_Unitary V -> WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11
 V = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 ->
 P01 = Zero -> P10 = Zero.
 Proof.
-intros.
-cut (WF_Unitary V†).
-intros.
-apply mat_equiv_eq.
-apply H2.
-apply WF_Zero.
-cut ((P10 0%nat 0%nat = 0 /\ P10 0%nat 1%nat = 0 /\ P10 1%nat 0%nat = 0 /\ P10 1%nat 1%nat = 0)%C).
-intros.
-by_cell.
-apply H7. apply H7. apply H7. apply H7.
-apply sum_of_squared_norms_eq_0_implies_0.
-cut (trace (P10† × P10) = (P10 0%nat 0%nat) ^* * P10 0%nat 0%nat + (P10 0%nat 1%nat) ^* * P10 0%nat 1%nat +
-(P10 1%nat 0%nat) ^* * P10 1%nat 0%nat + (P10 1%nat 1%nat) ^* * P10 1%nat 1%nat).
-cut (trace (P10† × P10) = 0).
-intros.
-rewrite <- H8.
-apply H7.
-cut (trace (P00 × P00†) = trace (P00 × P00†) + trace(P10 † × P10)).
-intros.
-apply C_l_cancel with (a:=trace (P00 × (P00) †)).
-symmetry.
-rewrite Cplus_0_r.
-apply H7.
-rewrite a2 at 2.
-rewrite <- trace_plus_dist.
-cut (trace (P00 × P00†) = trace (P00† × P00 .+ P10† × P10)).
-intros.
-apply H7.
-cut (P00 × P00† = P00† × P00 .+ P10† × P10).
-intros.
-rewrite H7.
-reflexivity.
-cut (∣0⟩⟨0∣ ⊗ (P00 × P00†) .+ ∣0⟩⟨1∣ ⊗ (P00× P10†) .+ ∣1⟩⟨0∣ ⊗ (P10× P00†) .+ ∣1⟩⟨1∣ ⊗ (P10× P10† .+ P11× P11†)
-= ∣0⟩⟨0∣ ⊗ (P00† × P00 .+ P10† × P10) .+ ∣0⟩⟨1∣ ⊗ (P10† × P11) .+ ∣1⟩⟨0∣ ⊗ (P11† × P10) .+ ∣1⟩⟨1∣ ⊗ (P11† × P11)).
-intros.
-set (A:= P00 × (P00) †). fold A in H7.
-set (B := P00 × (P10) †). fold B in H7.
-set (C:= P10 × (P00) †). fold C in H7.
-set (D := P10 × (P10) † .+ P11 × (P11) †). fold D in H7.
-set (E:= (P00) † × P00 .+ (P10) † × P10). fold E in H7.
-set (F := (P10) † × P11). fold F in H7.
-set (G:= (P11) † × P10). fold G in H7.
-set (J := (P11) † × P11). fold J in H7.
-apply block_equalities with (P00:= A) (P01 := B) (P10:= C) (P11 := D)
-(Q00:= E) (Q01 := F) (Q10:= G) (Q11 := J) in H7.
-destruct H7 as [H8 _].
-apply H8.
+intros V P00 P01 P10 P11 V_unitary WF_P00 WF_P01 WF_P10 WF_P11 V_def P01_Zero.
+assert (Vblock_adjoint : (∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11) † =
+    ∣0⟩⟨0∣ ⊗ P00† .+ ∣0⟩⟨1∣ ⊗ P10† .+ ∣1⟩⟨0∣ ⊗ P01† .+ ∣1⟩⟨1∣ ⊗ P11† ). lma.
+assert (rl_mult: V × V† = ∣0⟩⟨0∣ ⊗ (P00 × (P00) †) .+ ∣0⟩⟨1∣ ⊗ (P00 × (P10) †)
+    .+ ∣1⟩⟨0∣ ⊗ (P10 × (P00) †) .+ ∣1⟩⟨1∣ ⊗ (P10 × (P10) † .+ P11 × (P11) †)).
 {
-    unfold A.
-    apply WF_mult. 
-    apply H0. 
-    apply WF_adjoint. 
-    apply H0.
-}
-{
-    unfold B. 
-    apply WF_mult. 
-    apply H0. 
-    apply WF_adjoint. 
-    apply H2.
-}
-{
-    unfold C. 
-    apply WF_mult. 
-    apply H2. 
-    apply WF_adjoint.
-    apply H0.
-}
-{
-    unfold D. 
-    apply WF_plus.
-    apply WF_mult. 
-    apply H2. 
-    apply WF_adjoint. 
-    apply H2.
-    apply WF_mult. 
-    apply H3. 
-    apply WF_adjoint. 
-    apply H3.
-}
-{
-    unfold E. 
-    apply WF_plus.
-    apply WF_mult. 
-    apply WF_adjoint. 
-    apply H0. 
-    apply H0.
-    apply WF_mult. 
-    apply WF_adjoint. 
-    apply H2. 
-    apply H2.
-}
-{
-    unfold F. 
-    apply WF_mult. 
-    apply WF_adjoint.
-    apply H2. 
-    apply H3.
-}
-{
-    unfold G. 
-    apply WF_mult. 
-    apply WF_adjoint.
-    apply H3. 
-    apply H2.
-}
-{
-    unfold J. 
-    apply WF_mult. 
-    apply WF_adjoint.
-    apply H3. 
-    apply H3.
-}
-reflexivity. reflexivity.
-cut (V × V† = ∣0⟩⟨0∣ ⊗ (P00 × (P00) †) .+ ∣0⟩⟨1∣ ⊗ (P00 × (P10) †)
-.+ ∣1⟩⟨0∣ ⊗ (P10 × (P00) †) .+ ∣1⟩⟨1∣ ⊗ (P10 × (P10) † .+ P11 × (P11) †)).
-cut (V† × V = ∣0⟩⟨0∣ ⊗ ((P00) † × P00 .+ (P10) † × P10) .+ ∣0⟩⟨1∣ ⊗ ((P10) † × P11)
-.+ ∣1⟩⟨0∣ ⊗ ((P11) † × P10) .+ ∣1⟩⟨1∣ ⊗ ((P11) † × P11)).
-intros.
-rewrite <- H7.
-rewrite <- H8.
-destruct H. rewrite H9.
-destruct H6. rewrite adjoint_involutive in H10. rewrite H10. reflexivity.
-{
-    rewrite H4.
-    cut ((∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11) † =
-    ∣0⟩⟨0∣ ⊗ P00† .+ ∣0⟩⟨1∣ ⊗ P10† .+ ∣1⟩⟨0∣ ⊗ P01† .+ ∣1⟩⟨1∣ ⊗ P11† ).
-    intros.
-    rewrite H7 at 1.
-    set (A := ∣0⟩⟨0∣ ⊗ P00† .+ ∣0⟩⟨1∣ ⊗ P10† .+ ∣1⟩⟨0∣ ⊗ P01† .+ ∣1⟩⟨1∣ ⊗ P11†).
-    set (B := (∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11)).
-    rewrite block_multiply with (P00 := (P00) †) (P01 := P10†) (P10 := P01†) (P11 := (P11) †)
-    (Q00 := (P00)) (Q01 := (P01)) (Q10 := (P10)) (Q11 := (P11)).
-    rewrite H5. rewrite zero_adjoint_eq. repeat rewrite Mmult_0_l. repeat rewrite Mmult_0_r.
-    repeat rewrite Mplus_0_l. reflexivity.
-    apply WF_adjoint. apply H0.
-    apply WF_adjoint. apply H2.
-    apply WF_adjoint. apply H1.
-    apply WF_adjoint. apply H3.
-    apply H0. apply H1. apply H2. apply H3.
-    unfold A. reflexivity.
-    unfold B. reflexivity.
-    lma.
-}
-{
-    rewrite H4.
-    cut ((∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11) † =
-    ∣0⟩⟨0∣ ⊗ P00† .+ ∣0⟩⟨1∣ ⊗ P10† .+ ∣1⟩⟨0∣ ⊗ P01† .+ ∣1⟩⟨1∣ ⊗ P11† ).
-    intros.
-    rewrite H7 at 1.
-    set (A := ∣0⟩⟨0∣ ⊗ P00† .+ ∣0⟩⟨1∣ ⊗ P10† .+ ∣1⟩⟨0∣ ⊗ P01† .+ ∣1⟩⟨1∣ ⊗ P11†).
-    set (B := (∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11)).
+    rewrite V_def.
+    rewrite Vblock_adjoint at 1.
     rewrite block_multiply with (Q00 := (P00) †) (Q01 := P10†) (Q10 := P01†) (Q11 := (P11) †)
     (P00 := (P00)) (P01 := (P01)) (P10 := (P10)) (P11 := (P11)).
-    rewrite H5. rewrite zero_adjoint_eq. repeat rewrite Mmult_0_l. repeat rewrite Mmult_0_r.
+    11: reflexivity. 10: reflexivity.
+    9: solve_WF_matrix. 8: solve_WF_matrix. 7: solve_WF_matrix. 6: solve_WF_matrix.
+    5: assumption. 4: assumption. 3: assumption. 2: assumption.
+    rewrite P01_Zero. rewrite zero_adjoint_eq. repeat rewrite Mmult_0_l. repeat rewrite Mmult_0_r.
     repeat rewrite Mplus_0_r. reflexivity.
-    apply H0. apply H1. apply H2. apply H3.
-    apply WF_adjoint. apply H0.
-    apply WF_adjoint. apply H2.
-    apply WF_adjoint. apply H1.
-    apply WF_adjoint. apply H3.
-    unfold B. reflexivity.
-    unfold A. reflexivity.
-    lma.
 }
-lca.
-apply transpose_unitary. apply H.
+assert (lr_mult: V† × V = ∣0⟩⟨0∣ ⊗ ((P00) † × P00 .+ (P10) † × P10) .+ ∣0⟩⟨1∣ ⊗ ((P10) † × P11)
+    .+ ∣1⟩⟨0∣ ⊗ ((P11) † × P10) .+ ∣1⟩⟨1∣ ⊗ ((P11) † × P11)).
+{
+    rewrite V_def.
+    rewrite Vblock_adjoint at 1.
+    rewrite block_multiply with (P00 := (P00) †) (P01 := P10†) (P10 := P01†) (P11 := (P11) †)
+    (Q00 := (P00)) (Q01 := (P01)) (Q10 := (P10)) (Q11 := (P11)).
+    11: reflexivity. 10: reflexivity.
+    9: assumption. 8: assumption. 7: assumption. 6: assumption.
+    5: solve_WF_matrix. 4: solve_WF_matrix. 3: solve_WF_matrix. 2: solve_WF_matrix.
+    rewrite P01_Zero. rewrite zero_adjoint_eq.
+    repeat rewrite Mmult_0_l. repeat rewrite Mmult_0_r.
+    repeat rewrite Mplus_0_l. reflexivity.
+}
+clear V_def P01_Zero Vblock_adjoint.
+assert (Vadj_unitary: WF_Unitary V†).
+{
+    apply transpose_unitary. apply V_unitary.
+}
+assert (block_decomp: ∣0⟩⟨0∣ ⊗ (P00 × P00†) .+ ∣0⟩⟨1∣ ⊗ (P00× P10†) .+ ∣1⟩⟨0∣ ⊗ (P10× P00†) .+ ∣1⟩⟨1∣ ⊗ (P10× P10† .+ P11× P11†)
+= ∣0⟩⟨0∣ ⊗ (P00† × P00 .+ P10† × P10) .+ ∣0⟩⟨1∣ ⊗ (P10† × P11) .+ ∣1⟩⟨0∣ ⊗ (P11† × P10) .+ ∣1⟩⟨1∣ ⊗ (P11† × P11)).
+{
+    rewrite <- lr_mult.
+    rewrite <- rl_mult.
+    destruct V_unitary as [_ Vmult_id]. rewrite Vmult_id.
+    destruct Vadj_unitary as [_ Vadjmult_id]. rewrite adjoint_involutive in Vadjmult_id.
+    rewrite Vadjmult_id. reflexivity.
+}
+clear V_unitary Vadj_unitary lr_mult rl_mult.
+assert (P00_decomp: P00 × P00† = P00† × P00 .+ P10† × P10).
+{
+    apply block_equalities with (P00:= P00 × (P00) †) (P01 := P00 × (P10) †) (P10:= P10 × (P00) †) (P11 := P10 × (P10) † .+ P11 × (P11) †)
+    (Q00:= (P00) † × P00 .+ (P10) † × P10) (Q01 := (P10) † × P11) (Q10:= (P11) † × P10) (Q11 := (P11) † × P11) in block_decomp.
+    11: reflexivity. 10: reflexivity.
+    9: solve_WF_matrix. 8: solve_WF_matrix. 7: solve_WF_matrix. 6: solve_WF_matrix.
+    5: solve_WF_matrix. 4: solve_WF_matrix. 3: solve_WF_matrix. 2: solve_WF_matrix.
+    destruct block_decomp as [first_block _].
+    apply first_block.
+}
+clear block_decomp WF_P00 WF_P01 WF_P11.
+assert (tr_inner_sum: trace (P00 × P00†) = trace (P00† × P00 .+ P10† × P10)).
+{
+    rewrite P00_decomp.
+    reflexivity.
+}
+clear P00_decomp.
+assert (tr_sum: trace (P00 × P00†) = trace (P00 × P00†) + trace(P10 † × P10)).
+{
+    rewrite a2 at 2.
+    rewrite <- trace_plus_dist.
+    apply tr_inner_sum.
+}
+clear tr_inner_sum.
+assert (tr_0: trace (P10† × P10) = 0).
+{
+    apply C_l_cancel with (a:=trace (P00 × (P00) †)).
+    symmetry.
+    rewrite Cplus_0_r.
+    apply tr_sum.
+}
+clear tr_sum.
+assert (tr_def: trace (P10† × P10) = (P10 0%nat 0%nat) ^* * P10 0%nat 0%nat + (P10 0%nat 1%nat) ^* * P10 0%nat 1%nat +
+    (P10 1%nat 0%nat) ^* * P10 1%nat 0%nat + (P10 1%nat 1%nat) ^* * P10 1%nat 1%nat). lca.
+assert (all_0: (P10 0%nat 0%nat = 0 /\ P10 0%nat 1%nat = 0 /\ P10 1%nat 0%nat = 0 /\ P10 1%nat 1%nat = 0)%C).
+{
+    apply sum_of_squared_norms_eq_0_implies_0.
+    rewrite <- tr_def.
+    apply tr_0.
+}
+clear tr_def tr_0. 
+lma'.
+apply all_0. apply all_0. apply all_0. apply all_0.
 Qed.
 
 Lemma a9_left: forall (V : Square 4) (P00 P01 P10 P11 : Square 2),
@@ -591,27 +461,21 @@ WF_Unitary V -> WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11
 V = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 ->
 P10 = Zero -> P01 = Zero.
 Proof.
-intros.
+intros V P00 P01 P10 P11 V_unitary WF_P00 WF_P01 WF_P10 WF_P11 V_def P10_Zero.
 rewrite <- adjoint_involutive at 1. rewrite <- adjoint_involutive.
 apply Madjoint_simplify.
 rewrite zero_adjoint_eq.
-cut (P10 † = Zero).
-intros.
-set (U := ∣0⟩⟨0∣ ⊗ (P00 †) .+ ∣0⟩⟨1∣ ⊗ (P10 †) .+ ∣1⟩⟨0∣ ⊗ (P01 †) .+ ∣1⟩⟨1∣ ⊗ (P11 †)).
-apply a9_right with (V := U) (P00 := P00 †) (P01 := P10 †) (P10 := P01 †) (P11 := P11 †).
-assert (Step1: U = V†).
+assert (P10_adj_zero: P10 † = Zero).
 {
-    unfold U. rewrite H4. lma.
+    rewrite P10_Zero.
+    rewrite zero_adjoint_eq. 
+    reflexivity.
 }
-rewrite Step1. clear Step1.
-apply transpose_unitary. apply H.
-apply WF_adjoint. apply H0.
-apply WF_adjoint. apply H2.
-apply WF_adjoint. apply H1.
-apply WF_adjoint. apply H3.
-trivial.
-apply H6.
-rewrite H5. rewrite zero_adjoint_eq. reflexivity.
+apply a9_right with (V := V†) (P00 := P00 †) (P01 := P10 †) (P10 := P01 †) (P11 := P11 †).
+7: apply P10_adj_zero. 6: trivial. 5: solve_WF_matrix. 4: solve_WF_matrix. 3: solve_WF_matrix. 2: solve_WF_matrix.
+apply transpose_unitary.
+apply V_unitary.
+rewrite V_def. lma.
 Qed.
 
 Lemma a9: forall (V : Square 4) (P00 P01 P10 P11 : Square 2),
