@@ -1,3 +1,4 @@
+Require Import Coq.Logic.Classical_Pred_Type.
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
 
@@ -97,7 +98,37 @@ Lemma kron_cancel_l: forall {m n o p} (A : Matrix m n) (B C : Matrix o p),
   WF_Matrix B -> WF_Matrix C -> A <> Zero -> A ⊗ B = A ⊗ C -> B = C.
 Proof.
   intros.
-  assert (nonzero_def : exists i j, A i j <> 0). admit.
+  assert (zero_def : forall (A : Matrix n m), A = Zero <-> forall (i j : nat), A i j = C0).
+  {
+    split.
+    - intros.
+      rewrite H3.
+      unfold Zero.
+      reflexivity.
+    - intros.
+      prep_matrix_equality.
+      rewrite H3.
+      unfold Zero.
+      reflexivity.
+  }
+  assert (nonzero_def : exists i j, A i j <> 0).
+  {
+    assert (quantifier_negation : forall (A: Matrix n m),
+              (~ forall (i j: nat), A i j = 0) -> exists (i j : nat), A i j <> 0).
+    {
+      intros.
+      apply not_all_ex_not in H3. 
+      destruct H3.
+      apply not_all_ex_not in H3.
+      destruct H3.
+      exists x.
+      exists x0.
+      assumption.
+    }
+    apply quantifier_negation.
+    rewrite <- zero_def.
+    assumption.
+  }
   destruct nonzero_def as [i [j nonzero_def]].
   prep_matrix_equality.
   apply (f_equal (fun f => f (i * o + x) (j * p + y)))%nat in H2.
@@ -156,7 +187,7 @@ Proof.
     }
     rewrite b_zero, c_zero.
     reflexivity.
-Admitted.
+Qed.
 
 Lemma kron_0_cancel_l: forall {m n} (B C : Matrix m n),
   WF_Matrix B -> WF_Matrix C -> ∣0⟩ ⊗ B = ∣0⟩ ⊗ C -> B = C.
