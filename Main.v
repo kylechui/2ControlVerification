@@ -173,8 +173,8 @@ Proof.
           unfold beta_perp, beta.
           rewrite Mmult_adjoint.
           rewrite <- Mmult_assoc.
-          destruct H1.
           rewrite Mmult_assoc with (A := ⟨1∣).
+          destruct H1.
           rewrite H3.
           rewrite Mmult_1_r. 2: exact (WF_bra 1).
           exact Mmult10.
@@ -215,8 +215,21 @@ Proof.
           admit.
         }
         rewrite step3 in H2 at 1; clear step3.
-        do 2 rewrite kron_assoc in H2.
-        do 2 apply kron_1_cancel_l in H2.
+        apply kron_cancel_l in H2; auto.
+        2: {
+          apply WF_mult.
+          apply WF_diag2.
+          exact WF_beta.
+        }
+        2: {
+          intro absurd.
+          apply (f_equal (fun f => f 3%nat 0%nat)) in absurd.
+          unfold qubit1, Mmult, Zero in absurd.
+          revert absurd; compute; intro absurd.
+          replace ((R1 * R1 + - (R0 * R0))%R, (R1 * R0 + R0 * R1)%R) with C1 in absurd by lca.
+          contradict absurd.
+          apply C1_neq_C0.
+        }
         assert (u0_is_1 : u0 = C1).
         {
           apply (f_equal (fun f => f 0%nat 0%nat)) in H2.
@@ -245,13 +258,16 @@ Proof.
   - intros.
     destruct H2.
     exists (I 2), (I 2).
-    intros _ _.
-    rewrite <- kron_plus_distr_l.
-    unfold beta, beta_perp.
-    rewrite a8. 2: assumption.
-    rewrite H2, H3.
-    lma'.
-    apply WF_control with (n := 4%nat).
-    apply WF_control with (n := 2%nat).
-    show_wf.
+    split.
+    + exact (@id_unitary 2).
+    + split.
+      * exact (@id_unitary 2).
+      * rewrite <- kron_plus_distr_l.
+        unfold beta, beta_perp, ccu.
+        rewrite a8. 2: assumption.
+        rewrite H2, H3.
+        lma'.
+        apply WF_control with (n := 4%nat).
+        apply WF_control with (n := 2%nat).
+        apply WF_diag2.
 Qed.
