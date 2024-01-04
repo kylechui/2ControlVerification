@@ -212,7 +212,25 @@ Proof.
         rewrite Mplus_0_r in H2.
         assert (step3 : ccu (diag2 u0 u1) × (∣1⟩ ⊗ ∣1⟩ ⊗ beta) = ∣1⟩ ⊗ ∣1⟩ ⊗ (diag2 u0 u1 × beta)).
         {
-          admit.
+          assert (WF_lhs : WF_Matrix (ccu (diag2 u0 u1) × (∣1⟩ ⊗ ∣1⟩ ⊗ beta))).
+          {
+            apply WF_mult.
+            apply WF_ccu.
+            apply WF_diag2.
+            solve_WF_matrix.
+          }
+          assert (WF_rhs : WF_Matrix (∣1⟩ ⊗ ∣1⟩ ⊗ (diag2 u0 u1 × beta))).
+          {
+            repeat apply WF_kron.
+            all: try lia.
+            exact WF_qubit1.
+            exact WF_qubit1.
+            apply WF_mult.
+            apply WF_diag2.
+            assumption.
+          }
+          unfold ccu, control, diag2, Mmult.
+          lma'.
         }
         rewrite step3 in H2 at 1; clear step3.
         apply kron_cancel_l in H2; auto.
