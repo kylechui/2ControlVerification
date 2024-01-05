@@ -192,27 +192,29 @@ Qed.
 Lemma kron_0_cancel_l: forall {m n} (B C : Matrix m n),
   WF_Matrix B -> WF_Matrix C -> ∣0⟩ ⊗ B = ∣0⟩ ⊗ C -> B = C.
 Proof.
-  assert (inner_product_0_0 : ⟨0∣ × ∣0⟩ = I 1) by solve_matrix.
+  assert (qubit0_neq_Zero : ∣0⟩ <> Zero).
+  {
+    intro.
+    apply f_equal with (f := fun f => f 0%nat 0%nat) in H.
+    contradict H.
+    exact C1_neq_C0.
+  }
   intros.
-  apply f_equal with (f := fun f => ⟨0∣ ⊗ I m × f) in H1.
-  do 2 rewrite kron_mixed_product in H1.
-  rewrite inner_product_0_0 in H1.
-  do 2 rewrite Mmult_1_l in H1. 2: assumption. 2: assumption. 2: assumption.
-  do 2 rewrite kron_1_l in H1. 2: assumption. 2: assumption. 2: assumption.
-  assumption.
+  apply (@kron_cancel_l m n) with (A := ∣0⟩); auto.
 Qed.
 
 Lemma kron_1_cancel_l: forall {m n} (B C : Matrix m n),
   WF_Matrix B -> WF_Matrix C -> ∣1⟩ ⊗ B = ∣1⟩ ⊗ C -> B = C.
 Proof.
-  assert (inner_product_1_1 : ⟨1∣ × ∣1⟩ = I 1) by solve_matrix.
+  assert (qubit1_neq_Zero : ∣1⟩ <> Zero).
+  {
+    intro.
+    apply f_equal with (f := fun f => f 1%nat 0%nat) in H.
+    contradict H.
+    exact C1_neq_C0.
+  }
   intros.
-  apply f_equal with (f := fun f => ⟨1∣ ⊗ I m × f) in H1.
-  do 2 rewrite kron_mixed_product in H1.
-  rewrite inner_product_1_1 in H1.
-  do 2 rewrite Mmult_1_l in H1. 2: assumption. 2: assumption. 2: assumption.
-  do 2 rewrite kron_1_l in H1. 2: assumption. 2: assumption. 2: assumption.
-  assumption.
+  apply (@kron_cancel_l m n) with (A := ∣1⟩); auto.
 Qed.
 
 Lemma WF_ket0bra1: WF_Matrix ∣0⟩⟨1∣.
