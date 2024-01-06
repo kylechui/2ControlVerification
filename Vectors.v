@@ -28,22 +28,70 @@ Admitted.
 
 Lemma amplitudes_of_unit {n}: forall (a b : C) (u v w: Vector n), 
 u = a .* v .+ b .* w -> ⟨ u , u ⟩ = C1 -> ⟨ v , v ⟩ = C1 -> ⟨ w , w ⟩ = C1 -> 
-a^2 + b^2 = C1.
+⟨ v , w ⟩ = C0 -> a ^* * a + b ^* * b = C1.
 Proof.
-Admitted.
+intros a b u v w u_def u_unit v_unit w_unit vw_orthogonal.
+revert u_unit.
+rewrite u_def.
+repeat rewrite inner_product_plus_l. repeat rewrite inner_product_plus_r.
+repeat rewrite inner_product_scale_l. repeat rewrite inner_product_scale_r.
+rewrite inner_product_conj_sym with (u := w).
+repeat rewrite vw_orthogonal. rewrite v_unit. rewrite w_unit.
+Csimpl.
+trivial.
+Qed.
 
-Lemma kron_inner_prod {n}: forall (u v: Vector n), 
+Lemma kron_inner_prod2: forall (u v w z: Vector 2), 
+⟨ u ⊗ v, w ⊗ z ⟩ = ⟨ u, w ⟩ * ⟨ v, z ⟩.
+Proof.
+intros.
+lca.
+Qed.
+
+(* Lemma kron_inner_prod4: forall (u v: Vector 4), 
 ⟨ u ⊗ v, u ⊗ v ⟩ = ⟨ u, u ⟩ * ⟨ v, v ⟩.
-Proof. 
-Admitted.
+Proof.
+intros.
+lca.
+Qed. *)
+(* Saving work done on general case in case it is needed *)
+(* cut (⟨ u ⊗ v, u ⊗ v ⟩  = Σ (fun y : nat => (u) † 0%nat y * u y 0%nat * (Σ (fun x: nat => (v) † 0%nat x * v x 0%nat) n))n).
+intro tens_inner_decomp.
+{
+  (* solving main goal *)
+  rewrite tens_inner_decomp.
+  set (c := Σ (fun x : nat => (v) † 0%nat x * v x 0%nat) n).
+  assert (help1: (fun y : nat => (u) † 0%nat y * u y 0%nat * c) = (fun y : nat => ((fun x: nat => (u) † 0%nat x * u x 0%nat) y) * c)).
+  {
+    apply functional_extensionality.
+    intro.
+    lca.
+  }
+  set (f := (fun x : nat => (u) † 0%nat x * u x 0%nat)). fold f in help1.
+  rewrite help1.
+  assert (help2: (fun y : nat => f y * c) = (fun y : nat => (f y * c)%G)). apply functional_extensionality. intro. lca.
+  rewrite help2.
+  rewrite <- (big_sum_mult_r c f n).
+  unfold c, f, inner_product, Mmult.
+  reflexivity.
+}
+{
+  (* solving tens_inner_decomp *)
+  unfold inner_product.
+  unfold Mmult.
+  unfold kron.
+  unfold adjoint.
+  simpl.
+  lca.
+} *)
 
 
 Lemma a14 : forall (psi : Vector 4), 
 WF_Matrix psi -> ⟨ psi , psi ⟩ = 1 -> 
-exists (beta beta_p gamma gamma_p: Vector 2) (r : R)
-(* (WF_b : WF_Matrix beta) (WF_bp : WF_Matrix beta_p) (WF_g: WF_Matrix gamma) (WF_gp : WF_Matrix gamma_p) *),
+exists (beta beta_p gamma gamma_p: Vector 2) (r : R),
 ⟨ beta , beta_p ⟩ = 0 /\ ⟨ gamma , gamma_p ⟩ = 0 /\
 psi = √ (r) .* (beta ⊗ gamma) .+ √ (1-r) .* (beta_p ⊗ gamma_p).
+Proof.
 intros psi WF_psi psi_unit_vector.
 assert (psi_decomp: psi = (psi 0 0)%nat .* ∣0,0⟩ .+ (psi 1 0)%nat .* ∣0,1⟩ .+ (psi 2 0)%nat .* ∣1,0⟩ .+ (psi 3 0)%nat .* ∣1,1⟩).
 {
@@ -70,6 +118,7 @@ assert (A_elem_decomp: forall (j k: nat), A j k = U j 0%nat * L 0%nat 0%nat * V 
   rewrite L10_0. rewrite L01_0. Csimpl.
   reflexivity.
 }
+clear A_decomp.
 assert (psi_alt: psi = (U 0%nat 0%nat * L 0%nat 0%nat * V 0%nat 0%nat +
 U 0%nat 1%nat * L 1%nat 1%nat * V 1%nat 0%nat) .* ∣ 0, 0 ⟩ .+ (U 0%nat 0%nat * L 0%nat 0%nat * V 0%nat 1%nat +
 U 0%nat 1%nat * L 1%nat 1%nat * V 1%nat 1%nat) .* ∣ 0, 1 ⟩
@@ -89,39 +138,56 @@ U 1%nat 1%nat * L 1%nat 1%nat * V 1%nat 1%nat) .* ∣ 1, 1 ⟩).
   rewrite psi_0. rewrite psi_1. rewrite psi_2. rewrite psi_3.
   apply psi_decomp.
 }
+clear psi_decomp A_elem_decomp A.
 assert (tensor_decomp: psi = L 0%nat 0%nat .* ((U 0%nat 0%nat .* ∣0⟩ .+ U 1%nat 0%nat .* ∣1⟩) ⊗ (V 0%nat 0%nat .* ∣0⟩ .+ V 0%nat 1%nat .* ∣1⟩))
 .+ L 1%nat 1%nat .* ((U 0%nat 1%nat .* ∣0⟩ .+ U 1%nat 1%nat .* ∣1⟩) ⊗ (V 1%nat 0%nat .* ∣0⟩ .+ V 1%nat 1%nat .* ∣1⟩))).
 {
   rewrite psi_alt. lma'.
   solve_WF_matrix. solve_WF_matrix.
 }
+clear psi_alt.
 set (beta := (U 0%nat 0%nat .* ∣0⟩ .+ U 1%nat 0%nat .* ∣1⟩)).
 set (gamma := (V 0%nat 0%nat .* ∣0⟩ .+ V 0%nat 1%nat .* ∣1⟩)).
 set (beta_p := (U 0%nat 1%nat .* ∣0⟩ .+ U 1%nat 1%nat .* ∣1⟩)).
 set (gamma_p := (V 1%nat 0%nat .* ∣0⟩ .+ V 1%nat 1%nat .* ∣1⟩)).
 set (r := ((Re (L 0%nat 0%nat))^2)%R).
+assert (beta_orth : ⟨ beta, beta_p ⟩ = 0).
+{
+  unfold beta, beta_p.
+  rewrite inner_product_plus_l. 
+  do 2 rewrite inner_product_plus_r.
+  repeat rewrite inner_product_scale_l.
+  repeat rewrite inner_product_scale_r.
+  unfold inner_product.
+  rewrite Mmult00, Mmult01, Mmult10, Mmult11. 
+  Csimpl.
+  destruct unitary_U as [WF_U U_unit_prop].
+  assert (mat_element_decomp: (U 0%nat 0%nat) ^* * U 0%nat 1%nat + (U 1%nat 0%nat) ^* * U 1%nat 1%nat = 
+  ((U) † × U) 0%nat 1%nat). lca.
+  rewrite mat_element_decomp. rewrite U_unit_prop. lca.
+}
+assert (gamma_orth : ⟨ gamma, gamma_p ⟩ = 0).
+{
+  unfold gamma, gamma_p.
+  rewrite inner_product_plus_l. 
+  do 2 rewrite inner_product_plus_r.
+  repeat rewrite inner_product_scale_l.
+  repeat rewrite inner_product_scale_r.
+  unfold inner_product.
+  rewrite Mmult00, Mmult01, Mmult10, Mmult11. 
+  Csimpl.
+  apply transpose_unitary in unitary_V.
+  destruct unitary_V as [WF_Vdag Vdag_unit_prop].
+  rewrite adjoint_involutive in Vdag_unit_prop.
+  assert (mat_element_decomp: (V 0%nat 0%nat) ^* * V 1%nat 0%nat + (V 0%nat 1%nat) ^* * V 1%nat 1%nat = 
+  (V × (V) †) 1%nat 0%nat). lca.
+  rewrite mat_element_decomp. rewrite Vdag_unit_prop. lca.
+}
 exists beta,beta_p,gamma,gamma_p,r.
-split. 2: split.
-unfold beta, beta_p.
-2: unfold gamma, gamma_p.
-1,2: rewrite inner_product_plus_l. 
-1,2: do 2 rewrite inner_product_plus_r.
-1,2: repeat rewrite inner_product_scale_l.
-1,2: repeat rewrite inner_product_scale_r.
-1,2: unfold inner_product.
-1,2: rewrite Mmult00, Mmult01, Mmult10, Mmult11. 
-1,2: Csimpl.
-destruct unitary_U as [WF_U U_unit_prop].
-assert (mat_element_decomp: (U 0%nat 0%nat) ^* * U 0%nat 1%nat + (U 1%nat 0%nat) ^* * U 1%nat 1%nat = 
-((U) † × U) 0%nat 1%nat). lca.
-rewrite mat_element_decomp. rewrite U_unit_prop. lca.
-apply transpose_unitary in unitary_V.
-destruct unitary_V as [WF_Vdag Vdag_unit_prop].
-rewrite adjoint_involutive in Vdag_unit_prop.
-assert (mat_element_decomp: (V 0%nat 0%nat) ^* * V 1%nat 0%nat + (V 0%nat 1%nat) ^* * V 1%nat 1%nat = 
-(V × (V) †) 1%nat 0%nat). lca.
-rewrite mat_element_decomp. rewrite Vdag_unit_prop. lca.
-assert (unit_coefs: (L 0%nat 0%nat)^2 + (L 1%nat 1%nat)^2 = 1).
+split. apply beta_orth.
+split. apply gamma_orth.
+assert (unit_coefs: (L 0%nat 0%nat) ^* * L 0%nat 0%nat + (L 1%nat 1%nat) ^* * L 1%nat 1%nat =
+C1).
 {
   set (v := (U 0%nat 0%nat .* ∣0⟩ .+ U 1%nat 0%nat .* ∣1⟩) ⊗ (V 0%nat 0%nat .* ∣0⟩ .+ V 0%nat 1%nat .* ∣1⟩) : Vector 4).
   fold v in tensor_decomp.
@@ -130,38 +196,48 @@ assert (unit_coefs: (L 0%nat 0%nat)^2 + (L 1%nat 1%nat)^2 = 1).
   apply (amplitudes_of_unit (L 0%nat 0%nat) (L 1%nat 1%nat) psi v w).
   apply tensor_decomp.
   apply psi_unit_vector.
-  unfold v.
-  set (a := (U 0%nat 0%nat .* ∣0⟩ .+ U 1%nat 0%nat .* ∣1⟩)).
-  set (b := (V 0%nat 0%nat .* ∣0⟩ .+ V 0%nat 1%nat .* ∣1⟩)).
-  assert (temp: ⟨ a ⊗ b, a ⊗ b ⟩ = ⟨a, a⟩ * ⟨b, b⟩). apply kron_inner_prod.
-  rewrite temp at 1. clear temp.
-  unfold a,b.
-  repeat rewrite inner_product_plus_l. repeat rewrite inner_product_plus_r.
-  repeat rewrite inner_product_scale_l. repeat rewrite inner_product_scale_r.
-  unfold inner_product.
-  rewrite Mmult00, Mmult01, Mmult10, Mmult11. Csimpl.
-  assert (U_norm_helper: ((U 0%nat 0%nat) ^* * U 0%nat 0%nat + (U 1%nat 0%nat) ^* * U 1%nat 0%nat) = ((U) † × U) 0%nat 0%nat). lca.
-  assert (V_norm_helper: ((V 0%nat 0%nat) ^* * V 0%nat 0%nat + (V 0%nat 1%nat) ^* * V 0%nat 1%nat) = (V × (V) †) 0%nat 0%nat). lca.
-  rewrite U_norm_helper, V_norm_helper. clear U_norm_helper V_norm_helper.
-  destruct unitary_U as [_ unit_prop_U]. rewrite unit_prop_U.
-  apply transpose_unitary in unitary_V. destruct unitary_V as [_ unit_prop_Vadj]. rewrite adjoint_involutive in unit_prop_Vadj.
-  rewrite unit_prop_Vadj. lca.
-  unfold w.
-  set (a := (U 0%nat 1%nat .* ∣0⟩ .+ U 1%nat 1%nat .* ∣1⟩)).
-  set (b := (V 1%nat 0%nat .* ∣0⟩ .+ V 1%nat 1%nat .* ∣1⟩)).
-  assert (temp: ⟨ a ⊗ b, a ⊗ b ⟩ = ⟨a, a⟩ * ⟨b, b⟩). apply kron_inner_prod.
-  rewrite temp at 1. clear temp.
-  unfold a,b.
-  repeat rewrite inner_product_plus_l. repeat rewrite inner_product_plus_r.
-  repeat rewrite inner_product_scale_l. repeat rewrite inner_product_scale_r.
-  unfold inner_product.
-  rewrite Mmult00, Mmult01, Mmult10, Mmult11. Csimpl.
-  assert (U_norm_helper: ((U 0%nat 1%nat) ^* * U 0%nat 1%nat + (U 1%nat 1%nat) ^* * U 1%nat 1%nat) = ((U) † × U) 1%nat 1%nat). lca.
-  assert (V_norm_helper: ((V 1%nat 0%nat) ^* * V 1%nat 0%nat + (V 1%nat 1%nat) ^* * V 1%nat 1%nat) = (V × (V) †) 1%nat 1%nat). lca.
-  rewrite U_norm_helper, V_norm_helper. clear U_norm_helper V_norm_helper.
-  destruct unitary_U as [_ unit_prop_U]. rewrite unit_prop_U.
-  apply transpose_unitary in unitary_V. destruct unitary_V as [_ unit_prop_Vadj]. rewrite adjoint_involutive in unit_prop_Vadj.
-  rewrite unit_prop_Vadj. lca.
+  {
+    unfold v.
+    set (a := (U 0%nat 0%nat .* ∣0⟩ .+ U 1%nat 0%nat .* ∣1⟩)).
+    set (b := (V 0%nat 0%nat .* ∣0⟩ .+ V 0%nat 1%nat .* ∣1⟩)).
+    assert (temp: ⟨ a ⊗ b, a ⊗ b ⟩ = ⟨a, a⟩ * ⟨b, b⟩). apply kron_inner_prod2.
+    rewrite temp at 1. clear temp.
+    unfold a,b.
+    repeat rewrite inner_product_plus_l. repeat rewrite inner_product_plus_r.
+    repeat rewrite inner_product_scale_l. repeat rewrite inner_product_scale_r.
+    unfold inner_product.
+    rewrite Mmult00, Mmult01, Mmult10, Mmult11. Csimpl.
+    assert (U_norm_helper: ((U 0%nat 0%nat) ^* * U 0%nat 0%nat + (U 1%nat 0%nat) ^* * U 1%nat 0%nat) = ((U) † × U) 0%nat 0%nat). lca.
+    assert (V_norm_helper: ((V 0%nat 0%nat) ^* * V 0%nat 0%nat + (V 0%nat 1%nat) ^* * V 0%nat 1%nat) = (V × (V) †) 0%nat 0%nat). lca.
+    rewrite U_norm_helper, V_norm_helper. clear U_norm_helper V_norm_helper.
+    destruct unitary_U as [_ unit_prop_U]. rewrite unit_prop_U.
+    apply transpose_unitary in unitary_V. destruct unitary_V as [_ unit_prop_Vadj]. rewrite adjoint_involutive in unit_prop_Vadj.
+    rewrite unit_prop_Vadj. lca.
+  }
+  {
+    unfold w.
+    set (a := (U 0%nat 1%nat .* ∣0⟩ .+ U 1%nat 1%nat .* ∣1⟩)).
+    set (b := (V 1%nat 0%nat .* ∣0⟩ .+ V 1%nat 1%nat .* ∣1⟩)).
+    assert (temp: ⟨ a ⊗ b, a ⊗ b ⟩ = ⟨a, a⟩ * ⟨b, b⟩). apply kron_inner_prod2.
+    rewrite temp at 1. clear temp.
+    unfold a,b.
+    repeat rewrite inner_product_plus_l. repeat rewrite inner_product_plus_r.
+    repeat rewrite inner_product_scale_l. repeat rewrite inner_product_scale_r.
+    unfold inner_product.
+    rewrite Mmult00, Mmult01, Mmult10, Mmult11. Csimpl.
+    assert (U_norm_helper: ((U 0%nat 1%nat) ^* * U 0%nat 1%nat + (U 1%nat 1%nat) ^* * U 1%nat 1%nat) = ((U) † × U) 1%nat 1%nat). lca.
+    assert (V_norm_helper: ((V 1%nat 0%nat) ^* * V 1%nat 0%nat + (V 1%nat 1%nat) ^* * V 1%nat 1%nat) = (V × (V) †) 1%nat 1%nat). lca.
+    rewrite U_norm_helper, V_norm_helper. clear U_norm_helper V_norm_helper.
+    destruct unitary_U as [_ unit_prop_U]. rewrite unit_prop_U.
+    apply transpose_unitary in unitary_V. destruct unitary_V as [_ unit_prop_Vadj]. rewrite adjoint_involutive in unit_prop_Vadj.
+    rewrite unit_prop_Vadj. lca.
+  }
+  {
+    unfold v,w.
+    fold beta gamma beta_p gamma_p.
+    rewrite kron_inner_prod2.
+    rewrite beta_orth. rewrite gamma_orth. lca.
+  }
 }
 assert (first_coef: RtoC (√ r) = L 0%nat 0%nat).
 {
@@ -197,6 +273,8 @@ assert (second_coef: RtoC (√ (1 - r)) = L 1%nat 1%nat).
     repeat rewrite Rmult_0_r. repeat rewrite Rmult_0_l.
     repeat rewrite Rminus_0_r. repeat rewrite Rplus_0_r.
     repeat rewrite Rmult_1_r. repeat rewrite Rmult_0_r.
+    repeat rewrite Rplus_0_l. repeat rewrite Ropp_0.
+    repeat rewrite Rmult_0_l.
     intros unit_coefs. apply complex_split in unit_coefs.
     destruct unit_coefs as [unit_coefs _].
     revert unit_coefs. unfold Cplus. simpl.
