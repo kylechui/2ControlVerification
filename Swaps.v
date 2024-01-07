@@ -59,58 +59,17 @@ Lemma a10_3 : forall (c1 : C),
   swapac × ccu (diag2 1 c1) × swapac = ccu (diag2 1 c1).
 Proof.
   intros.
-  assert (Help : ccu (diag2 1 c1) =
-    ∣0⟩⟨0∣ ⊗ I 4 .+ ∣1⟩⟨1∣ ⊗ control (diag2 1 c1)).
-  {
-    lma'.
-    apply WF_ccu. apply WF_diag2.
-    solve_WF_matrix. apply WF_diag2.
-    unfold ccu, diag2, control.
-    lca.
-  }
-  rewrite Help; clear Help.
-  rewrite Mmult_plus_distr_l.
-  repeat rewrite Mmult_plus_distr_r.
-  assert (Help : control (diag2 1 c1) = ∣0⟩⟨0∣ ⊗ I 2 .+ ∣1⟩⟨1∣ ⊗ diag2 1 c1).
-  {
-    lma'.
-    apply WF_control. apply WF_diag2.
-    solve_WF_matrix. apply WF_diag2.
-    unfold control, diag2.  lca.
-  }
-  rewrite Help; clear Help.
-  rewrite kron_plus_distr_l.
-  rewrite Mmult_plus_distr_l.
-  repeat rewrite Mmult_plus_distr_r.
-  assert (Main1 : swapac × (∣0⟩⟨0∣ ⊗ I 4) × swapac = I 4 ⊗ ∣0⟩⟨0∣).
-  {
-    set (A := ∣0⟩⟨0∣).
-    assert (A ⊗ I 4 = (A ⊗ I 2) ⊗ I 2). lma'.
-    rewrite H.
-    rewrite swapac_3q. 4: apply WF_I. 3: apply WF_I. 2: apply WF_braqubit0.
-    rewrite id_kron.
-    reflexivity.
-  }
-  rewrite Main1 at 1.
-  rewrite <- Mplus_assoc.
-  assert (Main2 : swapac × (∣1⟩⟨1∣ ⊗ (∣0⟩⟨0∣ ⊗ I 2)) × swapac =
-  I 2  ⊗ ∣0⟩⟨0∣ ⊗ ∣1⟩⟨1∣).
-  {
-    set (A := ∣0⟩⟨0∣).
-    set (B := ∣1⟩⟨1∣).
-    rewrite <- kron_assoc. 4: apply WF_I. 3: apply WF_braqubit0. 2: apply WF_braqubit1.
-    apply swapac_3q. 3: apply WF_I. 2: apply WF_braqubit0. apply WF_braqubit1.
-  }
-  rewrite Main2 at 1.
-  assert (Main3 : swapac × (∣1⟩⟨1∣ ⊗ (∣1⟩⟨1∣ ⊗ diag2 C1 c1)) × swapac =
-  diag2 C1 c1 ⊗ ∣1⟩⟨1∣ ⊗ ∣1⟩⟨1∣).
-  {
-    set (A := ∣1⟩⟨1∣).
-    set (B := diag2 1 c1).
-    rewrite <- kron_assoc. 4: apply WF_diag2. 3: apply WF_braqubit1. 2: apply WF_braqubit1.
-    apply swapac_3q. 3: apply WF_diag2. 2: apply WF_braqubit1. apply WF_braqubit1.
-  }
-  rewrite Main3 at 1.
-  lma'. 2: solve_WF_matrix. 1: solve_WF_matrix.
-  apply WF_diag2. apply WF_diag2.
+  unfold swapac.
+  repeat rewrite <- Mmult_assoc.
+  do 4 rewrite Mmult_assoc.
+  rewrite <- Mmult_assoc with (B := ccu (diag2 C1 c1)).
+  rewrite <- Mmult_assoc with (B := swapab).
+  rewrite a10_1 at 1. 2: apply WF_diag2.
+  rewrite Mmult_assoc.
+  rewrite <- Mmult_assoc with (A := ccu (diag2 C1 c1)).
+  do 2 rewrite <- Mmult_assoc with (A := swapbc).
+  rewrite a10_2 at 1.
+  rewrite <- Mmult_assoc.
+  apply a10_1.
+  apply WF_diag2.
 Qed.
