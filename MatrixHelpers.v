@@ -22,6 +22,8 @@ Ltac solve_WF_matrix :=
       try apply WF_braqubit1;
       try apply WF_swap;
       try apply WF_control;
+      try apply WF_cnot;
+      try apply WF_notc;
       try solve [intros; exfalso; auto]
     )
   ).
