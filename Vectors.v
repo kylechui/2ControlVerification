@@ -41,50 +41,20 @@ Csimpl.
 trivial.
 Qed.
 
-Lemma kron_inner_prod2: forall (u v w z: Vector 2), 
-⟨ u ⊗ v, w ⊗ z ⟩ = ⟨ u, w ⟩ * ⟨ v, z ⟩.
+Lemma kron_inner_prod {m n} : forall (u v: Vector m) (w z: Vector n),
+  ⟨ u ⊗ w, v ⊗ z ⟩ = ⟨ u, v ⟩ * ⟨ w, z ⟩.
 Proof.
-intros.
-lca.
-Qed.
-
-(* Lemma kron_inner_prod4: forall (u v: Vector 4), 
-⟨ u ⊗ v, u ⊗ v ⟩ = ⟨ u, u ⟩ * ⟨ v, v ⟩.
-Proof.
-intros.
-lca.
-Qed. *)
-(* Saving work done on general case in case it is needed *)
-(* cut (⟨ u ⊗ v, u ⊗ v ⟩  = Σ (fun y : nat => (u) † 0%nat y * u y 0%nat * (Σ (fun x: nat => (v) † 0%nat x * v x 0%nat) n))n).
-intro tens_inner_decomp.
-{
-  (* solving main goal *)
-  rewrite tens_inner_decomp.
-  set (c := Σ (fun x : nat => (v) † 0%nat x * v x 0%nat) n).
-  assert (help1: (fun y : nat => (u) † 0%nat y * u y 0%nat * c) = (fun y : nat => ((fun x: nat => (u) † 0%nat x * u x 0%nat) y) * c)).
-  {
-    apply functional_extensionality.
-    intro.
+  intros.
+  destruct n.
+  - unfold inner_product, Mmult.
+    rewrite Nat.mul_0_r.
     lca.
-  }
-  set (f := (fun x : nat => (u) † 0%nat x * u x 0%nat)). fold f in help1.
-  rewrite help1.
-  assert (help2: (fun y : nat => f y * c) = (fun y : nat => (f y * c)%G)). apply functional_extensionality. intro. lca.
-  rewrite help2.
-  rewrite <- (big_sum_mult_r c f n).
-  unfold c, f, inner_product, Mmult.
-  reflexivity.
-}
-{
-  (* solving tens_inner_decomp *)
-  unfold inner_product.
-  unfold Mmult.
-  unfold kron.
-  unfold adjoint.
-  simpl.
-  lca.
-} *)
-
+  - unfold inner_product, Mmult.
+    rewrite (@big_sum_product Complex.C _ _ _ C_is_ring). 2: auto.
+    apply big_sum_eq.
+    apply functional_extensionality; intro.
+    lca.
+Qed.
 
 Lemma a14 : forall (psi : Vector 4), 
 WF_Matrix psi -> ⟨ psi , psi ⟩ = 1 -> 
@@ -200,8 +170,7 @@ C1).
     unfold v.
     set (a := (U 0%nat 0%nat .* ∣0⟩ .+ U 1%nat 0%nat .* ∣1⟩)).
     set (b := (V 0%nat 0%nat .* ∣0⟩ .+ V 0%nat 1%nat .* ∣1⟩)).
-    assert (temp: ⟨ a ⊗ b, a ⊗ b ⟩ = ⟨a, a⟩ * ⟨b, b⟩). apply kron_inner_prod2.
-    rewrite temp at 1. clear temp.
+    rewrite kron_inner_prod with (u := a) (w := b) at 1.
     unfold a,b.
     repeat rewrite inner_product_plus_l. repeat rewrite inner_product_plus_r.
     repeat rewrite inner_product_scale_l. repeat rewrite inner_product_scale_r.
@@ -218,8 +187,7 @@ C1).
     unfold w.
     set (a := (U 0%nat 1%nat .* ∣0⟩ .+ U 1%nat 1%nat .* ∣1⟩)).
     set (b := (V 1%nat 0%nat .* ∣0⟩ .+ V 1%nat 1%nat .* ∣1⟩)).
-    assert (temp: ⟨ a ⊗ b, a ⊗ b ⟩ = ⟨a, a⟩ * ⟨b, b⟩). apply kron_inner_prod2.
-    rewrite temp at 1. clear temp.
+    rewrite kron_inner_prod with (u := a) (w := b) at 1.
     unfold a,b.
     repeat rewrite inner_product_plus_l. repeat rewrite inner_product_plus_r.
     repeat rewrite inner_product_scale_l. repeat rewrite inner_product_scale_r.
@@ -235,7 +203,7 @@ C1).
   {
     unfold v,w.
     fold beta gamma beta_p gamma_p.
-    rewrite kron_inner_prod2.
+    rewrite kron_inner_prod with (u := beta) (w := gamma) at 1.
     rewrite beta_orth. rewrite gamma_orth. lca.
   }
 }

@@ -40,6 +40,104 @@ Proof.
     unfold Eigenpair.
 Admitted.
 
+Lemma m4_1 : forall (u0 u1 : C),
+  Cmod u0 = 1 -> Cmod u1 = 1 ->
+    (exists (U V : Square 4) (P0 P1 Q0 Q1: Square 2),
+      WF_Unitary U /\ WF_Unitary V /\ WF_Unitary P0 /\ WF_Unitary P1 /\ WF_Unitary Q0 /\ WF_Unitary Q1 /\
+      ∣0⟩⟨0∣ ⊗ (U × (P0 ⊗ Q0) × V) .+ ∣1⟩⟨1∣ ⊗ (U × (P1 ⊗ Q1) × V) = ccu (diag2 u0 u1))
+    <-> u0 = u1 \/ u0 * u1 = 1.
+Proof.
+  split.
+  - admit.
+  - intros.
+    destruct H1.
+    + exists (I 4), (I 4), (I 2), (diag2 1 u1), (I 2), (I 2).
+      assert (diag2_unitary : WF_Unitary (diag2 1 u1)).
+      {
+        split.
+        - apply WF_diag2.
+        - solve_matrix.
+          unfold diag2; simpl.
+          rewrite <- Cmod_sqr.
+          rewrite H0.
+          lca.
+      }
+      split. apply id_unitary.
+      split. apply id_unitary.
+      split. apply id_unitary.
+      split. apply diag2_unitary.
+      split. apply id_unitary.
+      split. apply id_unitary.
+      (* This line removes a lot of subgoals created by the following Msimpl *)
+      assert (WF_my_diag2 : WF_Matrix (diag2 1 u1)). apply WF_diag2.
+      Msimpl.
+
+      lma'.
+      do 2 apply WF_control; apply WF_diag2.
+      {
+        unfold kron, adjoint, Mmult, Mplus, ccu, control, diag2, I, qubit0, qubit1; simpl.
+        Csimpl.
+        symmetry; exact H1.
+      }
+      {
+        unfold kron, adjoint, Mmult, Mplus, ccu, control, diag2, I, qubit0, qubit1; simpl.
+        Csimpl.
+        reflexivity.
+      }
+    + exists notc, notc, (I 2), (diag2 1 u0), (I 2), (diag2 1 u1).
+      assert (diag2_unitary : forall u, Cmod u = 1 -> WF_Unitary (diag2 1 u)).
+      {
+        split.
+        - apply WF_diag2.
+        - solve_matrix.
+          unfold diag2; simpl.
+          rewrite <- Cmod_sqr.
+          rewrite H2.
+          lca.
+      }
+      split. apply notc_unitary.
+      split. apply notc_unitary.
+      split. apply id_unitary.
+      split. apply diag2_unitary; exact H.
+      split. apply id_unitary.
+      split. apply diag2_unitary; exact H0.
+      (* This line removes a lot of subgoals created by the following Msimpl *)
+      assert (WF_my_diag2 : WF_Matrix (diag2 u0 1)). apply WF_diag2.
+      Msimpl.
+      lma'.
+      {
+        apply WF_plus.
+        - apply WF_kron. lia. lia.
+          solve_WF_matrix.
+          apply WF_mult.
+          solve_WF_matrix.
+          apply WF_notc.
+        - apply WF_kron. lia. lia.
+          solve_WF_matrix.
+          apply WF_mult.
+          solve_WF_matrix.
+          apply WF_diag2.
+          apply WF_diag2.
+          apply WF_notc.
+      }
+      do 2 apply WF_control; apply WF_diag2.
+      {
+        unfold kron, adjoint, Mmult, Mplus, ccu, control, diag2, I, qubit0, qubit1; simpl.
+        Csimpl.
+        assumption.
+      }
+      {
+        unfold kron, adjoint, Mmult, Mplus, ccu, control, diag2, I, qubit0, qubit1; simpl.
+        Csimpl.
+        reflexivity.
+      }
+      {
+        unfold kron, adjoint, Mmult, Mplus, ccu, control, diag2, I, qubit0, qubit1; simpl.
+        Csimpl.
+        reflexivity.
+      }
+Qed.
+
 Lemma m4_2 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
   forall (Q : Square 2),
