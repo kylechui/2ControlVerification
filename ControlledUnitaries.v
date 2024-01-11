@@ -1,4 +1,6 @@
 Require Import QuantumLib.Quantum.
+Require Import QuantumLib.VecSet. 
+Require Import QuantumLib.Matrix.
 From Proof Require Import MatrixHelpers.
 From Proof Require Import QubitHelpers.
 
@@ -167,10 +169,55 @@ all: Csimpl.
 all: lca.
 Qed.
 
+Lemma element_equiv_vec_element {m n}: forall (A: Matrix m n), 
+WF_Matrix A -> 
+forall (i j: nat), 
+A i j = (get_vec j A) i 0%nat.
+Proof. 
+intros.
+unfold get_vec.
+simpl.
+reflexivity.
+Qed.
+
+Lemma column_equal_implies_equal {m n}: forall (A B: Matrix m n),
+WF_Matrix A -> WF_Matrix B ->
+(forall (j: nat), get_vec j A = get_vec j B) -> A = B.
+intros.
+lma'.
+rewrite element_equiv_vec_element. 2: assumption.
+rewrite H1.
+rewrite <- element_equiv_vec_element. 2: assumption. 
+reflexivity.
+Qed.
+
+
 Lemma vector_mult_simplify {m n}: forall (A B: Matrix m n),
+WF_Matrix A -> WF_Matrix B -> 
 (forall (w : Vector n), WF_Matrix w -> A × w = B × w) -> A = B.
 Proof.
-Admitted.
+intros.
+apply column_equal_implies_equal. 1,2: assumption.
+intros.
+destruct (PeanoNat.Nat.lt_total j n).
+rewrite matrix_by_basis. rewrite matrix_by_basis. 2,3: assumption.
+apply H1. apply WF_e_i.
+unfold get_vec.
+apply functional_extensionality. intros.
+apply functional_extensionality. intros y.
+destruct (y =? 0). 2: reflexivity.
+destruct H2.
+unfold WF_Matrix in *.
+rewrite H. rewrite H0. reflexivity.
+1,2: right.
+1,2: rewrite H2.
+1,2: apply Nat.le_refl.
+unfold WF_Matrix in *.
+rewrite H. rewrite H0. reflexivity.
+1,2: right.
+1,2: apply Nat.lt_le_incl in H2.
+1,2: apply H2.
+Qed.
 
 
 
@@ -306,7 +353,7 @@ assert (prod_equiv_0: forall (w: Vector 2), WF_Matrix w -> P10 × Q × w = (Zero
 }
 assert (P10Q_0: P10 × Q = Zero).
 {
-    apply vector_mult_simplify.
+    apply vector_mult_simplify. 1,2: solve_WF_matrix.
     intros.
     rewrite Mmult_0_l.
     apply prod_equiv_0.
