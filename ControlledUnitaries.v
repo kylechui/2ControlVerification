@@ -4,6 +4,7 @@ Require Import QuantumLib.Matrix.
 From Proof Require Import MatrixHelpers.
 From Proof Require Import QubitHelpers.
 From Proof Require Import UnitaryMatrices.
+From Proof Require Import Swaps.
 
 Lemma inner_prod_0_decomp {n}: forall (u v: Vector n), 
 WF_Matrix u -> WF_Matrix v -> ⟨ u , v ⟩ = C0 <-> u† × v = Zero.
@@ -222,9 +223,19 @@ Qed.
 
 Lemma unitary_mult_zero_cancel_r {n}: 
 forall (A B: Square n), 
-WF_Unitary B -> A × B = Zero -> A = Zero.
+WF_Matrix A -> WF_Unitary B -> A × B = Zero -> A = Zero.
 Proof.
-Admitted.
+intros A B WF_a b_unitary prod_zero.
+apply (f_equal (fun f => f × B†)) in prod_zero.
+apply transpose_unitary in b_unitary.
+destruct b_unitary as [WF_Bdag Bdag_I].
+rewrite adjoint_involutive in Bdag_I.
+rewrite Mmult_assoc in prod_zero.
+rewrite Bdag_I in prod_zero.
+rewrite Mmult_1_r in prod_zero. 2: assumption.
+rewrite Mmult_0_l in prod_zero.
+apply prod_zero.
+Qed.
 
 Lemma adjoint00: (∣0⟩⟨0∣) † = ∣0⟩⟨0∣. Proof. lma'. Qed.
 Lemma adjoint01: (∣0⟩⟨1∣) † = ∣1⟩⟨0∣. Proof. lma'. Qed.
@@ -433,4 +444,106 @@ split.
     split. assumption.
     apply equal_blocks.   
 }
+Qed.
+
+(* Very specific lemma for now *)
+Lemma kron_0_cancel_r: forall (a b: Vector 2),
+WF_Matrix a -> WF_Matrix b -> 
+a ⊗ ∣0⟩ = b ⊗ ∣0⟩ -> a = b.
+Proof.
+intros.
+lma'.
+assert (a00_val: a 0%nat 0%nat = (a ⊗ ∣0⟩) 0%nat 0%nat). lca.
+assert (b00_val: b 0%nat 0%nat = (b ⊗ ∣0⟩) 0%nat 0%nat). lca.
+rewrite a00_val. rewrite H1. rewrite <- b00_val. reflexivity.
+assert (a10_val: a 1%nat 0%nat = (a ⊗ ∣0⟩) 2%nat 0%nat). lca.
+assert (b10_val: b 1%nat 0%nat = (b ⊗ ∣0⟩) 2%nat 0%nat). lca.
+rewrite a10_val. rewrite H1. rewrite <- b10_val. reflexivity.
+Qed.
+
+Lemma a18: forall (U : Square 4), 
+WF_Unitary U -> 
+(forall (beta: Vector 2), U × (beta ⊗ ∣0⟩) = beta ⊗ ∣0⟩) -> 
+exists (P1 : Square 2), 
+U = I 2 ⊗ ∣0⟩⟨0∣ .+ P1 ⊗ ∣1⟩⟨1∣ /\ WF_Unitary P1.
+Proof.
+intros U U_unitary tens_eigenvec.
+assert (SUS_tens_eigenvec: forall (beta: Vector 2), WF_Matrix beta -> (swap × U × swap)× (∣0⟩⊗ beta) = ∣0⟩⊗ beta).
+{
+    intros.
+    repeat rewrite Mmult_assoc.
+    rewrite a10. 2: apply WF_qubit0. 2: assumption.
+    rewrite tens_eigenvec.
+    rewrite a10. 2: assumption. 2: apply WF_qubit0.
+    reflexivity.
+}
+assert (SUS_block_decomp: exists (P0 P1: Square 2), (swap × U × swap) = ∣0⟩⟨0∣ ⊗ P0 .+ ∣1⟩⟨1∣ ⊗ P1 /\
+WF_Unitary P0 /\ WF_Unitary P1).
+{
+    apply a17 with (beta := ∣0⟩) (beta_p := ∣1⟩). 3: apply qubit1_qubit. 2: apply qubit0_qubit.
+    apply Mmult_unitary. apply Mmult_unitary. 1,3: apply swap_unitary. assumption.
+    lca.
+    exists ∣0⟩,∣1⟩.
+    split. apply WF_qubit0.
+    split. apply WF_qubit1.
+    split. apply SUS_tens_eigenvec. apply WF_qubit0.
+    apply SUS_tens_eigenvec. apply WF_qubit1.
+}
+destruct SUS_block_decomp as [P0 [P1 [SUS_block_decomp [P0_unitary P1_unitary]]]].
+assert (U_block_decomp: exists (P0 P1 : Square 2), U = P0 ⊗ ∣0⟩⟨0∣ .+ P1 ⊗ ∣1⟩⟨1∣ /\ WF_Unitary P0 /\ WF_Unitary P1).
+{
+    exists P0,P1.
+    split. 2: split. 2,3: assumption.
+    apply (f_equal (fun f => swap × f × swap)) in SUS_block_decomp.
+    assert (swap_inverse_helper: swap × (swap × U × swap) × swap = U).
+    {
+        repeat rewrite <- Mmult_assoc.
+        rewrite swap_swap.
+        rewrite Mmult_1_l. 2: apply U_unitary.
+        rewrite Mmult_assoc.
+        (* @Kyle for some reason swap_swap doesn't work here *)
+        lma'. 2: apply U_unitary.
+        apply WF_mult. apply U_unitary.
+        apply WF_mult. 1,2: apply WF_swap.
+    }
+    rewrite swap_inverse_helper in SUS_block_decomp.
+    rewrite SUS_block_decomp.
+    rewrite Mmult_plus_distr_l. rewrite Mmult_plus_distr_r.
+    rewrite a11. 3: apply P0_unitary. 2: solve_WF_matrix.
+    rewrite a11. 3: apply P1_unitary. 2: solve_WF_matrix.
+    reflexivity.
+}
+clear P0 P1 P0_unitary P1_unitary SUS_block_decomp.
+destruct U_block_decomp as [P0 [P1 [U_block_decomp [P0_unitary P1_unitary]]]].
+assert (U_P0_tens_decomp: forall (w: Vector 2),  U × (w ⊗ ∣0⟩) = (P0 × w)⊗ ∣0⟩).
+{
+    intros.
+    rewrite U_block_decomp.
+    rewrite Mmult_plus_distr_r.
+    rewrite kron_mixed_product.
+    rewrite kron_mixed_product.
+    rewrite Mmult_assoc. rewrite Mmult00. rewrite Mmult_1_r. 2: apply WF_qubit0.
+    rewrite Mmult_assoc. rewrite Mmult10. rewrite Mmult_0_r.
+    rewrite kron_0_r. rewrite Mplus_0_r.
+    reflexivity.
+}
+assert (P0_I_same_transform: forall (w: Vector 2), WF_Matrix w -> P0 × w = w).
+{
+    intros.
+    apply kron_0_cancel_r. 2: assumption.
+    apply WF_mult. apply P0_unitary. assumption.
+    rewrite <- U_P0_tens_decomp.
+    rewrite tens_eigenvec.
+    reflexivity. 
+}
+assert (P0_I: P0 = I 2).
+{
+    apply vector_mult_simplify. apply P0_unitary. apply WF_I.
+    intros.
+    rewrite Mmult_1_l. 2: assumption.
+    apply P0_I_same_transform. assumption.
+}
+exists P1.
+split.
+rewrite <- P0_I. all: assumption.
 Qed.
