@@ -3,6 +3,7 @@ Require Import QuantumLib.VecSet.
 Require Import QuantumLib.Matrix.
 From Proof Require Import MatrixHelpers.
 From Proof Require Import QubitHelpers.
+From Proof Require Import UnitaryMatrices.
 
 Lemma inner_prod_0_decomp {n}: forall (u v: Vector n), 
 WF_Matrix u -> WF_Matrix v -> ⟨ u , v ⟩ = C0 <-> u† × v = Zero.
@@ -219,7 +220,16 @@ rewrite H. rewrite H0. reflexivity.
 1,2: apply H2.
 Qed.
 
+Lemma unitary_mult_zero_cancel_r {n}: 
+forall (A B: Square n), 
+WF_Unitary B -> A × B = Zero -> A = Zero.
+Proof.
+Admitted.
 
+Lemma adjoint00: (∣0⟩⟨0∣) † = ∣0⟩⟨0∣. Proof. lma'. Qed.
+Lemma adjoint01: (∣0⟩⟨1∣) † = ∣1⟩⟨0∣. Proof. lma'. Qed.
+Lemma adjoint10: (∣1⟩⟨0∣) † = ∣0⟩⟨1∣. Proof. lma'. Qed.
+Lemma adjoint11: (∣1⟩⟨1∣) † = ∣1⟩⟨1∣. Proof. lma'. Qed.
 
 Lemma a17: forall (U : Square 4) (beta beta_p : Vector 2), 
 WF_Unitary U -> WF_Qubit beta -> WF_Qubit beta_p -> ⟨ beta , beta_p ⟩ = C0 -> 
@@ -361,6 +371,66 @@ assert (P10Q_0: P10 × Q = Zero).
 }
 assert (P10_0: P10 = Zero).
 {
-    rewrite <- P10Q_0.
+    apply unitary_mult_zero_cancel_r with (B := Q).
+    all: assumption.
 }
-Admitted.
+assert (P01_0: P01 = Zero).
+{
+    apply a9 with (V:=U) (P00 := P00) (P01:= P01) (P10 := P10) (P11:= P11).
+    all: assumption.
+}
+exists P00, P11.
+assert (U_adj_block_decomp: (U) † = ∣0⟩⟨0∣ ⊗ P00† .+ ∣0⟩⟨1∣ ⊗ P10† .+ ∣1⟩⟨0∣ ⊗ P01† .+ ∣1⟩⟨1∣ ⊗ P11†). 
+{
+    rewrite U_block_decomp. lma'.
+    apply WF_adjoint. 1,2: apply WF_blockmatrix.
+    5,6,7,8: apply WF_adjoint. all: assumption.
+}
+assert (U_adj_mult_1: (U) † × U = ∣0⟩⟨0∣ ⊗ (P00† × P00) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (P11† × P11)).
+{
+    rewrite P10_0 in U_adj_block_decomp. rewrite zero_adjoint_eq in U_adj_block_decomp. 
+    rewrite P10_0 in U_block_decomp.
+    rewrite P01_0 in U_adj_block_decomp. rewrite zero_adjoint_eq in U_adj_block_decomp. 
+    rewrite P01_0 in U_block_decomp.
+    rewrite block_multiply with (U := (U) †) (V := U)
+    (P00 := P00†) (P01 := (Zero (m:= 2) (n:=2))) (P10 := (Zero (m:= 2) (n:=2))) (P11 := P11†)
+    (Q00 := P00) (Q01 := (Zero (m:= 2) (n:=2))) (Q10 := (Zero (m:= 2) (n:=2))) (Q11 := P11).
+    2,3,4,5,6,7,8,9: solve_WF_matrix.
+    2,3: assumption.
+    do 3 rewrite Mmult_0_l. do 2 rewrite Mmult_0_r.
+    repeat rewrite Mplus_0_l. rewrite Mplus_0_r.
+    reflexivity.
+}
+assert (I_4_block_decomp: I 4 = ∣0⟩⟨0∣ ⊗ I 2 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ I 2). 
+{
+    lma'. apply WF_blockmatrix.
+    all: solve_WF_matrix.
+}
+assert (equal_blocks: (P00) † × P00 = I 2 /\ (Zero (m:= 2) (n:=2)) = (Zero (m:= 2) (n:=2)) 
+/\ (Zero (m:= 2) (n:=2)) = (Zero (m:= 2) (n:=2)) /\ (P11) † × P11 = I 2).
+{
+    apply block_equalities with (U := (U) † × U) (V := I 4).
+    1,2,3,4,5,6,7,8: solve_WF_matrix.
+    1,2: assumption.
+    apply U_unitary.
+}
+split.
+{
+    rewrite U_block_decomp.
+    rewrite P10_0, P01_0.
+    lma'.
+    apply WF_blockmatrix.
+    all: solve_WF_matrix.   
+}
+split. 
+{
+    unfold WF_Unitary.
+    split. assumption.
+    apply equal_blocks.   
+}
+{
+    unfold WF_Unitary.
+    split. assumption.
+    apply equal_blocks.   
+}
+Qed.
