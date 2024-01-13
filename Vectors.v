@@ -56,11 +56,15 @@ Proof.
     lca.
 Qed.
 
+Definition TensorProd (u : Vector 4) := exists (v w : Vector 2), u = v ⊗ w.
+Definition Entangled (u : Vector 4) := not (TensorProd u).
+
 Lemma a14 : forall (psi : Vector 4), 
 WF_Matrix psi -> ⟨ psi , psi ⟩ = 1 -> 
 exists (beta beta_p gamma gamma_p: Vector 2) (r : R),
 ⟨ beta , beta_p ⟩ = 0 /\ ⟨ gamma , gamma_p ⟩ = 0 /\
-psi = √ (r) .* (beta ⊗ gamma) .+ √ (1-r) .* (beta_p ⊗ gamma_p).
+psi = √ (r) .* (beta ⊗ gamma) .+ √ (1-r) .* (beta_p ⊗ gamma_p) /\ r >= 0 /\ r <= 1
+/\ ((r = 0 \/ r = 1) -> TensorProd psi).
 Proof.
 intros psi WF_psi psi_unit_vector.
 assert (psi_decomp: psi = (psi 0 0)%nat .* ∣0,0⟩ .+ (psi 1 0)%nat .* ∣0,1⟩ .+ (psi 2 0)%nat .* ∣1,0⟩ .+ (psi 3 0)%nat .* ∣1,1⟩).
@@ -225,29 +229,49 @@ assert (first_coef: RtoC (√ r) = L 0%nat 0%nat).
   symmetry.
   apply nonneg_L_elem.
 }
+assert (r_ge_0: r >= 0).
+{
+  unfold r.
+  apply Rle_ge.
+  apply pow2_ge_0.
+}
+assert (r_unit_coefs: (Re (L 0%nat 0%nat) ^ 2 + Re (L 1%nat 1%nat)^ 2 = 1)%R).
+{
+  destruct nonneg_L as [_ nonneg_L_elem]. unfold Im in nonneg_L_elem.
+  assert (L00_r: snd (L 0%nat 0%nat) = 0). apply nonneg_L_elem.
+  assert (L11_r: snd (L 1%nat 1%nat) = 0). apply nonneg_L_elem.
+  revert unit_coefs.
+  unfold RtoC, Re, Cpow, Cmult. simpl.
+  repeat rewrite L00_r. repeat rewrite L11_r. 
+  repeat rewrite Rmult_0_r. repeat rewrite Rmult_0_l.
+  repeat rewrite Rminus_0_r. repeat rewrite Rplus_0_r.
+  repeat rewrite Rmult_1_r. repeat rewrite Rmult_0_r.
+  repeat rewrite Rplus_0_l. repeat rewrite Ropp_0.
+  repeat rewrite Rmult_0_l.
+  intros unit_coefs. apply complex_split in unit_coefs.
+  destruct unit_coefs as [unit_coefs _].
+  revert unit_coefs. unfold Cplus. simpl.
+  trivial.
+}
+assert (r_le_1 : r <= 1).
+{
+  destruct (Rle_dec r 1).
+  apply r0.
+  contradict r_unit_coefs.
+  apply Rgt_not_eq.
+  apply Rnot_le_gt in n.
+  fold r.
+  rewrite <- Rplus_0_r.
+  apply Rplus_gt_ge_compat.
+  assumption.
+  apply Rle_ge.
+  apply pow2_ge_0.
+}
 assert (second_coef: RtoC (√ (1 - r)) = L 1%nat 1%nat).
 {
   unfold r, RtoC.
   apply c_proj_eq.
   unfold fst at 1.
-  assert (r_unit_coefs: (Re (L 0%nat 0%nat) ^ 2 + Re (L 1%nat 1%nat)^ 2 = 1)%R).
-  {
-    destruct nonneg_L as [_ nonneg_L_elem]. unfold Im in nonneg_L_elem.
-    assert (L00_r: snd (L 0%nat 0%nat) = 0). apply nonneg_L_elem.
-    assert (L11_r: snd (L 1%nat 1%nat) = 0). apply nonneg_L_elem.
-    revert unit_coefs.
-    unfold RtoC, Re, Cpow, Cmult. simpl.
-    repeat rewrite L00_r. repeat rewrite L11_r. 
-    repeat rewrite Rmult_0_r. repeat rewrite Rmult_0_l.
-    repeat rewrite Rminus_0_r. repeat rewrite Rplus_0_r.
-    repeat rewrite Rmult_1_r. repeat rewrite Rmult_0_r.
-    repeat rewrite Rplus_0_l. repeat rewrite Ropp_0.
-    repeat rewrite Rmult_0_l.
-    intros unit_coefs. apply complex_split in unit_coefs.
-    destruct unit_coefs as [unit_coefs _].
-    revert unit_coefs. unfold Cplus. simpl.
-    trivial.
-  }
   assert (r_unit_restate: (1 - Re (L 0%nat 0%nat) ^ 2 =Re (L 1%nat 1%nat) ^ 2)%R). 
   {
     rewrite <- r_unit_coefs.
@@ -268,8 +292,43 @@ assert (second_coef: RtoC (√ (1 - r)) = L 1%nat 1%nat).
   symmetry.
   apply nonneg_L_elem.
 }
-rewrite first_coef. rewrite second_coef.
-apply tensor_decomp.
+assert (schmidt_decomp: psi =√ r .* (beta ⊗ gamma) .+ √ (1 - r) .* (beta_p ⊗ gamma_p)).
+{
+  rewrite first_coef. rewrite second_coef.
+  apply tensor_decomp.
+}
+split.
+apply schmidt_decomp.
+split. apply r_ge_0.
+split. apply r_le_1.
+{
+  intros.
+  destruct H.
+  all: revert schmidt_decomp.
+  all: rewrite H.
+  {
+    rewrite sqrt_0.
+    rewrite Mscale_0_l.
+    rewrite Mplus_0_l.
+    rewrite Rminus_0_r.
+    rewrite sqrt_1.
+    rewrite Mscale_1_l.
+    intro psi_tens.
+    exists beta_p, gamma_p.
+    assumption.
+  }
+  {
+    rewrite Rminus_diag_eq. 2: reflexivity.
+    rewrite sqrt_0.
+    rewrite Mscale_0_l.
+    rewrite Mplus_0_r.
+    rewrite sqrt_1.
+    rewrite Mscale_1_l.
+    intro psi_tens.
+    exists beta, gamma.
+    assumption.
+  }
+}
 Qed.
 
 Property is_unitary_form : forall (M : Square 2) (a b : Vector 2), 
@@ -415,7 +474,7 @@ Qed.
 (* Lemma inner_prod_adj *)
 
 (* Using old version of proof since beta is chosen constructively *)
-(* Lemma a16_part1: forall (w0 w1 a0 a1 : Vector 2), 
+Lemma a16_part1: forall (w0 w1 a0 a1 : Vector 2), 
 WF_Qubit a0 -> WF_Qubit a1 -> linearly_independent_2vec a0 a1 -> 
 w0 ⊗ a0 .+ w1 ⊗ a1 = Zero -> w0 = Zero.
 Proof.
@@ -433,7 +492,7 @@ assert (Step1: ⟨beta, a0⟩ = 0).
   rewrite H.
   lca.
 }
-assert (Step2: ⟨beta, a1⟩ <> 0).
+(* assert (Step2: ⟨beta, a1⟩ <> 0).
 {
   unfold beta, inner_product.
   rewrite Mplus_adjoint.
@@ -458,3 +517,4 @@ assert (Step2: ⟨beta, a1⟩ <> 0).
   rewrite Cmult_plus_distr_l. rewrite Cmult_plus_distr_r. rewrite Cmult_plus_distr_r.
   intros. 
 } *)
+Admitted.
