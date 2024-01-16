@@ -551,6 +551,28 @@ split.
 rewrite <- P0_I. all: assumption.
 Qed.
 
+Lemma Mplus_opp_0 {m n}: forall (A: Matrix m n), 
+WF_Matrix A -> A .+ Mopp (A) = Zero.
+intros.
+lma'.
+solve_WF_matrix.
+Qed.
+
+Lemma kron_opp_distr_l {m n o p}: forall (A: Matrix m n) (B: Matrix o p), 
+WF_Matrix A -> WF_Matrix B -> Mopp (A ⊗ B) = (Mopp A) ⊗ B.
+Proof. 
+intros.
+lma'.
+all: solve_WF_matrix.
+Qed.
+
+Lemma orthonormal_implies_lin_indep_2 {n}: forall (a b: Vector n), 
+WF_Matrix a -> WF_Matrix b -> ⟨ a, a ⟩ = 1 -> ⟨ b, b ⟩ = 1 -> ⟨ a, b ⟩ = 0
+-> linearly_independent_2vec a b.
+Proof.
+intros.
+unfold linearly_independent_2vec.
+
 Lemma a19: forall (U : Square 4) (phi2q w : Vector 4), 
 WF_Unitary U -> WF_Matrix phi2q -> WF_Matrix w -> ⟨ phi2q , phi2q ⟩ = C1 -> ⟨ w , w ⟩ = C1 -> 
 Entangled phi2q -> acgate U × (∣0⟩ ⊗ phi2q) = ∣0⟩ ⊗ w -> 
@@ -585,14 +607,14 @@ assert (qubit_w: WF_Qubit w).
 }
 assert (w_beta_decomp := a15 beta beta_p w qubit_beta qubit_beta_p qubit_w beta_orth).
 destruct w_beta_decomp as [psi [phi [w_beta_decomp [WF_psi WF_phi]]]].
-destruct qubit_beta as [_ [WF_beta beta_unit]].
-destruct qubit_beta_p as [_ [WF_beta_p beta_p_unit]].
-destruct qubit_gamma as [_ [WF_gamma gamma_unit]].
-destruct qubit_gamma_p as [_ [WF_gamma_p gamma_p_unit]].
 assert (Main: ∣0⟩ ⊗ psi ⊗ beta .+ ∣0⟩ ⊗ phi ⊗ beta_p =
 (√ r .* (U × (∣0⟩ ⊗ gamma))) ⊗ beta
 .+ (√ (1-r) .* (U × (∣0⟩ ⊗ gamma_p))) ⊗ beta_p).
 {
+    destruct qubit_beta as [_ [WF_beta beta_unit]].
+    destruct qubit_beta_p as [_ [WF_beta_p beta_p_unit]].
+    destruct qubit_gamma as [_ [WF_gamma gamma_unit]].
+    destruct qubit_gamma_p as [_ [WF_gamma_p gamma_p_unit]].
     assert (Step1: ∣0⟩ ⊗ psi ⊗ beta .+ ∣0⟩ ⊗ phi ⊗ beta_p = swapbc × (∣0⟩ ⊗ (beta ⊗ psi) .+ ∣0⟩ ⊗ (beta_p ⊗ phi))).
     {
         rewrite <- swapbc_3q. 2,3,4: solve_WF_matrix.
@@ -643,4 +665,29 @@ assert (Main: ∣0⟩ ⊗ psi ⊗ beta .+ ∣0⟩ ⊗ phi ⊗ beta_p =
     rewrite Mmult_1_l. rewrite Mmult_1_l. 2,3: solve_WF_matrix.
     rewrite <- Mscale_kron_dist_l. rewrite <- Mscale_kron_dist_l.
     reflexivity.
+}
+(* Moving terms in main to apply a16*)
+apply (f_equal (fun f => f .+ Mopp (∣0⟩ ⊗ phi ⊗ beta_p))) in Main.
+rewrite Mplus_assoc in Main.
+rewrite Mplus_opp_0 in Main. 2: solve_WF_matrix.
+rewrite Mplus_0_r in Main.
+rewrite Mplus_assoc in Main.
+rewrite kron_opp_distr_l in Main. 2,3: solve_WF_matrix.
+rewrite <- kron_plus_distr_r in Main.
+apply (f_equal (fun f => Mopp (∣0⟩ ⊗ psi ⊗ beta) .+ f)) in Main.
+rewrite Mplus_comm in Main.
+rewrite Mplus_opp_0 in Main. 2: solve_WF_matrix.
+rewrite kron_opp_distr_l in Main. 2,3: solve_WF_matrix.
+rewrite <- Mplus_assoc in Main.
+rewrite Mplus_comm with (A := Mopp (∣0⟩ ⊗ psi) ⊗ beta) in Main.
+rewrite <- kron_plus_distr_r in Main.
+assert ((√ r .* (U × (∣0⟩ ⊗ gamma)) .+ Mopp (∣0⟩ ⊗ psi)) = Zero /\
+(√ (1 - r) .* (U × (∣0⟩ ⊗ gamma_p)) .+ Mopp (∣0⟩ ⊗ phi)) = Zero).
+{
+    destruct qubit_gamma as [_ [WF_gamma gamma_unit]].
+    destruct qubit_gamma_p as [_ [WF_gamma_p gamma_p_unit]].
+    apply a16 with (a0:= beta) (a1 := beta_p).
+    1,2: solve_WF_matrix.
+    1,2: apply U_unitary.
+
 }
