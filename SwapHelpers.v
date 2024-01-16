@@ -87,7 +87,15 @@ Proof.
   apply mat_equiv_refl.
 Qed.
 
-Lemma swap_2q : forall (A B : Square 2),
+Lemma swap_2q : forall (a b : Vector 2),
+  WF_Matrix a -> WF_Matrix b ->
+    swap × (a ⊗ b) = b ⊗ a.
+Proof.
+  intros.
+  lma'.
+Qed.
+
+Lemma swap_2gate : forall (A B : Square 2),
   WF_Matrix A -> WF_Matrix B ->
     swap × (A ⊗ B) × swap = B ⊗ A.
 Proof.
@@ -95,7 +103,7 @@ Proof.
   lma'.
 Qed.
 
-Lemma swapab_3q : forall (A B C : Square 2),
+Lemma swapab_3gate : forall (A B C : Square 2),
   WF_Matrix A -> WF_Matrix B -> WF_Matrix C ->
     swapab × (A ⊗ B ⊗ C) × swapab = (B ⊗ A ⊗ C).
 Proof.
@@ -105,11 +113,25 @@ Proof.
   rewrite Mmult_1_l. 2: assumption.
   rewrite kron_mixed_product.
   rewrite Mmult_1_r. 2: assumption.
-  rewrite swap_2q. 2: assumption. 2: assumption.
+  rewrite swap_2gate. 2: assumption. 2: assumption.
   reflexivity.
 Qed.
 
-Lemma swapbc_3q : forall (A B C : Square 2),
+Lemma swapbc_3q : forall (a b c : Vector 2),
+WF_Matrix a -> WF_Matrix b -> WF_Matrix c ->
+    swapbc × (a ⊗ b ⊗ c) = (a ⊗ c ⊗ b).
+Proof.
+intros.
+unfold swapbc.
+rewrite kron_assoc. 2,3,4: assumption.
+rewrite kron_mixed_product.
+rewrite Mmult_1_l. 2: assumption.
+rewrite swap_2q. 2,3: assumption.
+rewrite kron_assoc. 2,3,4: assumption.
+reflexivity.
+Qed.
+
+Lemma swapbc_3gate : forall (A B C : Square 2),
   WF_Matrix A -> WF_Matrix B -> WF_Matrix C ->
     swapbc × (A ⊗ B ⊗ C) × swapbc = (A ⊗ C ⊗ B).
 Proof.
@@ -122,12 +144,12 @@ Proof.
   rewrite kron_mixed_product with (A := I 2) (B := swap) (C := A) (D := B ⊗ C × swap) at 1.
   rewrite Mmult_1_l. 2: assumption.
   rewrite <- Mmult_assoc.
-  rewrite swap_2q. 2: assumption. 2: assumption.
+  rewrite swap_2gate. 2: assumption. 2: assumption.
   rewrite <- kron_assoc. 2: assumption. 2: assumption. 2: assumption.
   reflexivity.
 Qed.
 
-Lemma swapac_3q : forall (A B C : Square 2),
+Lemma swapac_3gate : forall (A B C : Square 2),
   WF_Matrix A -> WF_Matrix B -> WF_Matrix C ->
     swapac × (A ⊗ B ⊗ C) × swapac = (C ⊗ B ⊗ A).
 Proof.
@@ -139,12 +161,12 @@ Proof.
   rewrite <- Mmult_assoc with (A := swapab) (B:= swapbc) (C:= swapab).
   rewrite <- Mmult_assoc with (A:= swapab × (A ⊗ B ⊗ C)) (B :=swapab × swapbc) (C:= swapab).
   rewrite <- Mmult_assoc with (A:= swapab × (A ⊗ B ⊗ C)) (B :=swapab) (C:= swapbc).
-  rewrite swapab_3q. 2: assumption. 2: assumption. 2: assumption.
+  rewrite swapab_3gate. 2: assumption. 2: assumption. 2: assumption.
   rewrite Mmult_assoc.
   rewrite <- Mmult_assoc with (A:=swapbc) (B:= B ⊗ A ⊗ C × swapbc) (C:= swapab).
   rewrite <- Mmult_assoc with (A:=swapab) (B:= swapbc × (B ⊗ A ⊗ C × swapbc)) (C:= swapab).
   rewrite <- Mmult_assoc with (A:= swapbc) (B:= B ⊗ A ⊗ C) (C:= swapbc).
-  rewrite swapbc_3q. 2: assumption. 2: assumption. 2: assumption.
-  rewrite swapab_3q. 2: assumption. 2: assumption. 2: assumption.
+  rewrite swapbc_3gate. 2: assumption. 2: assumption. 2: assumption.
+  rewrite swapab_3gate. 2: assumption. 2: assumption. 2: assumption.
   reflexivity.
 Qed.

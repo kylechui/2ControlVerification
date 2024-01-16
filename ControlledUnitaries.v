@@ -5,6 +5,9 @@ From Proof Require Import MatrixHelpers.
 From Proof Require Import QubitHelpers.
 From Proof Require Import UnitaryMatrices.
 From Proof Require Import Swaps.
+From Proof Require Import SwapHelpers.
+From Proof Require Import Vectors.
+From Proof Require Import GateHelpers.
 
 Lemma inner_prod_0_decomp {n}: forall (u v: Vector n), 
 WF_Matrix u -> WF_Matrix v -> ⟨ u , v ⟩ = C0 <-> u† × v = Zero.
@@ -547,3 +550,97 @@ exists P1.
 split.
 rewrite <- P0_I. all: assumption.
 Qed.
+
+Lemma a19: forall (U : Square 4) (phi2q w : Vector 4), 
+WF_Unitary U -> WF_Matrix phi2q -> WF_Matrix w -> ⟨ phi2q , phi2q ⟩ = C1 -> ⟨ w , w ⟩ = C1 -> 
+Entangled phi2q -> acgate U × (∣0⟩ ⊗ phi2q) = ∣0⟩ ⊗ w -> 
+exists(P0 P1: Square 2), 
+U = ∣0⟩⟨0∣ ⊗ P0 .+ ∣1⟩⟨1∣ ⊗ P1 /\ WF_Unitary P0 /\ WF_Unitary P1.
+Proof. 
+intros U phi2q w U_unitary WF_phi2q WF_w phi2q_unit w_unit phi2q_entangled Uac_property.
+assert (schmidt_decomp := a14 phi2q WF_phi2q phi2q_unit).
+destruct schmidt_decomp as [beta [beta_p [gamma [gamma_p [r [qubit_beta [qubit_beta_p [qubit_gamma [qubit_gamma_p [beta_orth [gamma_orth [schmidt_decomp [rge0 [rle1 tensorprod_impl]]]]]]]]]]]]]].
+assert (tens_w_decomp: ∣0⟩ ⊗ w = √ r .* (acgate U × (∣0⟩ ⊗ beta ⊗ gamma)) .+ √ (1-r) .* (acgate U × (∣0⟩ ⊗ beta_p ⊗ gamma_p))).
+{
+    rewrite <- Uac_property.
+    rewrite schmidt_decomp.
+    rewrite kron_plus_distr_l.
+    do 2 rewrite Mscale_kron_dist_r.
+    rewrite Mmult_plus_distr_l.
+    do 2 rewrite Mscale_mult_dist_r.
+    rewrite <- kron_assoc.
+    rewrite <- kron_assoc.
+    reflexivity.
+    1,4: solve_WF_matrix.
+    apply qubit_beta_p.
+    apply qubit_gamma_p.
+    apply qubit_beta.
+    apply qubit_gamma.
+}
+assert (qubit_w: WF_Qubit w).
+{
+    unfold WF_Qubit.
+    split. exists 2%nat. trivial.
+    split. all: assumption.
+}
+assert (w_beta_decomp := a15 beta beta_p w qubit_beta qubit_beta_p qubit_w beta_orth).
+destruct w_beta_decomp as [psi [phi [w_beta_decomp [WF_psi WF_phi]]]].
+destruct qubit_beta as [_ [WF_beta beta_unit]].
+destruct qubit_beta_p as [_ [WF_beta_p beta_p_unit]].
+destruct qubit_gamma as [_ [WF_gamma gamma_unit]].
+destruct qubit_gamma_p as [_ [WF_gamma_p gamma_p_unit]].
+assert (Main: ∣0⟩ ⊗ psi ⊗ beta .+ ∣0⟩ ⊗ phi ⊗ beta_p =
+(√ r .* (U × (∣0⟩ ⊗ gamma))) ⊗ beta
+.+ (√ (1-r) .* (U × (∣0⟩ ⊗ gamma_p))) ⊗ beta_p).
+{
+    assert (Step1: ∣0⟩ ⊗ psi ⊗ beta .+ ∣0⟩ ⊗ phi ⊗ beta_p = swapbc × (∣0⟩ ⊗ (beta ⊗ psi) .+ ∣0⟩ ⊗ (beta_p ⊗ phi))).
+    {
+        rewrite <- swapbc_3q. 2,3,4: solve_WF_matrix.
+        rewrite <- swapbc_3q with (b := beta_p). 2,3,4: solve_WF_matrix.
+        rewrite <- Mmult_plus_distr_l.
+        rewrite kron_assoc. 2,3,4: solve_WF_matrix.
+        rewrite kron_assoc. 2,3,4: solve_WF_matrix.
+        reflexivity.
+    }
+    rewrite Step1. clear Step1.
+    assert (Step2: swapbc × (∣0⟩ ⊗ (beta ⊗ psi) .+ ∣0⟩ ⊗ (beta_p ⊗ phi)) = swapbc × (∣0⟩ ⊗ w)).
+    {
+        rewrite <- kron_plus_distr_l.
+        rewrite <- w_beta_decomp.
+        reflexivity.   
+    }
+    rewrite Step2. clear Step2.
+    (* Step 3*)
+    rewrite tens_w_decomp.
+    (* Step 4 *)
+    rewrite Mmult_plus_distr_l.
+    do 2 rewrite Mscale_mult_dist_r.
+    (* Step 5 *)
+    rewrite <- Mmult_1_r with (A:= acgate U). 2: apply WF_acgate. 2: apply U_unitary.
+    simpl.
+    rewrite <- swapbc_inverse.
+    assert (Step6: √ r .* (swapbc × (acgate U × (swapbc × swapbc) × (∣0⟩ ⊗ beta ⊗ gamma)))
+    .+ √ (1 - r) .* (swapbc × (acgate U × (swapbc × swapbc) × (∣0⟩ ⊗ beta_p ⊗ gamma_p))) = 
+    √ r .* ((abgate U × (∣0⟩ ⊗ gamma ⊗ beta))) .+ √ (1 - r) .* (abgate U × (∣0⟩ ⊗ gamma_p ⊗ beta_p))).
+    {
+        unfold acgate.
+        rewrite Mmult_assoc. rewrite swapbc_inverse.
+        rewrite Mmult_1_l. rewrite Mmult_1_r.
+        repeat rewrite <- Mmult_assoc.
+        rewrite swapbc_inverse.
+        rewrite Mmult_1_l. 2: apply WF_abgate. 2: apply U_unitary. 2: apply WF_mult. 2: apply WF_mult.
+        2,4: apply WF_swapbc. 2: apply WF_abgate. 2: apply U_unitary. 2: solve_WF_matrix.
+        rewrite Mmult_assoc.
+        rewrite swapbc_3q. 2,3,4: solve_WF_matrix.
+        rewrite Mmult_assoc.
+        rewrite swapbc_3q. 2,3,4: solve_WF_matrix.
+        reflexivity.
+    }
+    rewrite Step6 at 1. clear Step6.
+    (* Step7 *)
+    unfold abgate.
+    rewrite kron_mixed_product. rewrite kron_mixed_product.
+    rewrite Mmult_1_l. rewrite Mmult_1_l. 2,3: solve_WF_matrix.
+    rewrite <- Mscale_kron_dist_l. rewrite <- Mscale_kron_dist_l.
+    reflexivity.
+}

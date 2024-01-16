@@ -7,15 +7,14 @@ Lemma a10 : forall (a b : Vector 2),
   WF_Matrix a -> WF_Matrix b ->
     swap × (a ⊗ b) = b ⊗ a.
 Proof.
-  intros.
-  lma'.
+  apply swap_2q.
 Qed.
 
 Lemma a11 : forall (A B : Square 2),
   WF_Matrix A -> WF_Matrix B ->
     swap × (A ⊗ B) × swap = B ⊗ A.
 Proof.
-  apply swap_2q.
+  apply swap_2gate.
 Qed.
 
 Lemma a12 : forall (U : Square 4),
