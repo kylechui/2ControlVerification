@@ -551,11 +551,19 @@ split.
 rewrite <- P0_I. all: assumption.
 Qed.
 
-Lemma Mplus_opp_0 {m n}: forall (A: Matrix m n), 
+Lemma Mplus_opp_0_r {m n}: forall (A: Matrix m n), 
 WF_Matrix A -> A .+ Mopp (A) = Zero.
 intros.
 lma'.
 solve_WF_matrix.
+Qed.
+
+Lemma Mplus_opp_0_l {m n}: forall (A: Matrix m n), 
+WF_Matrix A -> Mopp (A) .+ A = Zero.
+intros.
+rewrite Mplus_comm.
+apply Mplus_opp_0_r.
+assumption.
 Qed.
 
 Lemma kron_opp_distr_l {m n o p}: forall (A: Matrix m n) (B: Matrix o p), 
@@ -566,12 +574,113 @@ lma'.
 all: solve_WF_matrix.
 Qed.
 
+Lemma Cmult_0_implies_zero: forall (a b : C), 
+a * b = 0 -> a = 0 \/ b = 0.
+Proof.
+intros.
+destruct (Ceq_dec a 0).
+{
+    left. assumption.
+}
+{
+    right.
+    apply (f_equal (fun f => /a * f)) in H.
+    rewrite Cmult_0_r in H.
+    rewrite Cmult_assoc in H.
+    rewrite Cinv_l in H. 2: assumption.
+    rewrite Cmult_1_l in H.
+    assumption.
+}
+Qed.
+
+Lemma Mscale_eq_0_implies_0 {m n}: forall (A : Matrix m n) (c : C), 
+WF_Matrix A -> A <> Zero -> c .* A = Zero -> c = 0.
+Proof.
+intros.
+rewrite nonzero_def in H0.
+destruct H0 as [x [y Aij_neq_0]].
+rewrite zero_def in H1.
+specialize (H1 x y).
+apply Cmult_0_implies_zero in H1.
+destruct H1.
+assumption.
+contradict H0.
+assumption.
+Qed.
+
+(* can't find anything that does this *)
+Lemma Natgt_lt: forall (x y : nat), (x > y)%nat -> (y < x)%nat.
+Proof.
+auto.
+Qed.
+
+Lemma I_neq_zero: forall (n: nat), (n > 0)%nat -> I n <> Zero.
+Proof.
+intros.
+rewrite nonzero_def.
+exists 0%nat, 0%nat.
+unfold I.
+simpl.
+destruct (0 <? n) eqn:Hlt.
+apply C1_neq_C0.
+apply Nat.ltb_ge in Hlt.
+apply Natgt_lt in H.
+contradict H.
+apply Nat.le_ngt.
+assumption.
+Qed.
+
 Lemma orthonormal_implies_lin_indep_2 {n}: forall (a b: Vector n), 
 WF_Matrix a -> WF_Matrix b -> ⟨ a, a ⟩ = 1 -> ⟨ b, b ⟩ = 1 -> ⟨ a, b ⟩ = 0
 -> linearly_independent_2vec a b.
 Proof.
-intros.
 unfold linearly_independent_2vec.
+intros.
+rewrite inner_prod_1_decomp in H1.
+rewrite inner_prod_1_decomp in H2.
+2,3,4,5: assumption.
+split.
+{
+    rewrite inner_prod_0_decomp in H3. 2,3: assumption.
+    apply (f_equal (fun f => (a) † × f)) in H4.
+    rewrite Mmult_0_r in H4.
+    rewrite Mmult_plus_distr_l in H4.
+    do 2 rewrite Mscale_mult_dist_r in H4.
+    rewrite H1, H3 in H4.
+    rewrite Mscale_0_r in H4.
+    rewrite Mplus_0_r in H4.
+    apply (@Mscale_eq_0_implies_0 1 1) with (A:= I 1). 1: solve_WF_matrix.
+    apply I_neq_zero. lia.
+    assumption.
+}
+{
+    apply (f_equal (fun f => (b) † × f)) in H4.
+    rewrite Mmult_0_r in H4.
+    rewrite Mmult_plus_distr_l in H4.
+    do 2 rewrite Mscale_mult_dist_r in H4.
+    rewrite inner_prod_0_comm in H3. 2,3: assumption.
+    rewrite inner_prod_0_decomp in H3. 2,3: assumption.
+    rewrite H2, H3 in H4.
+    rewrite Mscale_0_r in H4.
+    rewrite Mplus_0_l in H4.
+    apply (@Mscale_eq_0_implies_0 1 1) with (A:= I 1). 1: solve_WF_matrix.
+    apply I_neq_zero. lia.
+    assumption.
+}
+Qed.
+
+Lemma rtoc_neq_decomp: forall (r: R), 
+(r <> 0)%R -> RtoC r <> C0.
+Proof.
+intros. 
+unfold RtoC.
+intro.
+apply Ceq_implies_el_eq in H0.
+destruct H0 as [H0 _].
+apply H.
+trivial.
+Qed.
+
 
 Lemma a19: forall (U : Square 4) (phi2q w : Vector 4), 
 WF_Unitary U -> WF_Matrix phi2q -> WF_Matrix w -> ⟨ phi2q , phi2q ⟩ = C1 -> ⟨ w , w ⟩ = C1 -> 
@@ -669,14 +778,13 @@ assert (Main: ∣0⟩ ⊗ psi ⊗ beta .+ ∣0⟩ ⊗ phi ⊗ beta_p =
 (* Moving terms in main to apply a16*)
 apply (f_equal (fun f => f .+ Mopp (∣0⟩ ⊗ phi ⊗ beta_p))) in Main.
 rewrite Mplus_assoc in Main.
-rewrite Mplus_opp_0 in Main. 2: solve_WF_matrix.
+rewrite Mplus_opp_0_r in Main. 2: solve_WF_matrix.
 rewrite Mplus_0_r in Main.
 rewrite Mplus_assoc in Main.
 rewrite kron_opp_distr_l in Main. 2,3: solve_WF_matrix.
 rewrite <- kron_plus_distr_r in Main.
 apply (f_equal (fun f => Mopp (∣0⟩ ⊗ psi ⊗ beta) .+ f)) in Main.
-rewrite Mplus_comm in Main.
-rewrite Mplus_opp_0 in Main. 2: solve_WF_matrix.
+rewrite Mplus_opp_0_l in Main. 2: solve_WF_matrix.
 rewrite kron_opp_distr_l in Main. 2,3: solve_WF_matrix.
 rewrite <- Mplus_assoc in Main.
 rewrite Mplus_comm with (A := Mopp (∣0⟩ ⊗ psi) ⊗ beta) in Main.
@@ -689,5 +797,81 @@ assert ((√ r .* (U × (∣0⟩ ⊗ gamma)) .+ Mopp (∣0⟩ ⊗ psi)) = Zero /
     apply a16 with (a0:= beta) (a1 := beta_p).
     1,2: solve_WF_matrix.
     1,2: apply U_unitary.
-
+    apply qubit_beta.
+    apply qubit_beta_p.
+    apply orthonormal_implies_lin_indep_2.
+    1,3: apply qubit_beta.
+    1,2: apply qubit_beta_p.
+    assumption.
+    symmetry.
+    assumption.
 }
+2,3: apply qubit_beta.
+2,3: apply qubit_beta_p.
+destruct H as [U_g U_g_p].
+assert (entangled_prop: Entangled phi2q -> not (r = 0 \/ r = 1)).
+{
+    unfold Entangled.
+    intro not_tensor_prod.
+    intro r01.
+    apply tensorprod_impl in r01.
+    apply not_tensor_prod.
+    apply r01.
+}
+assert (rneq: r <> 0 /\ r <> 1).
+{
+    apply Coq.Logic.Classical_Prop.not_or_and.
+    apply entangled_prop.
+    assumption.
+}
+destruct rneq as [rneq0 rneq1].
+assert (rsqrt_neq_0: √ r <> 0).
+{
+    intro sqrt_r_eq_0.
+    apply rneq0.
+    apply sqrt_eq_0.
+    apply Rge_le. all: assumption.
+}
+assert (r1sqrt_neq_0: √ (1-r) <> 0).
+{
+    intro sqrt_1r_eq_0.
+    apply rneq1.
+    rewrite <- Rplus_0_r with (r := r).
+    rewrite <- Rplus_0_r.
+    rewrite <- (Rminus_diag_eq r r) at 2. 2: reflexivity.
+    unfold Rminus.
+    rewrite <- Rplus_assoc.
+    rewrite Rplus_comm with (r1:= 1).
+    rewrite Rplus_assoc.
+    apply Rplus_eq_compat_l.
+    symmetry.
+    apply sqrt_eq_0.
+    rewrite <- (Rminus_diag_eq r r). 2: reflexivity.
+    apply Rplus_le_compat_r. all: assumption.
+}
+(* move around values to prep for a17 application *)
+apply (f_equal (fun f => f .+ ∣0⟩ ⊗ psi)) in U_g.
+rewrite Mplus_assoc in U_g.
+rewrite Mplus_opp_0_l in U_g. 2: solve_WF_matrix.
+rewrite Mplus_0_l in U_g. rewrite Mplus_0_r in U_g.
+apply (f_equal (fun f => /√ r .* f)) in U_g.
+rewrite Mscale_assoc in U_g.
+rewrite Cinv_l in U_g. 2: apply rtoc_neq_decomp. 2: assumption.
+rewrite Mscale_1_l in U_g.
+rewrite <- Mscale_kron_dist_r in U_g.
+apply (f_equal (fun f => f .+ ∣0⟩ ⊗ phi)) in U_g_p.
+rewrite Mplus_assoc in U_g_p.
+rewrite Mplus_opp_0_l in U_g_p. 2: solve_WF_matrix.
+rewrite Mplus_0_l in U_g_p. rewrite Mplus_0_r in U_g_p.
+apply (f_equal (fun f => /√ (1 - r) .* f)) in U_g_p.
+rewrite Mscale_assoc in U_g_p.
+rewrite Cinv_l in U_g_p. 2: apply rtoc_neq_decomp. 2: assumption.
+rewrite Mscale_1_l in U_g_p.
+rewrite <- Mscale_kron_dist_r in U_g_p.
+apply a17 with (beta := gamma) (beta_p := gamma_p).
+1,2,3,4: assumption.
+exists (/ √ r .* psi), (/ √ (1 - r) .* phi).
+split. solve_WF_matrix.
+split. solve_WF_matrix.
+split. all: assumption.
+Qed.

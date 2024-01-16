@@ -690,11 +690,15 @@ assert (S1 : (Zero (m:= n) (n := 1%nat)) = w1 ⊗ ((b) † × a1)).
   rewrite Mmult_1_l. 2: assumption.
   reflexivity.
 }
-assert (cancel_admit: Zero ⊗ ((b) † × a1) = w1 ⊗ ((b) † × a1) -> w1 = Zero). admit.
-apply cancel_admit.
+symmetry.
+apply (@kron_cancel_r n 1%nat 1%nat 1%nat) with (A:= (Zero (m:= n) (n := 1%nat))) (B:= w1) (C:=((b) † × a1)).
+1,2,3: solve_WF_matrix.
+1,3: apply a1_qubit.
+apply a0_qubit.
+apply H1.
 rewrite kron_0_l.
 apply S1.
-Admitted.
+Qed.
 
 (* Using old version of proof since beta is chosen constructively *)
 Lemma a16_part2 {n}: forall (w0 w1 : Vector n) (a0 a1 : Vector 2), 
