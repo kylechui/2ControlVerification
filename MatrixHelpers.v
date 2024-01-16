@@ -137,6 +137,26 @@ Proof.
     reflexivity.
 Qed.
 
+Lemma row_out_of_bounds: forall {m n} (A : Matrix m n) (i : nat),
+  WF_Matrix A -> (i >= m)%nat -> forall (j : nat), A i j = C0.
+Proof.
+  intros m n A i WF_A row_oob j.
+  unfold WF_Matrix in WF_A.
+  apply WF_A.
+  left.
+  assumption.
+Qed.
+
+Lemma col_out_of_bounds: forall {m n} (A : Matrix m n) (j : nat),
+  WF_Matrix A -> (j >= n)%nat -> forall (i : nat), A i j = C0.
+Proof.
+  intros m n A j WF_A col_oob i.
+  unfold WF_Matrix in WF_A.
+  apply WF_A.
+  right.
+  assumption.
+Qed.
+
 Lemma kron_cancel_l: forall {m n o p} (A : Matrix m n) (B C : Matrix o p),
   WF_Matrix B -> WF_Matrix C -> A <> Zero -> A ⊗ B = A ⊗ C -> B = C.
 Proof.
@@ -162,42 +182,14 @@ Proof.
       repeat rewrite Nat.add_0_l in H2.
       repeat rewrite Nat.add_0_r in H2.
       assumption.
-    + unfold WF_Matrix in H.
-      unfold WF_Matrix in H0.
-      apply Nat.ltb_ge in L2.
-      specialize (H x y).
-      specialize (H0 x y).
-      assert (b_zero : B x y = C0).
-      {
-        apply H.
-        right.
-        assumption.
-      }
-      assert (c_zero : C x y = C0).
-      {
-        apply H0.
-        right.
-        assumption.
-      }
+    + apply Nat.ltb_ge in L2.
+      pose proof (col_out_of_bounds B y H L2) as b_zero.
+      pose proof (col_out_of_bounds C y H0 L2) as c_zero.
       rewrite b_zero, c_zero.
       reflexivity.
-  - unfold WF_Matrix in H.
-    unfold WF_Matrix in H0.
-    apply Nat.ltb_ge in L1.
-    specialize (H x y).
-    specialize (H0 x y).
-    assert (b_zero : B x y = C0).
-    {
-      apply H.
-      left.
-      assumption.
-    }
-    assert (c_zero : C x y = C0).
-    {
-      apply H0.
-      left.
-      assumption.
-    }
+  - apply Nat.ltb_ge in L1.
+    pose proof (row_out_of_bounds B x H L1) as b_zero.
+    pose proof (row_out_of_bounds C x H0 L1) as c_zero.
     rewrite b_zero, c_zero.
     reflexivity.
 Qed.
@@ -230,62 +222,20 @@ Proof.
            repeat rewrite Nat.add_0_r.
            intros.
            apply Cmult_cancel_r with (a := C i j); auto.
-        -- assert (c_zero : C i j = C0).
-           {
-             apply Nat.ltb_ge in L4.
-             unfold WF_Matrix in H1.
-             specialize (H1 i j).
-             apply H1.
-             right.
-             assumption.
-           }
+        -- apply Nat.ltb_ge in L4.
+           pose proof (col_out_of_bounds C j H1 L4 i) as c_zero.
            contradiction.
-      * assert (c_zero : C i j = C0).
-        {
-          apply Nat.ltb_ge in L3.
-          unfold WF_Matrix in H1.
-          specialize (H1 i j).
-          apply H1.
-          left.
-          assumption.
-        }
+      * apply Nat.ltb_ge in L3.
+        pose proof (row_out_of_bounds C i H1 L3 j) as c_zero.
         contradiction.
     + apply Nat.ltb_ge in L2.
-      unfold WF_Matrix in H.
-      unfold WF_Matrix in H0.
-      specialize (H x y).
-      specialize (H0 x y).
-      assert (a_zero : A x y = C0).
-      {
-        apply H.
-        right.
-        assumption.
-      }
-      assert (b_zero : B x y = C0).
-      {
-        apply H0.
-        right.
-        assumption.
-      }
+      pose proof (col_out_of_bounds A y H L2) as a_zero.
+      pose proof (col_out_of_bounds B y H0 L2) as b_zero.
       rewrite a_zero, b_zero.
       reflexivity.
   - apply Nat.ltb_ge in L1.
-    unfold WF_Matrix in H.
-    unfold WF_Matrix in H0.
-    specialize (H x y).
-    specialize (H0 x y).
-    assert (a_zero : A x y = C0).
-    {
-      apply H.
-      left.
-      assumption.
-    }
-    assert (b_zero : B x y = C0).
-    {
-      apply H0.
-      left.
-      assumption.
-    }
+    pose proof (row_out_of_bounds A x H L1) as a_zero.
+    pose proof (row_out_of_bounds B x H0 L1) as b_zero.
     rewrite a_zero, b_zero.
     reflexivity.
 Qed.
