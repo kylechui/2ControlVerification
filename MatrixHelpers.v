@@ -465,7 +465,7 @@ Proof.
     lca.
 Qed.
 
-Definition TensorProd (u : Vector 4) := exists (v w : Vector 2), u = v ⊗ w.
+Definition TensorProd (u : Vector 4) := WF_Matrix u -> exists (v w : Vector 2), WF_Matrix v /\ WF_Matrix w /\ u = v ⊗ w.
 Definition Entangled (u : Vector 4) := not (TensorProd u).
 
 Definition linearly_independent_2vec {n} (v1 v2 : Vector n) := 

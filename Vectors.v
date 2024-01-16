@@ -342,7 +342,11 @@ split. apply r_le_1.
     rewrite sqrt_1.
     rewrite Mscale_1_l.
     intro psi_tens.
+    unfold TensorProd.
+    intro WF_psi2.
     exists beta_p, gamma_p.
+    split. apply beta_p_qubit.
+    split. apply gamma_p_qubit.
     assumption.
   }
   {
@@ -354,6 +358,8 @@ split. apply r_le_1.
     rewrite Mscale_1_l.
     intro psi_tens.
     exists beta, gamma.
+    split. apply beta_qubit. 
+    split. apply gamma_qubit.
     assumption.
   }
 }
