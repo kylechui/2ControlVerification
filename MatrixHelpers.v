@@ -96,33 +96,32 @@ Proof.
   }
 Qed.
 
-Lemma kron_cancel_l: forall {m n o p} (A : Matrix m n) (B C : Matrix o p),
-  WF_Matrix B -> WF_Matrix C -> A <> Zero -> A ⊗ B = A ⊗ C -> B = C.
+Lemma zero_def: forall {m n} (A : Matrix n m), A = Zero <-> forall (i j : nat), A i j = C0.
 Proof.
-  intros.
-  assert (zero_def : forall (A : Matrix n m), A = Zero <-> forall (i j : nat), A i j = C0).
-  {
-    split.
-    - intros.
-      rewrite H3.
-      unfold Zero.
-      reflexivity.
-    - intros.
-      prep_matrix_equality.
-      rewrite H3.
-      unfold Zero.
-      reflexivity.
-  }
-  assert (nonzero_def : exists i j, A i j <> 0).
-  {
+  split.
+  - intros.
+    rewrite H.
+    unfold Zero.
+    reflexivity.
+  - intros.
+    prep_matrix_equality.
+    rewrite H.
+    unfold Zero.
+    reflexivity.
+Qed.
+
+Lemma nonzero_def: forall {m n} (A : Matrix n m), A <> Zero <-> exists (i j : nat), A i j <> C0.
+Proof.
+  split.
+  - intros.
     assert (quantifier_negation : forall (A: Matrix n m),
-              (~ forall (i j: nat), A i j = 0) -> exists (i j : nat), A i j <> 0).
+              (~ forall (i j: nat), A i j = C0) -> exists (i j : nat), A i j <> C0).
     {
       intros.
-      apply not_all_ex_not in H3. 
-      destruct H3.
-      apply not_all_ex_not in H3.
-      destruct H3.
+      apply not_all_ex_not in H0. 
+      destruct H0.
+      apply not_all_ex_not in H0.
+      destruct H0.
       exists x.
       exists x0.
       assumption.
@@ -130,8 +129,20 @@ Proof.
     apply quantifier_negation.
     rewrite <- zero_def.
     assumption.
-  }
-  destruct nonzero_def as [i [j nonzero_def]].
+  - intros.
+    destruct H as [i [j H]].
+    intro.
+    rewrite H0 in H.
+    contradict H.
+    reflexivity.
+Qed.
+
+Lemma kron_cancel_l: forall {m n o p} (A : Matrix m n) (B C : Matrix o p),
+  WF_Matrix B -> WF_Matrix C -> A <> Zero -> A ⊗ B = A ⊗ C -> B = C.
+Proof.
+  intros.
+  rewrite nonzero_def in H1.
+  destruct H1 as [i [j nonzero_def]].
   prep_matrix_equality.
   apply (f_equal (fun f => f (i * o + x) (j * p + y)))%nat in H2.
   unfold kron in H2.
@@ -188,6 +199,94 @@ Proof.
       assumption.
     }
     rewrite b_zero, c_zero.
+    reflexivity.
+Qed.
+
+Lemma kron_cancel_r: forall {m n o p} (A B : Matrix m n) (C : Matrix o p),
+  WF_Matrix A -> WF_Matrix B -> WF_Matrix C -> C <> Zero -> A ⊗ C = B ⊗ C -> A = B.
+Proof.
+  intros.
+  rewrite nonzero_def in H2.
+  destruct H2 as [i [j H2]].
+  prep_matrix_equality.
+  apply (f_equal (fun f => f (x * o + i) (y * p + j)))%nat in H3.
+  unfold kron in H3.
+  destruct (x <? m) eqn:L1.
+  apply Nat.ltb_lt in L1.
+  - destruct (y <? n) eqn:L2.
+    apply Nat.ltb_lt in L2.
+    + destruct (i <? o) eqn:L3.
+      apply Nat.ltb_lt in L3.
+      * destruct (j <? p) eqn:L4.
+        apply Nat.ltb_lt in L4.
+        -- revert H3.
+           repeat rewrite Nat.div_add_l by lia.
+           repeat rewrite Nat.div_small; auto.
+           rewrite Nat.add_mod with (n := o) by lia.
+           rewrite Nat.add_mod with (n := p) by lia.
+           repeat rewrite Nat.mod_mul by lia.
+           repeat rewrite Nat.mod_small; auto.
+           repeat rewrite Nat.add_0_l.
+           repeat rewrite Nat.add_0_r.
+           intros.
+           apply Cmult_cancel_r with (a := C i j); auto.
+        -- assert (c_zero : C i j = C0).
+           {
+             apply Nat.ltb_ge in L4.
+             unfold WF_Matrix in H1.
+             specialize (H1 i j).
+             apply H1.
+             right.
+             assumption.
+           }
+           contradiction.
+      * assert (c_zero : C i j = C0).
+        {
+          apply Nat.ltb_ge in L3.
+          unfold WF_Matrix in H1.
+          specialize (H1 i j).
+          apply H1.
+          left.
+          assumption.
+        }
+        contradiction.
+    + apply Nat.ltb_ge in L2.
+      unfold WF_Matrix in H.
+      unfold WF_Matrix in H0.
+      specialize (H x y).
+      specialize (H0 x y).
+      assert (a_zero : A x y = C0).
+      {
+        apply H.
+        right.
+        assumption.
+      }
+      assert (b_zero : B x y = C0).
+      {
+        apply H0.
+        right.
+        assumption.
+      }
+      rewrite a_zero, b_zero.
+      reflexivity.
+  - apply Nat.ltb_ge in L1.
+    unfold WF_Matrix in H.
+    unfold WF_Matrix in H0.
+    specialize (H x y).
+    specialize (H0 x y).
+    assert (a_zero : A x y = C0).
+    {
+      apply H.
+      left.
+      assumption.
+    }
+    assert (b_zero : B x y = C0).
+    {
+      apply H0.
+      left.
+      assumption.
+    }
+    rewrite a_zero, b_zero.
     reflexivity.
 Qed.
 
