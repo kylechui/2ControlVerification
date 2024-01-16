@@ -13,3 +13,4 @@ SquareMatrices.v
 UnitaryMatrices.v
 Swaps.v
 Vectors.v
+ControlledUnitaries.v
