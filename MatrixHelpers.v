@@ -373,25 +373,3 @@ Proof.
     rewrite peq. rewrite qeq. rewrite H. reflexivity.
   }
 Qed.
-
-Lemma neq_implies_const_div_neq: forall (i j m: nat), (m <> 0)%nat -> (i <> j)%nat -> (i / m <> j / m)%nat \/ (i mod m <> j mod m)%nat.
-(* Thanks Kyle *)
-Proof.
-  intros.
-  assert (H1 : ({i mod m = j mod m} + {i mod m <> j mod m})%nat).
-  {
-    intros.
-    apply Nat.eq_dec.
-  }
-  destruct H1.
-  - left.
-    intro.
-    apply H0.
-    rewrite Nat.div_mod with (x := i) (y := m). 2: assumption.
-    rewrite Nat.div_mod with (x := j) (y := m). 2: assumption.
-    rewrite e.
-    rewrite H1.
-    reflexivity.
-  - right.
-    assumption.
-Qed.
