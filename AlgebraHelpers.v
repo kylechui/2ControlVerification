@@ -176,14 +176,24 @@ split.
 }
 Qed.
 
-Lemma C_l_cancel: forall (a b c: C), 
-a + b = a + c -> b = c.
-(* Thanks Kyle *)
+Lemma Cplus_cancel_l: forall (a b c: C),
+  a + b = a + c -> b = c.
 Proof.
   intros.
   rewrite <- (Cplus_0_l b).
   rewrite <- (Cplus_opp_l a).
   rewrite <- Cplus_assoc.
+  rewrite H.
+  lca.
+Qed.
+
+Lemma Cplus_cancel_r: forall (a b c: C),
+  a + c = b + c -> a = b.
+Proof.
+  intros.
+  rewrite <- (Cplus_0_r a).
+  rewrite <- (Cplus_opp_r c).
+  rewrite Cplus_assoc.
   rewrite H.
   lca.
 Qed.
