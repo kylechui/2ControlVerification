@@ -187,3 +187,9 @@ Proof.
   rewrite H.
   lca.
 Qed.
+
+Definition Csqrt (x : C) : C :=
+  let norm := Cmod x in
+  match x with
+  | (a, b) => (sqrt ((norm + a) / 2), sqrt ((norm - a) / 2))
+  end.
