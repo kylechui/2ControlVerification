@@ -8,242 +8,7 @@ From Proof Require Import Swaps.
 From Proof Require Import SwapHelpers.
 From Proof Require Import Vectors.
 From Proof Require Import GateHelpers.
-
-Lemma inner_prod_0_decomp {n}: forall (u v: Vector n), 
-WF_Matrix u -> WF_Matrix v -> ⟨ u , v ⟩ = C0 <-> u† × v = Zero.
-Proof.
-split.
-intros.
-lma'.
-unfold inner_product in H1.
-rewrite H1. lca.
-intros.
-unfold inner_product.
-rewrite H1. lca.
-Qed.
-
-Lemma inner_prod_1_decomp {n}: forall (u v: Vector n), 
-WF_Matrix u -> WF_Matrix v -> ⟨ u , v ⟩ = C1 <-> u† × v = I 1.
-Proof.
-split.
-intros.
-lma'.
-unfold inner_product in H1.
-rewrite H1. lca.
-intros.
-unfold inner_product.
-rewrite H1. lca.
-Qed.
-
-Lemma inner_prod_0_comm {n}: forall (u v: Vector n), 
-WF_Matrix u -> WF_Matrix v -> ⟨ u , v ⟩ = C0 <-> ⟨ v , u ⟩ = C0.
-split.
-intros.
-rewrite inner_product_conj_sym.
-rewrite <- Cconj_0.
-apply Cconj_simplify. do 2 rewrite Cconj_involutive. assumption.
-intros.
-rewrite inner_product_conj_sym.
-rewrite <- Cconj_0.
-apply Cconj_simplify. do 2 rewrite Cconj_involutive. assumption.
-Qed.
-
-Lemma block_decomp_4: forall (U: Square 4), WF_Matrix U ->
-exists (P00 P01 P10 P11: Square 2), 
-WF_Matrix P00 /\ WF_Matrix P01 /\ WF_Matrix P10 /\ WF_Matrix P11 /\
-U = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11.
-Proof.
-intros U WF_U.
-set (P00 := (fun x y =>
-match (x,y) with
-| (0,0) => (U 0 0)%nat
-| (0,1) => (U 0 1)%nat
-| (1,0) => (U 1 0)%nat
-| (1,1) => (U 1 1)%nat
-| _ => C0
-end) : (Square 2)).
-set (P01 := (fun x y =>
-match (x,y) with
-| (0,0) => (U 0 2)%nat
-| (0,1) => (U 0 3)%nat
-| (1,0) => (U 1 2)%nat
-| (1,1) => (U 1 3)%nat
-| _ => C0
-end) : (Square 2)).
-set (P10 := (fun x y =>
-match (x,y) with
-| (0,0) => (U 2 0)%nat
-| (0,1) => (U 2 1)%nat
-| (1,0) => (U 3 0)%nat
-| (1,1) => (U 3 1)%nat
-| _ => C0
-end) : (Square 2)).
-set (P11 := (fun x y =>
-match (x,y) with
-| (0,0) => (U 2 2)%nat
-| (0,1) => (U 2 3)%nat
-| (1,0) => (U 3 2)%nat
-| (1,1) => (U 3 3)%nat
-| _ => C0
-end) : (Square 2)).
-exists P00, P01, P10, P11.
-assert (WF_P00: WF_Matrix P00). 
-{
-    unfold WF_Matrix. intros.
-    unfold P00.
-    destruct H.
-    destruct x as [|x']. contradict H. lia.
-    destruct x' as [| x'']. contradict H. lia. 
-    reflexivity.
-    destruct x as [|x'].
-    destruct y as [|y']. contradict H. lia.
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    destruct x' as [| x''].
-    destruct y as [| y']. contradict H. lia. 
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    reflexivity.
-}
-split. assumption.
-assert (WF_P01: WF_Matrix P01). 
-{
-    unfold WF_Matrix. intros.
-    unfold P01.
-    destruct H.
-    destruct x as [|x']. contradict H. lia.
-    destruct x' as [| x'']. contradict H. lia. 
-    reflexivity.
-    destruct x as [|x'].
-    destruct y as [|y']. contradict H. lia.
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    destruct x' as [| x''].
-    destruct y as [| y']. contradict H. lia. 
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    reflexivity.
-}
-split. assumption.
-assert (WF_P10: WF_Matrix P10). 
-{
-    unfold WF_Matrix. intros.
-    unfold P10.
-    destruct H.
-    destruct x as [|x']. contradict H. lia.
-    destruct x' as [| x'']. contradict H. lia. 
-    reflexivity.
-    destruct x as [|x'].
-    destruct y as [|y']. contradict H. lia.
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    destruct x' as [| x''].
-    destruct y as [| y']. contradict H. lia. 
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    reflexivity.
-}
-split. assumption.
-assert (WF_P11: WF_Matrix P11). 
-{
-    unfold WF_Matrix. intros.
-    unfold P11.
-    destruct H.
-    destruct x as [|x']. contradict H. lia.
-    destruct x' as [| x'']. contradict H. lia. 
-    reflexivity.
-    destruct x as [|x'].
-    destruct y as [|y']. contradict H. lia.
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    destruct x' as [| x''].
-    destruct y as [| y']. contradict H. lia. 
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    reflexivity.
-}
-split. assumption.
-lma'. apply WF_blockmatrix. 1,2,3,4: assumption.
-all: unfold Mplus, kron, "∣0⟩⟨0∣", "∣0⟩⟨1∣", "∣1⟩⟨0∣", "∣1⟩⟨1∣", Mmult, adjoint.
-all: simpl.
-all: Csimpl.
-1,2,5,6: unfold P00.
-5,6,7,8: unfold P01.
-9,10,13,14: unfold P10.
-13,14,15,16: unfold P11.
-all: lca.
-Qed.
-
-Lemma element_equiv_vec_element {m n}: forall (A: Matrix m n), 
-WF_Matrix A -> 
-forall (i j: nat), 
-A i j = (get_vec j A) i 0%nat.
-Proof. 
-intros.
-unfold get_vec.
-simpl.
-reflexivity.
-Qed.
-
-Lemma column_equal_implies_equal {m n}: forall (A B: Matrix m n),
-WF_Matrix A -> WF_Matrix B ->
-(forall (j: nat), get_vec j A = get_vec j B) -> A = B.
-intros.
-lma'.
-rewrite element_equiv_vec_element. 2: assumption.
-rewrite H1.
-rewrite <- element_equiv_vec_element. 2: assumption. 
-reflexivity.
-Qed.
-
-
-Lemma vector_mult_simplify {m n}: forall (A B: Matrix m n),
-WF_Matrix A -> WF_Matrix B -> 
-(forall (w : Vector n), WF_Matrix w -> A × w = B × w) -> A = B.
-Proof.
-intros.
-apply column_equal_implies_equal. 1,2: assumption.
-intros.
-destruct (PeanoNat.Nat.lt_total j n).
-rewrite matrix_by_basis. rewrite matrix_by_basis. 2,3: assumption.
-apply H1. apply WF_e_i.
-unfold get_vec.
-apply functional_extensionality. intros.
-apply functional_extensionality. intros y.
-destruct (y =? 0). 2: reflexivity.
-destruct H2.
-unfold WF_Matrix in *.
-rewrite H. rewrite H0. reflexivity.
-1,2: right.
-1,2: rewrite H2.
-1,2: apply Nat.le_refl.
-unfold WF_Matrix in *.
-rewrite H. rewrite H0. reflexivity.
-1,2: right.
-1,2: apply Nat.lt_le_incl in H2.
-1,2: apply H2.
-Qed.
-
-Lemma unitary_mult_zero_cancel_r {n}: 
-forall (A B: Square n), 
-WF_Matrix A -> WF_Unitary B -> A × B = Zero -> A = Zero.
-Proof.
-intros A B WF_a b_unitary prod_zero.
-apply (f_equal (fun f => f × B†)) in prod_zero.
-apply transpose_unitary in b_unitary.
-destruct b_unitary as [WF_Bdag Bdag_I].
-rewrite adjoint_involutive in Bdag_I.
-rewrite Mmult_assoc in prod_zero.
-rewrite Bdag_I in prod_zero.
-rewrite Mmult_1_r in prod_zero. 2: assumption.
-rewrite Mmult_0_l in prod_zero.
-apply prod_zero.
-Qed.
-
-Lemma adjoint00: (∣0⟩⟨0∣) † = ∣0⟩⟨0∣. Proof. lma'. Qed.
-Lemma adjoint01: (∣0⟩⟨1∣) † = ∣1⟩⟨0∣. Proof. lma'. Qed.
-Lemma adjoint10: (∣1⟩⟨0∣) † = ∣0⟩⟨1∣. Proof. lma'. Qed.
-Lemma adjoint11: (∣1⟩⟨1∣) † = ∣1⟩⟨1∣. Proof. lma'. Qed.
+From Proof Require Import AlgebraHelpers.
 
 Lemma a17: forall (U : Square 4) (beta beta_p : Vector 2), 
 WF_Unitary U -> WF_Qubit beta -> WF_Qubit beta_p -> ⟨ beta , beta_p ⟩ = C0 -> 
@@ -449,21 +214,6 @@ split.
 }
 Qed.
 
-(* Very specific lemma for now *)
-Lemma kron_0_cancel_r: forall (a b: Vector 2),
-WF_Matrix a -> WF_Matrix b -> 
-a ⊗ ∣0⟩ = b ⊗ ∣0⟩ -> a = b.
-Proof.
-intros.
-lma'.
-assert (a00_val: a 0%nat 0%nat = (a ⊗ ∣0⟩) 0%nat 0%nat). lca.
-assert (b00_val: b 0%nat 0%nat = (b ⊗ ∣0⟩) 0%nat 0%nat). lca.
-rewrite a00_val. rewrite H1. rewrite <- b00_val. reflexivity.
-assert (a10_val: a 1%nat 0%nat = (a ⊗ ∣0⟩) 2%nat 0%nat). lca.
-assert (b10_val: b 1%nat 0%nat = (b ⊗ ∣0⟩) 2%nat 0%nat). lca.
-rewrite a10_val. rewrite H1. rewrite <- b10_val. reflexivity.
-Qed.
-
 Lemma a18: forall (U : Square 4), 
 WF_Unitary U -> 
 (forall (beta: Vector 2), U × (beta ⊗ ∣0⟩) = beta ⊗ ∣0⟩) -> 
@@ -585,14 +335,14 @@ assert (qubit_w: WF_Qubit w).
 }
 assert (w_beta_decomp := a15 beta beta_p w qubit_beta qubit_beta_p qubit_w beta_orth).
 destruct w_beta_decomp as [psi [phi [w_beta_decomp [WF_psi WF_phi]]]].
-destruct qubit_beta as [_ [WF_beta beta_unit]].
-destruct qubit_beta_p as [_ [WF_beta_p beta_p_unit]].
-destruct qubit_gamma as [_ [WF_gamma gamma_unit]].
-destruct qubit_gamma_p as [_ [WF_gamma_p gamma_p_unit]].
 assert (Main: ∣0⟩ ⊗ psi ⊗ beta .+ ∣0⟩ ⊗ phi ⊗ beta_p =
 (√ r .* (U × (∣0⟩ ⊗ gamma))) ⊗ beta
 .+ (√ (1-r) .* (U × (∣0⟩ ⊗ gamma_p))) ⊗ beta_p).
 {
+    destruct qubit_beta as [_ [WF_beta beta_unit]].
+    destruct qubit_beta_p as [_ [WF_beta_p beta_p_unit]].
+    destruct qubit_gamma as [_ [WF_gamma gamma_unit]].
+    destruct qubit_gamma_p as [_ [WF_gamma_p gamma_p_unit]].
     assert (Step1: ∣0⟩ ⊗ psi ⊗ beta .+ ∣0⟩ ⊗ phi ⊗ beta_p = swapbc × (∣0⟩ ⊗ (beta ⊗ psi) .+ ∣0⟩ ⊗ (beta_p ⊗ phi))).
     {
         rewrite <- swapbc_3q. 2,3,4: solve_WF_matrix.
@@ -644,3 +394,103 @@ assert (Main: ∣0⟩ ⊗ psi ⊗ beta .+ ∣0⟩ ⊗ phi ⊗ beta_p =
     rewrite <- Mscale_kron_dist_l. rewrite <- Mscale_kron_dist_l.
     reflexivity.
 }
+(* Moving terms in main to apply a16*)
+apply (f_equal (fun f => f .+ Mopp (∣0⟩ ⊗ phi ⊗ beta_p))) in Main.
+rewrite Mplus_assoc in Main.
+rewrite Mplus_opp_0_r in Main. 2: solve_WF_matrix.
+rewrite Mplus_0_r in Main.
+rewrite Mplus_assoc in Main.
+rewrite kron_opp_distr_l in Main. 2,3: solve_WF_matrix.
+rewrite <- kron_plus_distr_r in Main.
+apply (f_equal (fun f => Mopp (∣0⟩ ⊗ psi ⊗ beta) .+ f)) in Main.
+rewrite Mplus_opp_0_l in Main. 2: solve_WF_matrix.
+rewrite kron_opp_distr_l in Main. 2,3: solve_WF_matrix.
+rewrite <- Mplus_assoc in Main.
+rewrite Mplus_comm with (A := Mopp (∣0⟩ ⊗ psi) ⊗ beta) in Main.
+rewrite <- kron_plus_distr_r in Main.
+assert ((√ r .* (U × (∣0⟩ ⊗ gamma)) .+ Mopp (∣0⟩ ⊗ psi)) = Zero /\
+(√ (1 - r) .* (U × (∣0⟩ ⊗ gamma_p)) .+ Mopp (∣0⟩ ⊗ phi)) = Zero).
+{
+    destruct qubit_gamma as [_ [WF_gamma gamma_unit]].
+    destruct qubit_gamma_p as [_ [WF_gamma_p gamma_p_unit]].
+    apply a16 with (a0:= beta) (a1 := beta_p).
+    1,2: solve_WF_matrix.
+    1,2: apply U_unitary.
+    apply qubit_beta.
+    apply qubit_beta_p.
+    apply orthonormal_implies_lin_indep_2.
+    1,3: apply qubit_beta.
+    1,2: apply qubit_beta_p.
+    assumption.
+    symmetry.
+    assumption.
+}
+2,3: apply qubit_beta.
+2,3: apply qubit_beta_p.
+destruct H as [U_g U_g_p].
+assert (entangled_prop: Entangled phi2q -> not (r = 0 \/ r = 1)).
+{
+    unfold Entangled.
+    intro not_tensor_prod.
+    intro r01.
+    apply tensorprod_impl in r01.
+    apply not_tensor_prod.
+    apply r01.
+}
+assert (rneq: r <> 0 /\ r <> 1).
+{
+    apply Coq.Logic.Classical_Prop.not_or_and.
+    apply entangled_prop.
+    assumption.
+}
+destruct rneq as [rneq0 rneq1].
+assert (rsqrt_neq_0: √ r <> 0).
+{
+    intro sqrt_r_eq_0.
+    apply rneq0.
+    apply sqrt_eq_0.
+    apply Rge_le. all: assumption.
+}
+assert (r1sqrt_neq_0: √ (1-r) <> 0).
+{
+    intro sqrt_1r_eq_0.
+    apply rneq1.
+    rewrite <- Rplus_0_r with (r := r).
+    rewrite <- Rplus_0_r.
+    rewrite <- (Rminus_diag_eq r r) at 2. 2: reflexivity.
+    unfold Rminus.
+    rewrite <- Rplus_assoc.
+    rewrite Rplus_comm with (r1:= 1).
+    rewrite Rplus_assoc.
+    apply Rplus_eq_compat_l.
+    symmetry.
+    apply sqrt_eq_0.
+    rewrite <- (Rminus_diag_eq r r). 2: reflexivity.
+    apply Rplus_le_compat_r. all: assumption.
+}
+(* move around values to prep for a17 application *)
+apply (f_equal (fun f => f .+ ∣0⟩ ⊗ psi)) in U_g.
+rewrite Mplus_assoc in U_g.
+rewrite Mplus_opp_0_l in U_g. 2: solve_WF_matrix.
+rewrite Mplus_0_l in U_g. rewrite Mplus_0_r in U_g.
+apply (f_equal (fun f => /√ r .* f)) in U_g.
+rewrite Mscale_assoc in U_g.
+rewrite Cinv_l in U_g. 2: apply rtoc_neq_decomp. 2: assumption.
+rewrite Mscale_1_l in U_g.
+rewrite <- Mscale_kron_dist_r in U_g.
+apply (f_equal (fun f => f .+ ∣0⟩ ⊗ phi)) in U_g_p.
+rewrite Mplus_assoc in U_g_p.
+rewrite Mplus_opp_0_l in U_g_p. 2: solve_WF_matrix.
+rewrite Mplus_0_l in U_g_p. rewrite Mplus_0_r in U_g_p.
+apply (f_equal (fun f => /√ (1 - r) .* f)) in U_g_p.
+rewrite Mscale_assoc in U_g_p.
+rewrite Cinv_l in U_g_p. 2: apply rtoc_neq_decomp. 2: assumption.
+rewrite Mscale_1_l in U_g_p.
+rewrite <- Mscale_kron_dist_r in U_g_p.
+apply a17 with (beta := gamma) (beta_p := gamma_p).
+1,2,3,4: assumption.
+exists (/ √ r .* psi), (/ √ (1 - r) .* phi).
+split. solve_WF_matrix.
+split. solve_WF_matrix.
+split. all: assumption.
+Qed.

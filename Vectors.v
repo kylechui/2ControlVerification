@@ -6,59 +6,6 @@ From Proof Require Import QubitHelpers.
 From Proof Require Import MatrixHelpers.
 From Proof Require Import AlgebraHelpers.
 
-(* Definition of lemma from old file Multiqubit*)
-Lemma qubit_decomposition2 : forall (phi : Vector 4), 
-WF_Matrix phi -> exists (a b c d: C),
-phi = a .* ∣0,0⟩ .+ b .* ∣0,1⟩ .+ c .* ∣1,0⟩ .+ d .* ∣1,1⟩.
-Proof.
-  intros.
-  exists (phi 0 0)%nat, (phi 1 0)%nat, (phi 2 0)%nat, (phi 3 0)%nat.
-  lma'.
-  solve_WF_matrix.
-Qed.
-
-Definition WF_Nonnegative {m n} (A : Matrix m n) :=
-WF_Matrix A /\ forall (i j: nat), Re (A i j) >= 0 /\ Im (A i j) = 0.
-
-Lemma SVD_2: forall (A : Square 2), 
-exists (U L V: Square 2), 
-WF_Unitary U /\ WF_Unitary V /\ WF_Diagonal L /\ WF_Nonnegative L /\ A = U × L × V.
-Proof. 
-Admitted.
-
-Lemma amplitudes_of_unit {n}: forall (a b : C) (u v w: Vector n), 
-u = a .* v .+ b .* w -> ⟨ u , u ⟩ = C1 -> ⟨ v , v ⟩ = C1 -> ⟨ w , w ⟩ = C1 -> 
-⟨ v , w ⟩ = C0 -> a ^* * a + b ^* * b = C1.
-Proof.
-intros a b u v w u_def u_unit v_unit w_unit vw_orthogonal.
-revert u_unit.
-rewrite u_def.
-repeat rewrite inner_product_plus_l. repeat rewrite inner_product_plus_r.
-repeat rewrite inner_product_scale_l. repeat rewrite inner_product_scale_r.
-rewrite inner_product_conj_sym with (u := w).
-repeat rewrite vw_orthogonal. rewrite v_unit. rewrite w_unit.
-Csimpl.
-trivial.
-Qed.
-
-Lemma kron_inner_prod {m n} : forall (u v: Vector m) (w z: Vector n),
-  ⟨ u ⊗ w, v ⊗ z ⟩ = ⟨ u, v ⟩ * ⟨ w, z ⟩.
-Proof.
-  intros.
-  destruct n.
-  - unfold inner_product, Mmult.
-    rewrite Nat.mul_0_r.
-    lca.
-  - unfold inner_product, Mmult.
-    rewrite (@big_sum_product Complex.C _ _ _ C_is_ring). 2: auto.
-    apply big_sum_eq.
-    apply functional_extensionality; intro.
-    lca.
-Qed.
-
-Definition TensorProd (u : Vector 4) := exists (v w : Vector 2), u = v ⊗ w.
-Definition Entangled (u : Vector 4) := not (TensorProd u).
-
 Lemma a14 : forall (psi : Vector 4), 
 WF_Matrix psi -> ⟨ psi , psi ⟩ = 1 -> 
 exists (beta beta_p gamma gamma_p: Vector 2) (r : R),
@@ -395,7 +342,11 @@ split. apply r_le_1.
     rewrite sqrt_1.
     rewrite Mscale_1_l.
     intro psi_tens.
+    unfold TensorProd.
+    intro WF_psi2.
     exists beta_p, gamma_p.
+    split. apply beta_p_qubit.
+    split. apply gamma_p_qubit.
     assumption.
   }
   {
@@ -407,62 +358,11 @@ split. apply r_le_1.
     rewrite Mscale_1_l.
     intro psi_tens.
     exists beta, gamma.
+    split. apply beta_qubit. 
+    split. apply gamma_qubit.
     assumption.
   }
 }
-Qed.
-
-Property is_unitary_form : forall (M : Square 2) (a b : Vector 2), 
-  WF_Qubit a -> WF_Qubit b ->
-  M = a ⊗ ⟨0∣ .+ b ⊗ ⟨1∣ /\ ⟨a, b⟩ = 0 -> WF_Unitary M.
-Proof.
-  intros.
-  destruct H1 as [H1 H2].
-  rewrite H1.
-  destruct H as [_ [H WF_a]].
-  destruct H0 as [_ [H0 WF_b]].
-  rewrite qubit_adj_mult in WF_a. 2: apply H.
-  rewrite qubit_adj_mult in WF_b. 2: apply H0.
-  unfold WF_Unitary.
-  split. solve_WF_matrix.
-  rewrite Mplus_adjoint.
-  rewrite (kron_adjoint a ⟨0∣).
-  rewrite (kron_adjoint b ⟨1∣).
-  repeat rewrite adjoint_involutive.
-  rewrite Mmult_plus_distr_l.
-  repeat rewrite Mmult_plus_distr_r.
-  rewrite (kron_mixed_product a† ∣0⟩ a ⟨0∣).
-  rewrite WF_a.
-  rewrite kron_1_l with (A := ∣0⟩⟨0∣). 2: apply WF_braqubit0.
-  rewrite (kron_mixed_product b† ∣1⟩ a ⟨0∣).
-  unfold inner_product in H2.
-  assert (Main1 : a† × b = b† × a).
-  {
-    lma'.
-    rewrite H2.
-    apply (f_equal (fun f => f^*)) in H2.
-    assert (Help : ((a† × b) 0%nat 0%nat)^* = ((b† × a) 0%nat 0%nat)). lca.
-    rewrite Help in H2.
-    rewrite Cconj_0 in H2.
-    symmetry.
-    apply H2.
-  }
-  rewrite <- Main1.
-  assert (Main2 : a† × b = Zero).
-  {
-    lma'.
-    apply H2.
-  }
-  rewrite Main2.
-  rewrite kron_0_l.
-  rewrite Mplus_0_r.
-  rewrite (kron_mixed_product a† ∣0⟩ b ⟨1∣).
-  rewrite Main2.
-  rewrite kron_0_l.
-  rewrite Mplus_0_l.
-  rewrite (kron_mixed_product b† ∣1⟩ b ⟨1∣).
-  rewrite WF_b.
-  lma'.
 Qed.
 
 Lemma a15 : forall (beta beta_p : Vector 2) (w : Vector 4), 
@@ -479,7 +379,7 @@ assert (WF_Q : WF_Unitary Q).
   unfold Q. reflexivity.
   apply H2.
 }
-assert (HQ_impl := qubit_decomposition2 ((Q ⊗ I 2)† × w)).
+assert (HQ_impl := qubit_decomposition2_implicit ((Q ⊗ I 2)† × w)).
 assert (WF_QI2 : WF_Matrix (Q ⊗ I 2)).
 {
   solve_WF_matrix. apply H. apply H0.
@@ -525,74 +425,6 @@ rewrite Mmult_1_l. 2: apply H1.
 reflexivity.
 split. all: assumption. 
 Qed.
-
-Definition linearly_independent_2vec {n} (v1 v2 : Vector n) := 
-  forall (c1 c2 : C), c1 .* v1 .+ c2 .* v2 = Zero -> c1 = 0 /\ c2=0.
-
-Lemma lin_indep_comm_2vec {n}:
-forall (v1 v2 : Vector n), 
-linearly_independent_2vec v1 v2 <-> linearly_independent_2vec v2 v1.
-Proof.
-split.
-{
-  intros.
-  unfold linearly_independent_2vec.
-  intros.
-  rewrite Mplus_comm in H0.
-  rewrite and_comm.
-  apply H. apply H0.
-}
-{
-  intros.
-  unfold linearly_independent_2vec.
-  intros.
-  rewrite Mplus_comm in H0.
-  rewrite and_comm.
-  apply H. apply H0.
-}
-Qed.
-
-Lemma addition_equivalence: forall (a b c: C), 
-a + b = c <-> b = c - a.
-Proof.
-split.
-intros.
-rewrite <- H.
-lca.
-intros.
-rewrite H.
-lca.
-Qed.
-
-Lemma opp_equivalence: forall (a b: C), 
-a = b <-> -a = -b.
-Proof.
-split.
-intros.
-rewrite H. reflexivity.
-intros.
-rewrite <- Cplus_0_l.
-rewrite <- (Cplus_opp_l a).
-rewrite H.
-lca.
-Qed.
-
-Lemma Ceq_implies_el_eq: forall (a b : C), 
-a = b -> fst a = fst b /\ snd a = snd b.
-Proof.
-intros.
-split.
-rewrite H.
-reflexivity.
-rewrite H.
-reflexivity.
-Qed.
-
-Lemma cauchy_schwarz_corollary: 
-forall (a b : Vector 2), 
-WF_Qubit a -> WF_Qubit b -> linearly_independent_2vec a b <-> Cmod (⟨ a, b ⟩) < 1.
-Proof.
-Admitted.
 
 (* Using old version of proof since beta is chosen constructively *)
 Lemma a16_part1 {n}: forall (w0 w1 : Vector n) (a0 a1 : Vector 2), 
@@ -690,11 +522,15 @@ assert (S1 : (Zero (m:= n) (n := 1%nat)) = w1 ⊗ ((b) † × a1)).
   rewrite Mmult_1_l. 2: assumption.
   reflexivity.
 }
-assert (cancel_admit: Zero ⊗ ((b) † × a1) = w1 ⊗ ((b) † × a1) -> w1 = Zero). admit.
-apply cancel_admit.
+symmetry.
+apply (@kron_cancel_r n 1%nat 1%nat 1%nat) with (A:= (Zero (m:= n) (n := 1%nat))) (B:= w1) (C:=((b) † × a1)).
+1,2,3: solve_WF_matrix.
+1,3: apply a1_qubit.
+apply a0_qubit.
+apply H1.
 rewrite kron_0_l.
 apply S1.
-Admitted.
+Qed.
 
 (* Using old version of proof since beta is chosen constructively *)
 Lemma a16_part2 {n}: forall (w0 w1 : Vector n) (a0 a1 : Vector 2), 

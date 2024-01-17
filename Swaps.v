@@ -36,7 +36,7 @@ Proof.
   reflexivity.
 Qed.
 
-Lemma a10_1 : forall (D: Square 2),
+Lemma a13_1 : forall (D: Square 2),
   WF_Matrix D ->
     swapab × ccu D × swapab = ccu D.
 Proof.
@@ -46,7 +46,7 @@ Proof.
   apply WF_ccu. apply H.
 Qed.
 
-Lemma a10_2 : forall (c1 : C), swapbc × ccu (diag2 1 c1) × swapbc = ccu (diag2 1 c1).
+Lemma a13_2 : forall (c1 : C), swapbc × ccu (diag2 1 c1) × swapbc = ccu (diag2 1 c1).
 Proof.
   intros.
   lma'.
@@ -54,7 +54,7 @@ Proof.
   apply WF_ccu. apply WF_diag2.
 Qed.
 
-Lemma a10_3 : forall (c1 : C),
+Lemma a13_3 : forall (c1 : C),
   swapac × ccu (diag2 1 c1) × swapac = ccu (diag2 1 c1).
 Proof.
   intros.
@@ -63,12 +63,12 @@ Proof.
   do 4 rewrite Mmult_assoc.
   rewrite <- Mmult_assoc with (B := ccu (diag2 C1 c1)).
   rewrite <- Mmult_assoc with (B := swapab).
-  rewrite a10_1 at 1. 2: apply WF_diag2.
+  rewrite a13_1 at 1. 2: apply WF_diag2.
   rewrite Mmult_assoc.
   rewrite <- Mmult_assoc with (A := ccu (diag2 C1 c1)).
   do 2 rewrite <- Mmult_assoc with (A := swapbc).
-  rewrite a10_2 at 1.
+  rewrite a13_2 at 1.
   rewrite <- Mmult_assoc.
-  apply a10_1.
+  apply a13_1.
   apply WF_diag2.
 Qed.

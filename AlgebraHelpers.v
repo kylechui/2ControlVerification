@@ -188,8 +188,97 @@ Proof.
   lca.
 Qed.
 
-Definition Csqrt (x : C) : C :=
-  let norm := Cmod x in
-  match x with
-  | (a, b) => (sqrt ((norm + a) / 2), sqrt ((norm - a) / 2))
-  end.
+Lemma neq_implies_const_div_neq: forall (i j m: nat), (m <> 0)%nat -> (i <> j)%nat -> (i / m <> j / m)%nat \/ (i mod m <> j mod m)%nat.
+(* Thanks Kyle *)
+Proof.
+  intros.
+  assert (H1 : ({i mod m = j mod m} + {i mod m <> j mod m})%nat).
+  {
+    intros.
+    apply Nat.eq_dec.
+  }
+  destruct H1.
+  - left.
+    intro.
+    apply H0.
+    rewrite Nat.div_mod with (x := i) (y := m). 2: assumption.
+    rewrite Nat.div_mod with (x := j) (y := m). 2: assumption.
+    rewrite e.
+    rewrite H1.
+    reflexivity.
+  - right.
+    assumption.
+Qed.
+
+Lemma addition_equivalence: forall (a b c: C), 
+a + b = c <-> b = c - a.
+Proof.
+split.
+intros.
+rewrite <- H.
+lca.
+intros.
+rewrite H.
+lca.
+Qed.
+
+Lemma opp_equivalence: forall (a b: C), 
+a = b <-> -a = -b.
+Proof.
+split.
+intros.
+rewrite H. reflexivity.
+intros.
+rewrite <- Cplus_0_l.
+rewrite <- (Cplus_opp_l a).
+rewrite H.
+lca.
+Qed.
+
+Lemma Ceq_implies_el_eq: forall (a b : C), 
+a = b -> fst a = fst b /\ snd a = snd b.
+Proof.
+intros.
+split.
+rewrite H.
+reflexivity.
+rewrite H.
+reflexivity.
+Qed.
+
+Lemma Cmult_0_implies_zero: forall (a b : C), 
+a * b = 0 -> a = 0 \/ b = 0.
+Proof.
+intros.
+destruct (Ceq_dec a 0).
+{
+    left. assumption.
+}
+{
+    right.
+    apply (f_equal (fun f => /a * f)) in H.
+    rewrite Cmult_0_r in H.
+    rewrite Cmult_assoc in H.
+    rewrite Cinv_l in H. 2: assumption.
+    rewrite Cmult_1_l in H.
+    assumption.
+}
+Qed.
+
+(* can't find anything that does this *)
+Lemma Natgt_lt: forall (x y : nat), (x > y)%nat -> (y < x)%nat.
+Proof.
+auto.
+Qed.
+
+Lemma rtoc_neq_decomp: forall (r: R), 
+(r <> 0)%R -> RtoC r <> C0.
+Proof.
+intros. 
+unfold RtoC.
+intro.
+apply Ceq_implies_el_eq in H0.
+destruct H0 as [H0 _].
+apply H.
+trivial.
+Qed.
