@@ -379,7 +379,7 @@ assert (WF_Q : WF_Unitary Q).
   unfold Q. reflexivity.
   apply H2.
 }
-assert (HQ_impl := qubit_decomposition2 ((Q ⊗ I 2)† × w)).
+assert (HQ_impl := qubit_decomposition2_implicit ((Q ⊗ I 2)† × w)).
 assert (WF_QI2 : WF_Matrix (Q ⊗ I 2)).
 {
   solve_WF_matrix. apply H. apply H0.

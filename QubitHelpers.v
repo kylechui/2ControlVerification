@@ -51,8 +51,18 @@ intros.
 lma'.
 Qed. 
 
+Lemma qubit_decomposition2_explicit : forall (phi : Vector 4), 
+WF_Matrix phi ->
+phi = (phi 0 0)%nat .* ∣0,0⟩ .+ (phi 1 0)%nat .* ∣0,1⟩ .+
+ (phi 2 0)%nat .* ∣1,0⟩ .+ (phi 3 0)%nat .* ∣1,1⟩.
+Proof.
+  intros.
+  lma'.
+  solve_WF_matrix.
+Qed.
+
 (* Definition of lemma from old file Multiqubit*)
-Lemma qubit_decomposition2 : forall (phi : Vector 4), 
+Lemma qubit_decomposition2_implicit : forall (phi : Vector 4), 
 WF_Matrix phi -> exists (a b c d: C),
 phi = a .* ∣0,0⟩ .+ b .* ∣0,1⟩ .+ c .* ∣1,0⟩ .+ d .* ∣1,1⟩.
 Proof.
