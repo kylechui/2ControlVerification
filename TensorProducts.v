@@ -4,6 +4,7 @@ From Proof Require Import MatrixHelpers.
 From Proof Require Import QubitHelpers.
 From Proof Require Import GateHelpers.
 From Proof Require Import SwapHelpers.
+From Proof Require Import AlgebraHelpers.
 From Proof Require Import PartialTraceDefinitions.
 From Proof Require Import UnitaryMatrices.
 From Proof Require Import Vectors.
@@ -702,10 +703,13 @@ partial_trace_2q_a (partial_trace_3q_c (acgate U × (a ⊗ b ⊗ c) × (a ⊗ b 
 = b × b†.
 Proof.
 intros U a b c U_unitary a_qubit b_qubit c_qubit.
+assert (WF_U: WF_Matrix U). apply U_unitary.
+assert (WF_a: WF_Matrix a). apply a_qubit. 
+assert (WF_b: WF_Matrix b). apply b_qubit.
+assert (WF_c: WF_Matrix c). apply c_qubit.
 apply mat_equiv_eq.
 apply WF_partial_trace_2q_a.
 solve_WF_matrix.
-1,2: apply b_qubit.
 rewrite kron_adjoint. rewrite kron_adjoint.
 rewrite Mmult_assoc. rewrite Mmult_assoc.
 rewrite <- Mmult_assoc with (A:=a ⊗ b ⊗ c).
@@ -726,7 +730,7 @@ repeat rewrite Mmult_assoc.
 rewrite <- Mmult_assoc with (A:= a × (a) † ⊗ (b × (b) †) ⊗ (c × (c) †)).
 rewrite <- Mmult_assoc with (B := a × (a) † ⊗ (b × (b) †) ⊗ (c × (c) †) × swapbc).
 rewrite <- Mmult_assoc with (B := a × (a) † ⊗ (b × (b) †) ⊗ (c × (c) †)).
-rewrite swapbc_3gate. 2,3,4: solve_WF_matrix. 2,3: apply a_qubit. 2,3: apply b_qubit. 2,3: apply c_qubit.
+rewrite swapbc_3gate. 2,3,4: solve_WF_matrix.
 unfold abgate.
 rewrite <- Mmult_assoc with (B := a × (a) † ⊗ (c × (c) †) ⊗ (b × (b) †)).
 assert (kron_mix_help: U ⊗ I 2 × (a × (a) † ⊗ (c × (c) †) ⊗ (b × (b) †)) =
@@ -735,12 +739,11 @@ assert (kron_mix_help: U ⊗ I 2 × (a × (a) † ⊗ (c × (c) †) ⊗ (b × (
     rewrite <- Mmult_1_l with (A:= (b × (b) †)) at 2.
     apply kron_mixed_product.
     solve_WF_matrix.
-    all: apply b_qubit.
 }
 rewrite kron_mix_help at 1.
 clear kron_mix_help.
 rewrite <- Mmult_assoc with (C := swapbc).
-assert (kron_adj_helper: (U ⊗ I 2) † = U† ⊗ I 2). lma'. 1,2: solve_WF_matrix. 1,2: apply U_unitary.
+assert (kron_adj_helper: (U ⊗ I 2) † = U† ⊗ I 2). lma'.
 rewrite kron_adj_helper at 1.
 clear kron_adj_helper. 
 assert (kron_mix_help: U × (a × (a) † ⊗ (c × (c) †)) ⊗ (b × (b) †) × ((U) † ⊗ I 2) = 
@@ -749,7 +752,6 @@ assert (kron_mix_help: U × (a × (a) † ⊗ (c × (c) †)) ⊗ (b × (b) †)
     rewrite <- Mmult_1_r with (A:= (b × (b) †)) at 2.
     apply kron_mixed_product.
     solve_WF_matrix.
-    all: apply b_qubit.
 }
 rewrite kron_mix_help at 1.
 assert (WF_helper1: WF_Matrix (U × (a × (a) † ⊗ (c × (c) †)) × (U) † ⊗ (b × (b) †) × swapbc)).
@@ -759,10 +761,6 @@ assert (WF_helper1: WF_Matrix (U × (a × (a) † ⊗ (c × (c) †)) × (U) †
     apply WF_mult.
     apply WF_mult.
     all: solve_WF_matrix.
-    1,6: apply U_unitary.
-    1,2: apply a_qubit.
-    1,2: apply c_qubit.
-    1,2: apply b_qubit.
 }
 assert (WF_helper2: WF_Matrix (U × (a × (a) † ⊗ (c × (c) †)) × (U) † ⊗ (b × (b) †))).
 {
@@ -770,43 +768,29 @@ assert (WF_helper2: WF_Matrix (U × (a × (a) † ⊗ (c × (c) †)) × (U) †
     apply WF_mult.
     apply WF_mult.
     all: solve_WF_matrix.
-    1,6: apply U_unitary.
-    1,2: apply a_qubit.
-    1,2: apply c_qubit.
-    1,2: apply b_qubit.  
 }
 assert (WF_helper3: WF_Matrix (U × (a × (a) † ⊗ (c × (c) †)) × (U) †)).
 {
     apply WF_mult.
     apply WF_mult.
     all: solve_WF_matrix.
-    1,6: apply U_unitary.
-    1,2: apply a_qubit.
-    1,2: apply c_qubit.  
 }
 assert (WF_helper4: WF_Matrix ((b × (b) †))).
 {
     solve_WF_matrix.
-    all: apply b_qubit.
 }
 assert (WF_helper5: WF_Matrix (U × (a × (a) † ⊗ (c × (c) †)))).
 {
     solve_WF_matrix.
-    apply U_unitary.
-    1,2: apply a_qubit.
-    all: apply c_qubit.
 }
 assert (WF_helper6: WF_Matrix (U) †).
 {
     apply WF_adjoint.
     apply U_unitary.
 }
-assert (WF_helper7: WF_Matrix U). apply U_unitary.
 assert (WF_helper8: WF_Matrix (a × (a) † ⊗ (c × (c) †))).
 {
-    solve_WF_matrix.
-    1,2: apply a_qubit. 
-    all: apply c_qubit.   
+    solve_WF_matrix. 
 }
 set (a00:= (a × (a) † ⊗ (c × (c) †)) 0%nat 0%nat).
 set (a10:= (a × (a) † ⊗ (c × (c) †)) 1%nat 0%nat).
@@ -1044,6 +1028,40 @@ all: repeat rewrite qubit_prop_explicit.
 all: apply a_qubit.
 Qed.
 
+Lemma Mscale_0_cancel {m n}: forall (c: C) (A: Matrix m n), 
+A <> Zero -> Zero = c .* A -> c = 0.
+Proof.
+intros.
+rewrite nonzero_def in H.
+destruct H as [x0 [y0 nonzero_point]].
+assert ((c .* A) x0 y0 = 0). rewrite <- H0. trivial.
+rewrite <- Mscale_access in H.
+apply (f_equal (fun f => f * /(A x0 y0))) in H.
+rewrite Cmult_0_l in H.
+rewrite <- Cmult_assoc in H.
+rewrite Cinv_r in H.
+rewrite Cmult_1_r in H.
+all: assumption.
+Qed.
+
+Lemma trace_outer_zero_vec2: forall (a : Vector 2),
+WF_Matrix a ->  
+trace (a × (a) †) = 0 -> a = Zero.
+Proof.
+intros.
+rewrite trace_outer_vec2 in H0.
+apply sum_of_pos_c_is_0_implies_0 in H0.
+2,4: apply conj_mult_re_is_nonneg.
+2,3: apply conj_mult_im_is_0.
+destruct H0 as [a0_0 a1_0].
+apply squared_norm_eq_0_implies_0 in a0_0, a1_0.
+lma'.
+rewrite a0_0.
+2: rewrite a1_0.
+all: lca.
+Qed.
+
+
 
 Lemma a22: forall (U: Square 4) (a b g psi : Vector 2) (phi : Vector 4), 
 WF_Unitary U -> WF_Qubit a -> WF_Qubit b -> WF_Qubit g -> WF_Qubit psi -> WF_Qubit phi -> 
@@ -1051,6 +1069,12 @@ WF_Unitary U -> WF_Qubit a -> WF_Qubit b -> WF_Qubit g -> WF_Qubit psi -> WF_Qub
 exists (w : Vector 2), phi = b ⊗ w.
 Proof.
 intros U a b g psi phi U_unitary a_qubit b_qubit g_qubit psi_qubit phi_qubit acU_app.
+assert (WF_U: WF_Matrix U). apply U_unitary.
+assert (WF_a: WF_Matrix a). apply a_qubit.
+assert (WF_b: WF_Matrix b). apply b_qubit.
+assert (WF_g: WF_Matrix g). apply g_qubit.
+assert (WF_psi: WF_Matrix psi). apply psi_qubit.
+assert (WF_phi: WF_Matrix phi). apply phi_qubit.
 assert (outer_prod_equiv : acgate U × (a ⊗ b ⊗ g) × (a ⊗ b ⊗ g)† × (acgate U)† = (psi ⊗ phi) × (psi† ⊗ phi†)).
 {
     rewrite acU_app.
@@ -1061,13 +1085,89 @@ assert (outer_prod_equiv : acgate U × (a ⊗ b ⊗ g) × (a ⊗ b ⊗ g)† × 
     rewrite kron_adjoint.
     reflexivity.
 }
+(* trace out ac qubits *)
 apply partial_trace_3q_c_compat in outer_prod_equiv.
 apply partial_trace_2q_a_compat in outer_prod_equiv.
 rewrite partial_trace_ac_on_acgate in outer_prod_equiv. 2,3,4,5: assumption.
 rewrite traceout_ac_method_equivalence in outer_prod_equiv.
 rewrite kron_mixed_product in outer_prod_equiv.
-rewrite a7_3q_a in outer_prod_equiv. 2: solve_WF_matrix. 2,3: apply phi_qubit.
+rewrite a7_3q_a in outer_prod_equiv. 2: solve_WF_matrix.
 rewrite trace_outer_vec2 in outer_prod_equiv.
-rewrite qubit_prop_explicit in outer_prod_equiv.
+rewrite qubit_prop_explicit in outer_prod_equiv. 2: assumption.
 rewrite Mscale_1_l in outer_prod_equiv.
-Admitted.
+assert (orth_qubit := exists_orthogonal_qubit b b_qubit).
+destruct orth_qubit as [bp [bp_qubit b_orth]].
+assert (WF_bp: WF_Matrix bp). apply bp_qubit.
+assert (phi_decomp:= a15 b bp phi b_qubit bp_qubit phi_qubit b_orth).
+destruct phi_decomp as [w [z [phi_decomp [WF_w WF_z]]]].
+assert (phi_outer_decomp: phi × (phi) † = (b × (b) †)⊗(w × (w) †) .+
+(b × (bp) †)⊗(w × (z) †) .+ (bp × (b) †)⊗(z × (w) †) .+ (bp × (bp) †)⊗(z × (z) †)).
+{
+    rewrite phi_decomp.
+    rewrite Mplus_adjoint.
+    rewrite kron_adjoint. rewrite kron_adjoint.
+    rewrite Mmult_plus_distr_l. repeat rewrite Mmult_plus_distr_r.
+    repeat rewrite kron_mixed_product.
+    rewrite Mplus_assoc. rewrite <- Mplus_assoc with (A:=bp × (b) † ⊗ (z × (w) †)).
+    rewrite Mplus_comm with (A:=bp × (b) † ⊗ (z × (w) †)).
+    repeat rewrite <- Mplus_assoc.
+    reflexivity.   
+}
+(* prepare outer_prod_equiv for simplificiation with vector prods *)
+rewrite phi_outer_decomp in outer_prod_equiv.
+repeat rewrite Mplus_assoc in outer_prod_equiv.
+repeat rewrite partial_trace_2q_b_plus in outer_prod_equiv.
+rewrite a7_2q_b in outer_prod_equiv. 2: solve_WF_matrix.
+rewrite a7_2q_b in outer_prod_equiv. 2: solve_WF_matrix.
+rewrite a7_2q_b in outer_prod_equiv. 2: solve_WF_matrix.
+rewrite a7_2q_b in outer_prod_equiv. 2: solve_WF_matrix.
+(* mult by bpadj on left *)
+assert (bp_inner_I : (bp) † × bp = I 1). apply inner_prod_1_decomp. 1,2: solve_WF_matrix. apply bp_qubit.
+assert (bp_b_0 : (bp) † × b = Zero). apply inner_prod_0_decomp. 3: apply inner_prod_0_comm. 5: apply b_orth. 1,2,3,4: solve_WF_matrix.
+apply (f_equal (fun f => (bp) † × f)) in outer_prod_equiv.
+rewrite <- Mmult_assoc in outer_prod_equiv.
+rewrite bp_b_0 in outer_prod_equiv.
+rewrite Mmult_0_l in outer_prod_equiv.
+rewrite Mmult_plus_distr_l in outer_prod_equiv.
+rewrite Mscale_mult_dist_r in outer_prod_equiv.
+rewrite <- Mmult_assoc in outer_prod_equiv.
+rewrite bp_b_0 in outer_prod_equiv.
+rewrite Mmult_0_l in outer_prod_equiv.
+rewrite Mscale_0_r in outer_prod_equiv.
+rewrite Mplus_0_l in outer_prod_equiv.
+rewrite Mmult_plus_distr_l in outer_prod_equiv.
+rewrite Mscale_mult_dist_r in outer_prod_equiv.
+rewrite <- Mmult_assoc in outer_prod_equiv.
+rewrite bp_b_0 in outer_prod_equiv.
+rewrite Mmult_0_l in outer_prod_equiv.
+rewrite Mscale_0_r in outer_prod_equiv.
+rewrite Mplus_0_l in outer_prod_equiv.
+rewrite Mmult_plus_distr_l in outer_prod_equiv.
+rewrite Mscale_mult_dist_r in outer_prod_equiv.
+rewrite <- Mmult_assoc in outer_prod_equiv.
+rewrite bp_inner_I in outer_prod_equiv.
+rewrite Mmult_1_l in outer_prod_equiv. 2: solve_WF_matrix.
+rewrite Mscale_mult_dist_r in outer_prod_equiv.
+rewrite <- Mmult_assoc in outer_prod_equiv.
+rewrite bp_inner_I in outer_prod_equiv.
+rewrite Mmult_1_l in outer_prod_equiv. 2: solve_WF_matrix.
+(* mult by bp on right *)
+assert (b_bp_0 : (b) † × bp = Zero). apply inner_prod_0_decomp. 3: apply b_orth. 1,2: solve_WF_matrix.
+apply (f_equal (fun f => f × bp)) in outer_prod_equiv.
+rewrite Mmult_0_l in outer_prod_equiv.
+rewrite Mmult_plus_distr_r in outer_prod_equiv.
+rewrite Mscale_mult_dist_l in outer_prod_equiv.
+rewrite b_bp_0 in outer_prod_equiv.
+rewrite Mscale_0_r in outer_prod_equiv.
+rewrite Mplus_0_l in outer_prod_equiv.
+rewrite Mscale_mult_dist_l in outer_prod_equiv.
+rewrite bp_inner_I in outer_prod_equiv.
+apply Mscale_0_cancel in outer_prod_equiv. 2: apply I_neq_zero. 2: lia.
+apply trace_outer_zero_vec2 in outer_prod_equiv. 2: assumption.
+(* replace this in phi to finish proof *)
+rewrite outer_prod_equiv in phi_decomp.
+rewrite kron_0_r in phi_decomp.
+rewrite Mplus_0_r in phi_decomp.
+exists w.
+apply phi_decomp.
+Qed.

@@ -103,6 +103,26 @@ apply WF_scale.
 apply WF_partial_trace_2q_b.
 Qed.
 
+Lemma partial_trace_2q_b_plus : forall (A B : Square 4),
+  partial_trace_2q_b (A .+ B) = partial_trace_2q_b A .+ partial_trace_2q_b B.
+Proof.
+intros.
+rewrite <- Mscale_1_l with (A:= B) at 1.
+rewrite <- Mscale_1_l with (A:= partial_trace_2q_b B).
+apply partial_trace_2q_b_linear.
+Qed.
+
+Lemma partial_trace_2q_b_scale : forall (c: C) (A : Square 4),
+  partial_trace_2q_b (c .* A) = c .* partial_trace_2q_b A.
+Proof.
+intros.
+rewrite <- Mplus_0_l with (A:= c .* A).
+rewrite <- Mplus_0_l with (A:= c .* partial_trace_2q_b A).
+assert (Zero = partial_trace_2q_b Zero). lma'. apply WF_partial_trace_2q_b.
+rewrite H.
+apply partial_trace_2q_b_linear.
+Qed.
+
 Lemma partial_trace_2q_b_compat : forall (A B : Square 4),
   A = B -> partial_trace_2q_b A = partial_trace_2q_b B.
 Proof.
@@ -190,7 +210,7 @@ destruct H.
 }
 Qed.
 
-Lemma partial_trace_3q_a_linear : forall (c:C) (A B : Square 4),
+Lemma partial_trace_3q_a_linear : forall (c:C) (A B : Square 8),
   partial_trace_3q_a (A .+ c .* B) = partial_trace_3q_a A .+ c .* partial_trace_3q_a B.
 Proof.
 intros.
@@ -202,7 +222,7 @@ apply WF_scale.
 apply WF_partial_trace_3q_a.
 Qed.
 
-Lemma partial_trace_3q_a_compat : forall (A B : Square 4),
+Lemma partial_trace_3q_a_compat : forall (A B : Square 8),
   A = B -> partial_trace_3q_a A = partial_trace_3q_a B.
 Proof.
 intros.
@@ -301,7 +321,7 @@ destruct H.
 }
 Qed.
 
-Lemma partial_trace_3q_c_linear : forall (c:C) (A B : Square 4),
+Lemma partial_trace_3q_c_linear : forall (c:C) (A B : Square 8),
   partial_trace_3q_c (A .+ c .* B) = partial_trace_3q_c A .+ c .* partial_trace_3q_c B.
 Proof.
 intros.
@@ -313,7 +333,7 @@ apply WF_scale.
 apply WF_partial_trace_3q_c.
 Qed.
 
-Lemma partial_trace_3q_c_plus : forall (A B : Square 4),
+Lemma partial_trace_3q_c_plus : forall (A B : Square 8),
   partial_trace_3q_c (A .+ B) = partial_trace_3q_c A .+ partial_trace_3q_c B.
 Proof.
 intros.
@@ -322,18 +342,18 @@ rewrite <- Mscale_1_l with (A:= partial_trace_3q_c B).
 apply partial_trace_3q_c_linear.
 Qed.
 
-Lemma partial_trace_3q_c_scale : forall (c: C) (A : Square 4),
+Lemma partial_trace_3q_c_scale : forall (c: C) (A : Square 8),
   partial_trace_3q_c (c .* A) = c .* partial_trace_3q_c A.
 Proof.
 intros.
 rewrite <- Mplus_0_l with (A:= c .* A).
 rewrite <- Mplus_0_l with (A:= c .* partial_trace_3q_c A).
 assert (Zero = partial_trace_3q_c Zero). lma'. apply WF_partial_trace_3q_c.
-rewrite H at 2.
+rewrite H.
 apply partial_trace_3q_c_linear.
 Qed.
 
-Lemma partial_trace_3q_c_compat : forall (A B : Square 4),
+Lemma partial_trace_3q_c_compat : forall (A B : Square 8),
   A = B -> partial_trace_3q_c A = partial_trace_3q_c B.
 Proof.
 intros.
