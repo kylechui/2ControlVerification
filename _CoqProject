@@ -7,6 +7,7 @@ SwapHelpers.v
 GateHelpers.v
 SwapProperty.v
 QubitHelpers.v
+ExplicitDecompositions.v
 
 # Appendix of proof
 SquareMatrices.v

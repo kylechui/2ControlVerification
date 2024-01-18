@@ -130,3 +130,49 @@ forall (a b : Vector 2),
 WF_Qubit a -> WF_Qubit b -> linearly_independent_2vec a b <-> Cmod (⟨ a, b ⟩) < 1.
 Proof.
 Admitted.
+
+Lemma qubit_01_lin_indep: linearly_independent_2vec ∣0⟩ ∣1⟩.
+Proof.
+apply orthonormal_implies_lin_indep_2.
+1,2: solve_WF_matrix.
+all: lca.
+Qed.
+
+Lemma exists_orthogonal_qubit: forall (phi: Vector 2), 
+WF_Qubit phi -> exists (psi: Vector 2), (WF_Qubit psi /\ ⟨ phi , psi ⟩ = C0).
+Proof.
+intros.
+destruct H as [_ [WF_phi phi_unit]].
+set (psi := (fun x y =>
+    match (x,y) with
+    | (0,0) => -((phi 1%nat 0%nat)^*)
+    | (1,0) => (phi 0%nat 0%nat)^*
+    | _ => C0
+    end) : (Vector 2)).
+assert (WF_psi: WF_Matrix psi). 
+{
+    unfold WF_Matrix.
+    intros.
+    unfold psi. 
+    destruct H.
+    destruct x as [|x']. contradict H. lia.
+    destruct x' as [|x'']. contradict H. lia. reflexivity.
+    destruct x as [|x']. destruct y as [|y']. contradict H. lia. reflexivity.
+    destruct x' as [|x'']. destruct y as [|y']. contradict H. lia.
+    reflexivity. reflexivity.
+}
+exists psi.
+split.
+{
+    split.
+    exists 1%nat. trivial.
+    split. assumption.
+    {
+        rewrite <- phi_unit.
+        lca.
+    }
+}
+{
+    lca.
+}
+Qed.

@@ -271,8 +271,10 @@ apply H.
 trivial.
 Qed.
 
-Definition Csqrt (x : C) : C :=
-  let norm := Cmod x in
-  match x with
-  | (a, b) => (sqrt ((norm + a) / 2), sqrt ((norm - a) / 2))
-  end.
+Lemma Cmult_const_r: forall (a b c : C), 
+a = b -> a * c = b * c.
+Proof. 
+intros. 
+rewrite H. 
+reflexivity.
+Qed.

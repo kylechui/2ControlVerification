@@ -170,3 +170,5 @@ Proof.
   rewrite swapab_3gate. 2: assumption. 2: assumption. 2: assumption.
   reflexivity.
 Qed.
+
+Lemma swapbc_sa: swapbc = (swapbc) †. Proof. lma'. 2: apply WF_adjoint. all: apply WF_swapbc. Qed.

@@ -787,3 +787,43 @@ split.
     assumption.
 }
 Qed.
+
+Lemma Mscale_access {m n}: forall (a : C) (B : Matrix m n) (i j : nat), 
+a * (B i j) = (a .* B) i j.
+Proof.
+intros.
+lca.
+Qed.
+
+Lemma Mplus_access {m n}: forall (A B : Matrix m n) (i j : nat), 
+(A .+ B) i j = (A i j) + (B i j).
+Proof.
+intros.
+lca.
+Qed.
+
+Lemma Mopp_scale_distr_l {m n}: forall (A : Matrix m n) (c : C), 
+Mopp (c .* A) = c .* (Mopp A).
+Proof.
+intros.
+unfold Mopp.
+do 2 rewrite Mscale_assoc.
+rewrite Cmult_comm.
+reflexivity.
+Qed.
+
+Lemma Mscale_0_cancel {m n}: forall (c: C) (A: Matrix m n), 
+A <> Zero -> Zero = c .* A -> c = 0.
+Proof.
+intros.
+rewrite nonzero_def in H.
+destruct H as [x0 [y0 nonzero_point]].
+assert ((c .* A) x0 y0 = 0). rewrite <- H0. trivial.
+rewrite <- Mscale_access in H.
+apply (f_equal (fun f => f * /(A x0 y0))) in H.
+rewrite Cmult_0_l in H.
+rewrite <- Cmult_assoc in H.
+rewrite Cinv_r in H.
+rewrite Cmult_1_r in H.
+all: assumption.
+Qed.
