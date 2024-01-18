@@ -1051,4 +1051,23 @@ WF_Unitary U -> WF_Qubit a -> WF_Qubit b -> WF_Qubit g -> WF_Qubit psi -> WF_Qub
 exists (w : Vector 2), phi = b ⊗ w.
 Proof.
 intros U a b g psi phi U_unitary a_qubit b_qubit g_qubit psi_qubit phi_qubit acU_app.
+assert (outer_prod_equiv : acgate U × (a ⊗ b ⊗ g) × (a ⊗ b ⊗ g)† × (acgate U)† = (psi ⊗ phi) × (psi† ⊗ phi†)).
+{
+    rewrite acU_app.
+    rewrite Mmult_assoc.
+    rewrite <- Mmult_adjoint.
+    assert (app_helper: acgate U × (a ⊗ b ⊗ g) = psi ⊗ phi). apply acU_app.
+    rewrite app_helper at 1. clear app_helper.
+    rewrite kron_adjoint.
+    reflexivity.
+}
+apply partial_trace_3q_c_compat in outer_prod_equiv.
+apply partial_trace_2q_a_compat in outer_prod_equiv.
+rewrite partial_trace_ac_on_acgate in outer_prod_equiv. 2,3,4,5: assumption.
+rewrite traceout_ac_method_equivalence in outer_prod_equiv.
+rewrite kron_mixed_product in outer_prod_equiv.
+rewrite a7_3q_a in outer_prod_equiv. 2: solve_WF_matrix. 2,3: apply phi_qubit.
+rewrite trace_outer_vec2 in outer_prod_equiv.
+rewrite qubit_prop_explicit in outer_prod_equiv.
+rewrite Mscale_1_l in outer_prod_equiv.
 Admitted.

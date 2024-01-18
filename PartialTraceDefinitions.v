@@ -337,3 +337,12 @@ unfold partial_trace_3q_c. rewrite H. reflexivity.
 unfold partial_trace_3q_c. rewrite H. reflexivity.
 unfold partial_trace_3q_c. rewrite H. reflexivity.
 Qed.
+
+Lemma traceout_ac_method_equivalence: forall (A : Square 8), 
+partial_trace_2q_a (partial_trace_3q_c A) = partial_trace_2q_b (partial_trace_3q_a A).
+Proof.
+intros.
+lma'.
+apply WF_partial_trace_2q_a.
+apply WF_partial_trace_2q_b.
+Qed.
