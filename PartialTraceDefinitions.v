@@ -63,6 +63,79 @@ unfold partial_trace_2q_a. rewrite H. reflexivity.
 unfold partial_trace_2q_a. rewrite H. reflexivity.
 Qed.
 
+Definition partial_trace_2q_b (M: Square 4): Square 2 :=
+    fun x y =>
+    match (x,y) with
+    | (0,0) => (M 0 0)%nat + (M 1 1)%nat
+    | (0,1) => (M 0 2)%nat + (M 1 3)%nat
+    | (1,0) => (M 2 0)%nat + (M 3 1)%nat
+    | (1,1) => (M 2 2)%nat + (M 3 3)%nat
+    | _ => C0
+    end.
+
+Lemma WF_partial_trace_2q_b : forall (A : Square 4),
+    WF_Matrix (partial_trace_2q_b A).
+Proof.
+unfold WF_Matrix.
+intros.
+unfold partial_trace_2q_b.
+destruct H.
+destruct x as [|a]. contradict H. lia.
+destruct a as [|b]. contradict H. lia. reflexivity.
+destruct x as [|a].
+destruct y as [|b]. contradict H. lia.
+destruct b as [|c]. contradict H. lia. reflexivity.
+destruct a as [|x].
+destruct y as [|b]. contradict H. lia.
+destruct b as [|c]. contradict H. lia. reflexivity.
+reflexivity.
+Qed.
+
+Lemma partial_trace_2q_b_linear : forall (c:C) (A B : Square 4),
+  partial_trace_2q_b (A .+ c .* B) = partial_trace_2q_b A .+ c .* partial_trace_2q_b B.
+Proof.
+intros.
+lma'.
+apply WF_partial_trace_2q_b.
+apply WF_plus.
+apply WF_partial_trace_2q_b.
+apply WF_scale.
+apply WF_partial_trace_2q_b.
+Qed.
+
+Lemma partial_trace_2q_b_plus : forall (A B : Square 4),
+  partial_trace_2q_b (A .+ B) = partial_trace_2q_b A .+ partial_trace_2q_b B.
+Proof.
+intros.
+rewrite <- Mscale_1_l with (A:= B) at 1.
+rewrite <- Mscale_1_l with (A:= partial_trace_2q_b B).
+apply partial_trace_2q_b_linear.
+Qed.
+
+Lemma partial_trace_2q_b_scale : forall (c: C) (A : Square 4),
+  partial_trace_2q_b (c .* A) = c .* partial_trace_2q_b A.
+Proof.
+intros.
+rewrite <- Mplus_0_l with (A:= c .* A).
+rewrite <- Mplus_0_l with (A:= c .* partial_trace_2q_b A).
+assert (Zero = partial_trace_2q_b Zero). lma'. apply WF_partial_trace_2q_b.
+rewrite H.
+apply partial_trace_2q_b_linear.
+Qed.
+
+Lemma partial_trace_2q_b_compat : forall (A B : Square 4),
+  A = B -> partial_trace_2q_b A = partial_trace_2q_b B.
+Proof.
+intros.
+lma'.
+apply WF_partial_trace_2q_b.
+apply WF_partial_trace_2q_b.
+unfold partial_trace_2q_b. rewrite H. reflexivity.
+unfold partial_trace_2q_b. rewrite H. reflexivity.
+unfold partial_trace_2q_b. rewrite H. reflexivity.
+unfold partial_trace_2q_b. rewrite H. reflexivity.
+Qed.
+
 Definition partial_trace_3q_a (M: Square 8): Square 4 :=
     fun x y =>
     match (x,y) with
@@ -137,7 +210,7 @@ destruct H.
 }
 Qed.
 
-Lemma partial_trace_3q_a_linear : forall (c:C) (A B : Square 4),
+Lemma partial_trace_3q_a_linear : forall (c:C) (A B : Square 8),
   partial_trace_3q_a (A .+ c .* B) = partial_trace_3q_a A .+ c .* partial_trace_3q_a B.
 Proof.
 intros.
@@ -149,7 +222,7 @@ apply WF_scale.
 apply WF_partial_trace_3q_a.
 Qed.
 
-Lemma partial_trace_3q_a_compat : forall (A B : Square 4),
+Lemma partial_trace_3q_a_compat : forall (A B : Square 8),
   A = B -> partial_trace_3q_a A = partial_trace_3q_a B.
 Proof.
 intros.
@@ -248,7 +321,7 @@ destruct H.
 }
 Qed.
 
-Lemma partial_trace_3q_c_linear : forall (c:C) (A B : Square 4),
+Lemma partial_trace_3q_c_linear : forall (c:C) (A B : Square 8),
   partial_trace_3q_c (A .+ c .* B) = partial_trace_3q_c A .+ c .* partial_trace_3q_c B.
 Proof.
 intros.
@@ -260,7 +333,27 @@ apply WF_scale.
 apply WF_partial_trace_3q_c.
 Qed.
 
-Lemma partial_trace_3q_c_compat : forall (A B : Square 4),
+Lemma partial_trace_3q_c_plus : forall (A B : Square 8),
+  partial_trace_3q_c (A .+ B) = partial_trace_3q_c A .+ partial_trace_3q_c B.
+Proof.
+intros.
+rewrite <- Mscale_1_l with (A:= B) at 1.
+rewrite <- Mscale_1_l with (A:= partial_trace_3q_c B).
+apply partial_trace_3q_c_linear.
+Qed.
+
+Lemma partial_trace_3q_c_scale : forall (c: C) (A : Square 8),
+  partial_trace_3q_c (c .* A) = c .* partial_trace_3q_c A.
+Proof.
+intros.
+rewrite <- Mplus_0_l with (A:= c .* A).
+rewrite <- Mplus_0_l with (A:= c .* partial_trace_3q_c A).
+assert (Zero = partial_trace_3q_c Zero). lma'. apply WF_partial_trace_3q_c.
+rewrite H.
+apply partial_trace_3q_c_linear.
+Qed.
+
+Lemma partial_trace_3q_c_compat : forall (A B : Square 8),
   A = B -> partial_trace_3q_c A = partial_trace_3q_c B.
 Proof.
 intros.
@@ -283,4 +376,13 @@ unfold partial_trace_3q_c. rewrite H. reflexivity.
 unfold partial_trace_3q_c. rewrite H. reflexivity.
 unfold partial_trace_3q_c. rewrite H. reflexivity.
 unfold partial_trace_3q_c. rewrite H. reflexivity.
+Qed.
+
+Lemma traceout_ac_method_equivalence: forall (A : Square 8), 
+partial_trace_2q_a (partial_trace_3q_c A) = partial_trace_2q_b (partial_trace_3q_a A).
+Proof.
+intros.
+lma'.
+apply WF_partial_trace_2q_a.
+apply WF_partial_trace_2q_b.
 Qed.
