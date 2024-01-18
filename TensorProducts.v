@@ -2,6 +2,10 @@ Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
 From Proof Require Import MatrixHelpers.
 From Proof Require Import QubitHelpers.
+From Proof Require Import GateHelpers.
+From Proof Require Import SwapHelpers.
+From Proof Require Import PartialTraceDefinitions.
+From Proof Require Import UnitaryMatrices.
 From Proof Require Import Vectors.
 
 Lemma Mscale_access {m n}: forall (a : C) (B : Matrix m n) (i j : nat), 
@@ -286,3 +290,447 @@ rewrite a20_part4.
 reflexivity.
 all: assumption.
 Qed.
+
+Lemma a21: forall (U : Square 4), 
+WF_Unitary U -> exists (psi : Vector 2), 
+TensorProd (U × (∣0⟩ ⊗ psi)).
+Proof. 
+intros U WF_U.
+destruct (Classical_Prop.classic (TensorProd (U × (∣0⟩ ⊗ ∣0⟩)))).
+{
+    exists ∣0⟩. assumption.
+}
+{
+    set (a00 := (U × (∣0⟩ ⊗ ∣0⟩)) 0%nat 0%nat).
+    set (a01 := (U × (∣0⟩ ⊗ ∣0⟩)) 1%nat 0%nat).
+    set (a10 := (U × (∣0⟩ ⊗ ∣0⟩)) 2%nat 0%nat).
+    set (a11 := (U × (∣0⟩ ⊗ ∣0⟩)) 3%nat 0%nat).
+    set (b00 := (U × (∣0⟩ ⊗ ∣1⟩)) 0%nat 0%nat).
+    set (b01 := (U × (∣0⟩ ⊗ ∣1⟩)) 1%nat 0%nat).
+    set (b10 := (U × (∣0⟩ ⊗ ∣1⟩)) 2%nat 0%nat).
+    set (b11 := (U × (∣0⟩ ⊗ ∣1⟩)) 3%nat 0%nat).
+    set (a := (a00 * a11 - a01 * a10)%C).
+    set (b := (a00 * b11 + a11 * b00 - a01 * b10 - a10 * b01)%C).
+    set (c := (b00 * b11 - b01 * b10)%C).
+    admit.
+    (* set (quad := sqrt (b * b - 4 * a * c)%C).
+    set (p0 := (/ (2 * a)%C * (-b + quad))%C).
+    set (c0 := 1 / √ ((Cmod p0)^2 + 1)). *)
+}
+Admitted.
+
+Lemma vector2_inner_prod_decomp: forall (a b : Vector 2) (c : C), 
+WF_Matrix a -> WF_Matrix b -> 
+(⟨ a, b ⟩ = c <-> (a 0%nat 0%nat)^* * (b 0%nat 0%nat) + (a 1%nat 0%nat)^* * (b 1%nat 0%nat) = c).
+Proof.
+split.
+{
+    intros.
+    rewrite <- H1.
+    lca.
+}
+{
+    intros.
+    rewrite <- H1.
+    lca.
+}
+Qed.
+
+
+
+Lemma exists_orthogonal_qubit: forall (phi: Vector 2), 
+WF_Qubit phi -> exists (psi: Vector 2), (WF_Qubit psi /\ ⟨ phi , psi ⟩ = C0).
+Proof.
+intros.
+destruct H as [_ [WF_phi phi_unit]].
+set (psi := (fun x y =>
+    match (x,y) with
+    | (0,0) => -((phi 1%nat 0%nat)^*)
+    | (1,0) => (phi 0%nat 0%nat)^*
+    | _ => C0
+    end) : (Vector 2)).
+assert (WF_psi: WF_Matrix psi). 
+{
+    unfold WF_Matrix.
+    intros.
+    unfold psi. 
+    destruct H.
+    destruct x as [|x']. contradict H. lia.
+    destruct x' as [|x'']. contradict H. lia. reflexivity.
+    destruct x as [|x']. destruct y as [|y']. contradict H. lia. reflexivity.
+    destruct x' as [|x'']. destruct y as [|y']. contradict H. lia.
+    reflexivity. reflexivity.
+}
+exists psi.
+split.
+{
+    split.
+    exists 1%nat. trivial.
+    split. assumption.
+    {
+        rewrite vector2_inner_prod_decomp in *. 2,3,4,5: assumption.
+        unfold psi.
+        rewrite <- phi_unit.
+        lca.
+    }
+}
+{
+    rewrite vector2_inner_prod_decomp. 2,3: assumption.
+    unfold psi.
+    lca.
+}
+Qed.
+
+Lemma swapbc_sa: swapbc = (swapbc) †. Proof. lma'. 2: apply WF_adjoint. all: apply WF_swapbc. Qed.
+
+Lemma swapbc_decomp_l: forall (B : Square 8),
+WF_Matrix B -> 
+(swapbc × B) = (fun x y =>
+match x with
+| 0 | 3 | 4 | 7 => B x y
+| 1 => B 2%nat y
+| 2 => B 1%nat y
+| 5 => B 6%nat y
+| 6 => B 5%nat y
+| _ => C0
+end).
+Proof.
+intros.
+set (A := (fun x y =>
+match x with
+| 0 | 3 | 4 | 7 => B x y
+| 1 => B 2%nat y
+| 2 => B 1%nat y
+| 5 => B 6%nat y
+| 6 => B 5%nat y
+| _ => C0
+end) : (Square 8)).
+lma'.
+solve_WF_matrix.
+{
+    unfold WF_Matrix.
+    intros.
+    unfold A.
+    destruct H0.
+    destruct x as [|a]. contradict H0. lia.
+    destruct a as [|b]. contradict H0. lia.
+    destruct b as [|c]. contradict H0. lia.
+    destruct c as [|d]. contradict H0. lia.
+    destruct d as [|e]. contradict H0. lia.
+    destruct e as [|f]. contradict H0. lia.
+    destruct f as [|g]. contradict H0. lia.
+    destruct g as [|h]. contradict H0. lia. reflexivity.
+    destruct x as [|a]. apply H. lia.
+    destruct a as [|b]. apply H. lia.
+    destruct b as [|c]. apply H. lia.
+    destruct c as [|d]. apply H. lia.
+    destruct d as [|e]. apply H. lia.
+    destruct e as [|f]. apply H. lia.
+    destruct f as [|g]. apply H. lia.
+    destruct g as [|h]. apply H. lia. reflexivity.
+}
+Qed.
+
+Lemma swapbc_decomp_r: forall (B : Square 8),
+WF_Matrix B -> 
+(B × swapbc) = (fun x y =>
+match y with
+| 0 | 3 | 4 | 7 => B x y
+| 1 => B x 2%nat
+| 2 => B x 1%nat
+| 5 => B x 6%nat
+| 6 => B x 5%nat
+| _ => C0
+end).
+Proof.
+intros.
+set (A := (fun x y =>
+match y with
+| 0 | 3 | 4 | 7 => B x y
+| 1 => B x 2%nat
+| 2 => B x 1%nat
+| 5 => B x 6%nat
+| 6 => B x 5%nat
+| _ => C0
+end) : (Square 8)).
+lma'.
+solve_WF_matrix.
+{
+    unfold WF_Matrix.
+    intros.
+    unfold A.
+    destruct H0.
+    destruct y as [|a]. apply H. lia.
+    destruct a as [|b]. apply H. lia.
+    destruct b as [|c]. apply H. lia.
+    destruct c as [|d]. apply H. lia.
+    destruct d as [|e]. apply H. lia.
+    destruct e as [|f]. apply H. lia.
+    destruct f as [|g]. apply H. lia.
+    destruct g as [|h]. apply H. lia. reflexivity.
+    destruct y as [|a]. contradict H0. lia.
+    destruct a as [|b]. contradict H0. lia.
+    destruct b as [|c]. contradict H0. lia.
+    destruct c as [|d]. contradict H0. lia.
+    destruct d as [|e]. contradict H0. lia.
+    destruct e as [|f]. contradict H0. lia.
+    destruct f as [|g]. contradict H0. lia.
+    destruct g as [|h]. contradict H0. lia. reflexivity.
+}
+Qed.
+
+Lemma kron42_explicit_decomp: forall (A: Square 4) (B: Square 2), 
+WF_Matrix A -> WF_Matrix B -> 
+A ⊗ B = ((fun x y => (match (x,y) with 
+| (0,0) | (0,1) | (1,0) | (1,1) => (A 0 0)%nat
+| (2,0) | (2,1) | (3,0) | (3,1) => (A 1 0)%nat
+| (4,0) | (4,1) | (5,0) | (5,1) => (A 2 0)%nat
+| (6,0) | (6,1) | (7,0) | (7,1) => (A 3 0)%nat
+| (0,2) | (0,3) | (1,2) | (1,3) => (A 0 1)%nat
+| (2,2) | (2,3) | (3,2) | (3,3) => (A 1 1)%nat
+| (4,2) | (4,3) | (5,2) | (5,3) => (A 2 1)%nat
+| (6,2) | (6,3) | (7,2) | (7,3) => (A 3 1)%nat
+| (0,4) | (0,5) | (1,4) | (1,5) => (A 0 2)%nat
+| (2,4) | (2,5) | (3,4) | (3,5) => (A 1 2)%nat
+| (4,4) | (4,5) | (5,4) | (5,5) => (A 2 2)%nat
+| (6,4) | (6,5) | (7,4) | (7,5) => (A 3 2)%nat
+| (0,6) | (0,7) | (1,6) | (1,7) => (A 0 3)%nat
+| (2,6) | (2,7) | (3,6) | (3,7) => (A 1 3)%nat
+| (4,6) | (4,7) | (5,6) | (5,7) => (A 2 3)%nat
+| (6,6) | (6,7) | (7,6) | (7,7) => (A 3 3)%nat
+| _ => C0
+end
+)
+ * B (x mod 2) (y mod 2)) : Square 8).
+Proof.
+intros.
+lma'.
+unfold WF_Matrix.
+intros.
+destruct H1.
+destruct x as [|a]. contradict H1. lia.
+destruct a as [|b]. contradict H1. lia.
+destruct b as [|c]. contradict H1. lia.
+destruct c as [|d]. contradict H1. lia.
+destruct d as [|e]. contradict H1. lia.
+destruct e as [|f]. contradict H1. lia.
+destruct f as [|g]. contradict H1. lia.
+destruct g as [|h]. contradict H1. lia. apply Cmult_0_l.
+destruct x as [|a]. 
+destruct y as [|b]. contradict H1. lia.
+destruct b as [|c]. contradict H1. lia.
+destruct c as [|d]. contradict H1. lia.
+destruct d as [|e]. contradict H1. lia.
+destruct e as [|f]. contradict H1. lia.
+destruct f as [|g]. contradict H1. lia.
+destruct g as [|h]. contradict H1. lia.
+destruct h as [|i]. contradict H1. lia. apply Cmult_0_l.
+destruct a as [|x]. 
+destruct y as [|b]. contradict H1. lia.
+destruct b as [|c]. contradict H1. lia.
+destruct c as [|d]. contradict H1. lia.
+destruct d as [|e]. contradict H1. lia.
+destruct e as [|f]. contradict H1. lia.
+destruct f as [|g]. contradict H1. lia.
+destruct g as [|h]. contradict H1. lia.
+destruct h as [|i]. contradict H1. lia. apply Cmult_0_l.
+destruct x as [|a]. 
+destruct y as [|b]. contradict H1. lia.
+destruct b as [|c]. contradict H1. lia.
+destruct c as [|d]. contradict H1. lia.
+destruct d as [|e]. contradict H1. lia.
+destruct e as [|f]. contradict H1. lia.
+destruct f as [|g]. contradict H1. lia.
+destruct g as [|h]. contradict H1. lia.
+destruct h as [|i]. contradict H1. lia. apply Cmult_0_l.
+destruct a as [|x]. 
+destruct y as [|b]. contradict H1. lia.
+destruct b as [|c]. contradict H1. lia.
+destruct c as [|d]. contradict H1. lia.
+destruct d as [|e]. contradict H1. lia.
+destruct e as [|f]. contradict H1. lia.
+destruct f as [|g]. contradict H1. lia.
+destruct g as [|h]. contradict H1. lia.
+destruct h as [|i]. contradict H1. lia. apply Cmult_0_l.
+destruct x as [|a]. 
+destruct y as [|b]. contradict H1. lia.
+destruct b as [|c]. contradict H1. lia.
+destruct c as [|d]. contradict H1. lia.
+destruct d as [|e]. contradict H1. lia.
+destruct e as [|f]. contradict H1. lia.
+destruct f as [|g]. contradict H1. lia.
+destruct g as [|h]. contradict H1. lia.
+destruct h as [|i]. contradict H1. lia. apply Cmult_0_l.
+destruct a as [|x]. 
+destruct y as [|b]. contradict H1. lia.
+destruct b as [|c]. contradict H1. lia.
+destruct c as [|d]. contradict H1. lia.
+destruct d as [|e]. contradict H1. lia.
+destruct e as [|f]. contradict H1. lia.
+destruct f as [|g]. contradict H1. lia.
+destruct g as [|h]. contradict H1. lia.
+destruct h as [|i]. contradict H1. lia. apply Cmult_0_l.
+destruct x as [|a]. 
+destruct y as [|b]. contradict H1. lia.
+destruct b as [|c]. contradict H1. lia.
+destruct c as [|d]. contradict H1. lia.
+destruct d as [|e]. contradict H1. lia.
+destruct e as [|f]. contradict H1. lia.
+destruct f as [|g]. contradict H1. lia.
+destruct g as [|h]. contradict H1. lia.
+destruct h as [|i]. contradict H1. lia. apply Cmult_0_l.
+destruct a as [|x]. 
+destruct y as [|b]. contradict H1. lia.
+destruct b as [|c]. contradict H1. lia.
+destruct c as [|d]. contradict H1. lia.
+destruct d as [|e]. contradict H1. lia.
+destruct e as [|f]. contradict H1. lia.
+destruct f as [|g]. contradict H1. lia.
+destruct g as [|h]. contradict H1. lia.
+destruct h as [|i]. contradict H1. lia. apply Cmult_0_l.
+apply Cmult_0_l.
+Qed.
+
+Lemma Mmult44_explicit_decomp: forall (A B: Square 4), 
+WF_Matrix A -> WF_Matrix B -> 
+A × B = ((fun x y => 
+A x 0%nat * B 0%nat y + A x 1%nat * B 1%nat y
++ A x 2%nat * B 2%nat y + A x 3%nat * B 3%nat y) : Square 4).
+Proof.
+intros.
+lma'.
+unfold WF_Matrix.
+intros.
+destruct H1.
+repeat rewrite H. lca. 1,2,3,4: lia.
+repeat rewrite H0. lca. all: lia.
+Qed.
+
+Lemma partial_trace_ac_on_acgate: forall (U : Square 4) (a b c: Vector 2), 
+WF_Unitary U -> WF_Qubit a -> WF_Qubit b -> WF_Qubit c -> 
+partial_trace_2q_a (partial_trace_3q_c (acgate U × (a ⊗ b ⊗ c) × (a ⊗ b ⊗ c)† × (acgate U)†))
+= b × b†.
+Proof.
+intros U a b c U_unitary a_qubit b_qubit c_qubit.
+apply mat_equiv_eq.
+apply WF_partial_trace_2q_a.
+solve_WF_matrix.
+1,2: apply b_qubit.
+rewrite kron_adjoint. rewrite kron_adjoint.
+rewrite Mmult_assoc. rewrite Mmult_assoc.
+rewrite <- Mmult_assoc with (A:=a ⊗ b ⊗ c).
+assert (kron_mix_help: a ⊗ b ⊗ c × ((a) † ⊗ (b) † ⊗ (c) †) = (a × (a) †) ⊗ (b × (b) †) ⊗ (c × (c) †)). 
+{
+    rewrite kron_mixed_product with (A:= a ⊗ b) (B := c) (C:= (a) † ⊗ (b) †) (D:= (c) †).
+    rewrite kron_mixed_product.
+    reflexivity.
+}
+rewrite kron_mix_help at 1.
+clear kron_mix_help.
+unfold acgate.
+rewrite Mmult_adjoint.
+rewrite <- swapbc_sa at 1.
+rewrite Mmult_adjoint.
+rewrite <- swapbc_sa.
+repeat rewrite Mmult_assoc.
+rewrite <- Mmult_assoc with (A:= a × (a) † ⊗ (b × (b) †) ⊗ (c × (c) †)).
+rewrite <- Mmult_assoc with (B := a × (a) † ⊗ (b × (b) †) ⊗ (c × (c) †) × swapbc).
+rewrite <- Mmult_assoc with (B := a × (a) † ⊗ (b × (b) †) ⊗ (c × (c) †)).
+rewrite swapbc_3gate. 2,3,4: solve_WF_matrix. 2,3: apply a_qubit. 2,3: apply b_qubit. 2,3: apply c_qubit.
+unfold abgate.
+rewrite <- Mmult_assoc with (B := a × (a) † ⊗ (c × (c) †) ⊗ (b × (b) †)).
+assert (kron_mix_help: U ⊗ I 2 × (a × (a) † ⊗ (c × (c) †) ⊗ (b × (b) †)) =
+ (U × (a × (a) † ⊗ (c × (c) †))) ⊗ (b × (b) †) ).
+{
+    rewrite <- Mmult_1_l with (A:= (b × (b) †)) at 2.
+    apply kron_mixed_product.
+    solve_WF_matrix.
+    all: apply b_qubit.
+}
+rewrite kron_mix_help at 1.
+clear kron_mix_help.
+rewrite <- Mmult_assoc with (C := swapbc).
+assert (kron_adj_helper: (U ⊗ I 2) † = U† ⊗ I 2). lma'. 1,2: solve_WF_matrix. 1,2: apply U_unitary.
+rewrite kron_adj_helper at 1.
+clear kron_adj_helper. 
+assert (kron_mix_help: U × (a × (a) † ⊗ (c × (c) †)) ⊗ (b × (b) †) × ((U) † ⊗ I 2) = 
+(U × (a × (a) † ⊗ (c × (c) †)) × (U) †) ⊗ (b × (b) †)).
+{
+    rewrite <- Mmult_1_r with (A:= (b × (b) †)) at 2.
+    apply kron_mixed_product.
+    solve_WF_matrix.
+    all: apply b_qubit.
+}
+rewrite kron_mix_help at 1.
+assert (WF_helper1: WF_Matrix (U × (a × (a) † ⊗ (c × (c) †)) × (U) † ⊗ (b × (b) †) × swapbc)).
+{
+    apply WF_mult.
+    apply WF_kron. reflexivity. reflexivity.
+    apply WF_mult.
+    apply WF_mult.
+    all: solve_WF_matrix.
+    1,6: apply U_unitary.
+    1,2: apply a_qubit.
+    1,2: apply c_qubit.
+    1,2: apply b_qubit.
+}
+assert (WF_helper2: WF_Matrix (U × (a × (a) † ⊗ (c × (c) †)) × (U) † ⊗ (b × (b) †))).
+{
+    apply WF_kron. reflexivity. reflexivity.
+    apply WF_mult.
+    apply WF_mult.
+    all: solve_WF_matrix.
+    1,6: apply U_unitary.
+    1,2: apply a_qubit.
+    1,2: apply c_qubit.
+    1,2: apply b_qubit.  
+}
+assert (WF_helper3: WF_Matrix (U × (a × (a) † ⊗ (c × (c) †)) × (U) †)).
+{
+    apply WF_mult.
+    apply WF_mult.
+    all: solve_WF_matrix.
+    1,6: apply U_unitary.
+    1,2: apply a_qubit.
+    1,2: apply c_qubit.  
+}
+assert (WF_helper4: WF_Matrix ((b × (b) †))).
+{
+    solve_WF_matrix.
+    all: apply b_qubit.
+}
+assert (WF_helper5: WF_Matrix (U × (a × (a) † ⊗ (c × (c) †)))).
+{
+    solve_WF_matrix.
+    apply U_unitary.
+    1,2: apply a_qubit.
+    all: apply c_qubit.
+}
+assert (WF_helper6: WF_Matrix (U) †).
+{
+    apply WF_adjoint.
+    apply U_unitary.
+}
+by_cell.
+all: unfold partial_trace_2q_a, partial_trace_3q_c.
+all: rewrite swapbc_decomp_l. 
+2,4,6,8: assumption.
+all: rewrite swapbc_decomp_r.
+2,4,6,8: assumption.
+all: rewrite kron42_explicit_decomp.
+2,3,5,6,8,9,11,12: assumption.
+all: simpl.
+all: rewrite Mmult44_explicit_decomp.
+2,3,5,6,8,9,11,12: assumption.
+all: repeat rewrite <- Cmult_plus_distr_r.
+all: rewrite Mmult44_explicit_decomp.
+Admitted.
+
+
+Lemma a22: forall (U: Square 4) (a b g psi : Vector 2) (phi : Vector 4), 
+WF_Unitary U -> WF_Qubit a -> WF_Qubit b -> WF_Qubit g -> WF_Qubit psi -> WF_Qubit phi -> 
+(acgate U) × (a ⊗ b ⊗ g) = psi ⊗ phi -> 
+exists (w : Vector 2), phi = b ⊗ w.
+Proof.
+intros U a b g psi phi U_unitary a_qubit b_qubit g_qubit psi_qubit phi_qubit acU_app.
+Admitted.
