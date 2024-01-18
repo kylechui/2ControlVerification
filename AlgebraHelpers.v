@@ -176,9 +176,8 @@ split.
 }
 Qed.
 
-Lemma C_l_cancel: forall (a b c: C), 
-a + b = a + c -> b = c.
-(* Thanks Kyle *)
+Lemma Cplus_cancel_l: forall (a b c: C),
+  a + b = a + c -> b = c.
 Proof.
   intros.
   rewrite <- (Cplus_0_l b).
@@ -188,26 +187,15 @@ Proof.
   lca.
 Qed.
 
-Lemma neq_implies_const_div_neq: forall (i j m: nat), (m <> 0)%nat -> (i <> j)%nat -> (i / m <> j / m)%nat \/ (i mod m <> j mod m)%nat.
-(* Thanks Kyle *)
+Lemma Cplus_cancel_r: forall (a b c: C),
+  a + c = b + c -> a = b.
 Proof.
   intros.
-  assert (H1 : ({i mod m = j mod m} + {i mod m <> j mod m})%nat).
-  {
-    intros.
-    apply Nat.eq_dec.
-  }
-  destruct H1.
-  - left.
-    intro.
-    apply H0.
-    rewrite Nat.div_mod with (x := i) (y := m). 2: assumption.
-    rewrite Nat.div_mod with (x := j) (y := m). 2: assumption.
-    rewrite e.
-    rewrite H1.
-    reflexivity.
-  - right.
-    assumption.
+  rewrite <- (Cplus_0_r a).
+  rewrite <- (Cplus_opp_r c).
+  rewrite Cplus_assoc.
+  rewrite H.
+  lca.
 Qed.
 
 Lemma addition_equivalence: forall (a b c: C), 
@@ -282,3 +270,9 @@ destruct H0 as [H0 _].
 apply H.
 trivial.
 Qed.
+
+Definition Csqrt (x : C) : C :=
+  let norm := Cmod x in
+  match x with
+  | (a, b) => (sqrt ((norm + a) / 2), sqrt ((norm - a) / 2))
+  end.

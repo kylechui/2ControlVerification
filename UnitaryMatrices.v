@@ -439,7 +439,7 @@ assert (tr_sum: trace (P00 × P00†) = trace (P00 × P00†) + trace(P10 † ×
 clear tr_inner_sum.
 assert (tr_0: trace (P10† × P10) = 0).
 {
-    apply C_l_cancel with (a:=trace (P00 × (P00) †)).
+    apply Cplus_cancel_l with (a:=trace (P00 × (P00) †)).
     symmetry.
     rewrite Cplus_0_r.
     apply tr_sum.

@@ -11,12 +11,6 @@ Require Import QuantumLib.Matrix.
   exists (P Q : Square 2),
     WF_Unitary P -> WF_Unitary Q -> *)
 
-Definition Csqrt (x : C) : C :=
-  let norm := Cmod x in
-  match x with
-  | (a, b) => (sqrt ((norm + a) / 2), sqrt ((norm - a) / 2))
-  end.
-
 Definition get_eigenvalues (A : Square 2) : list C :=
   let a := A 0%nat 0%nat in
   let b := A 0%nat 1%nat in
