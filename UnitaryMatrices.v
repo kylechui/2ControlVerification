@@ -322,6 +322,15 @@ lma'.
 apply WF_partial_trace_2q_a.
 Qed.
 
+Lemma a7_2q_b : forall (P : Square 2) (Q: Square 2),
+    WF_Matrix P ->
+    partial_trace_2q_b (P ⊗ Q) = (trace Q) .* P.
+Proof.
+intros.
+lma'.
+apply WF_partial_trace_2q_b.
+Qed.
+
 Lemma a7_3q_a : forall (A B C: Square 2),
     WF_Matrix B -> WF_Matrix C ->
     partial_trace_3q_a (A ⊗ B ⊗ C) = (trace A) .* (B ⊗ C).
