@@ -242,32 +242,54 @@ Proof.
     reflexivity.
 Qed.
 
+Lemma nonzero_qubit0: ∣0⟩ <> Zero.
+Proof.
+  intro.
+  apply f_equal with (f := fun f => f 0%nat 0%nat) in H.
+  contradict H.
+  exact C1_neq_C0.
+Qed.
+
+Lemma nonzero_qubit1: ∣1⟩ <> Zero.
+Proof.
+  intro.
+  apply f_equal with (f := fun f => f 1%nat 0%nat) in H.
+  contradict H.
+  exact C1_neq_C0.
+Qed.
+
 Lemma kron_0_cancel_l: forall {m n} (B C : Matrix m n),
   WF_Matrix B -> WF_Matrix C -> ∣0⟩ ⊗ B = ∣0⟩ ⊗ C -> B = C.
 Proof.
-  assert (qubit0_neq_Zero : ∣0⟩ <> Zero).
-  {
-    intro.
-    apply f_equal with (f := fun f => f 0%nat 0%nat) in H.
-    contradict H.
-    exact C1_neq_C0.
-  }
   intros.
-  apply (@kron_cancel_l m n) with (A := ∣0⟩); auto.
+  apply (@kron_cancel_l 2 1) with (A := ∣0⟩); auto.
+  exact nonzero_qubit0.
 Qed.
 
 Lemma kron_1_cancel_l: forall {m n} (B C : Matrix m n),
   WF_Matrix B -> WF_Matrix C -> ∣1⟩ ⊗ B = ∣1⟩ ⊗ C -> B = C.
 Proof.
-  assert (qubit1_neq_Zero : ∣1⟩ <> Zero).
-  {
-    intro.
-    apply f_equal with (f := fun f => f 1%nat 0%nat) in H.
-    contradict H.
-    exact C1_neq_C0.
-  }
   intros.
-  apply (@kron_cancel_l m n) with (A := ∣1⟩); auto.
+  apply (@kron_cancel_l 2 1) with (A := ∣1⟩); auto.
+  exact nonzero_qubit1.
+Qed.
+
+Lemma kron_0_cancel_r: forall {m n} (A B : Matrix m n),
+  WF_Matrix A -> WF_Matrix B -> A ⊗ ∣0⟩ = B ⊗ ∣0⟩ -> A = B.
+Proof.
+  intros.
+  apply (@kron_cancel_r _ _ 2 1) with (C := ∣0⟩); auto.
+  exact WF_qubit0.
+  exact nonzero_qubit0.
+Qed.
+
+Lemma kron_1_cancel_r: forall {m n} (A B : Matrix m n),
+  WF_Matrix A -> WF_Matrix B -> A ⊗ ∣1⟩ = B ⊗ ∣1⟩ -> A = B.
+Proof.
+  intros.
+  apply (@kron_cancel_r _ _ 2 1) with (C := ∣1⟩); auto.
+  exact WF_qubit1.
+  exact nonzero_qubit1.
 Qed.
 
 Lemma WF_ket0bra1: WF_Matrix ∣0⟩⟨1∣.
@@ -679,21 +701,6 @@ Lemma adjoint00: (∣0⟩⟨0∣) † = ∣0⟩⟨0∣. Proof. lma'. Qed.
 Lemma adjoint01: (∣0⟩⟨1∣) † = ∣1⟩⟨0∣. Proof. lma'. Qed.
 Lemma adjoint10: (∣1⟩⟨0∣) † = ∣0⟩⟨1∣. Proof. lma'. Qed.
 Lemma adjoint11: (∣1⟩⟨1∣) † = ∣1⟩⟨1∣. Proof. lma'. Qed.
-
-(* Very specific lemma for now *)
-Lemma kron_0_cancel_r: forall (a b: Vector 2),
-WF_Matrix a -> WF_Matrix b -> 
-a ⊗ ∣0⟩ = b ⊗ ∣0⟩ -> a = b.
-Proof.
-intros.
-lma'.
-assert (a00_val: a 0%nat 0%nat = (a ⊗ ∣0⟩) 0%nat 0%nat). lca.
-assert (b00_val: b 0%nat 0%nat = (b ⊗ ∣0⟩) 0%nat 0%nat). lca.
-rewrite a00_val. rewrite H1. rewrite <- b00_val. reflexivity.
-assert (a10_val: a 1%nat 0%nat = (a ⊗ ∣0⟩) 2%nat 0%nat). lca.
-assert (b10_val: b 1%nat 0%nat = (b ⊗ ∣0⟩) 2%nat 0%nat). lca.
-rewrite a10_val. rewrite H1. rewrite <- b10_val. reflexivity.
-Qed.
 
 Lemma Mplus_opp_0_r {m n}: forall (A: Matrix m n), 
 WF_Matrix A -> A .+ Mopp (A) = Zero.
