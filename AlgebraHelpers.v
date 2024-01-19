@@ -62,38 +62,17 @@ split.
 Qed.
 
 
-Lemma squared_norm_eq_0_implies_0: forall (a: C),
-a^* * a = 0 -> a = 0.
+Lemma squared_norm_eq_0_implies_0 : forall (a : C),
+a^* * a = C0 -> a = C0.
 Proof.
-intros.
-apply c_proj_eq.
-unfold Cconj in *; unfold Cmult in *.
-simpl in *.
-{
-    apply Rsqr_0_uniq.
-    assert (((fst a * fst a - - snd a * snd a)%R = 0 -> (fst a * fst a)%R = 0)).
-    {
-        rewrite <- Ropp_mult_distr_l.
-        unfold Rminus. rewrite Ropp_involutive.
-        apply Rplus_eq_0_l. apply Rle_0_sqr. apply Rle_0_sqr.
-    }
-    apply H0.
-    inversion H.
-    reflexivity.   
-}
-{
-    apply Rsqr_0_uniq. 
-    assert (((fst a * fst a - - snd a * snd a)%R = 0 -> (snd a * snd a)%R = 0)).
-    {
-        rewrite <- Ropp_mult_distr_l.
-        unfold Rminus. rewrite Ropp_involutive.
-        rewrite Rplus_comm.
-        apply Rplus_eq_0_l. apply Rle_0_sqr. apply Rle_0_sqr.
-    }
-    apply H0.
-    inversion H.
-    reflexivity. 
-}
+  intro a.
+  rewrite <- Cmod_sqr.
+  unfold Cpow; rewrite Cmult_1_r.
+  intro H.
+  apply Cmod_eq_0, RtoC_inj.
+  apply Cmult_integral in H; destruct H.
+  - assumption.
+  - assumption.
 Qed.
 
 Lemma sum_of_adjoints_re_nonneg: forall (b c d: C),
@@ -277,7 +256,7 @@ Definition Csqrt (x : C) : C :=
   let norm := Cmod x in
   let a := fst x in
   let b := snd x in
-    (sqrt ((norm + a) / 2), Rabs b / b * sqrt ((norm - a) / 2))%R.
+    (√ ((norm + a) / 2), Rabs b / b * √ ((norm - a) / 2))%R.
 
 Lemma Csqrt_sqrt : forall (x : C),
   snd x <> 0 -> Csqrt x * Csqrt x = x.
