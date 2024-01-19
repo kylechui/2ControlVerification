@@ -202,17 +202,6 @@ rewrite H.
 lca.
 Qed.
 
-Lemma Ceq_implies_el_eq: forall (a b : C), 
-a = b -> fst a = fst b /\ snd a = snd b.
-Proof.
-intros.
-split.
-rewrite H.
-reflexivity.
-rewrite H.
-reflexivity.
-Qed.
-
 Lemma Cmult_0_implies_zero: forall (a b : C), 
 a * b = 0 -> a = 0 \/ b = 0.
 Proof.
@@ -244,7 +233,7 @@ Proof.
 intros. 
 unfold RtoC.
 intro.
-apply Ceq_implies_el_eq in H0.
+apply complex_split in H0.
 destruct H0 as [H0 _].
 apply H.
 trivial.
