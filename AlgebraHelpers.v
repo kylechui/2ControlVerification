@@ -192,33 +192,13 @@ Qed.
 Lemma opp_equivalence: forall (a b: C), 
 a = b <-> -a = -b.
 Proof.
-split.
-intros.
-rewrite H. reflexivity.
-intros.
-rewrite <- Cplus_0_l.
-rewrite <- (Cplus_opp_l a).
-rewrite H.
-lca.
-Qed.
-
-Lemma Cmult_0_implies_zero: forall (a b : C), 
-a * b = 0 -> a = 0 \/ b = 0.
-Proof.
-intros.
-destruct (Ceq_dec a 0).
-{
-    left. assumption.
-}
-{
-    right.
-    apply (f_equal (fun f => /a * f)) in H.
-    rewrite Cmult_0_r in H.
-    rewrite Cmult_assoc in H.
-    rewrite Cinv_l in H. 2: assumption.
-    rewrite Cmult_1_l in H.
-    assumption.
-}
+  split.
+  - intros.
+    rewrite H; reflexivity.
+  - intros.
+    apply f_equal with (f := fun x => -x) in H.
+    repeat rewrite Copp_involutive in H.
+    exact H.
 Qed.
 
 (* can't find anything that does this *)

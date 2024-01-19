@@ -726,7 +726,7 @@ rewrite nonzero_def in H0.
 destruct H0 as [x [y Aij_neq_0]].
 rewrite zero_def in H1.
 specialize (H1 x y).
-apply Cmult_0_implies_zero in H1.
+apply Cmult_integral in H1.
 destruct H1.
 assumption.
 contradict H0.
