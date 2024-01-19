@@ -743,7 +743,6 @@ simpl.
 destruct (0 <? n) eqn:Hlt.
 apply C1_neq_C0.
 apply Nat.ltb_ge in Hlt.
-apply Natgt_lt in H.
 contradict H.
 apply Nat.le_ngt.
 assumption.

@@ -201,12 +201,6 @@ Proof.
     exact H.
 Qed.
 
-(* can't find anything that does this *)
-Lemma Natgt_lt: forall (x y : nat), (x > y)%nat -> (y < x)%nat.
-Proof.
-auto.
-Qed.
-
 Lemma rtoc_neq_decomp: forall (r: R), 
 (r <> 0)%R -> RtoC r <> C0.
 Proof.
