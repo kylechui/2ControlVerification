@@ -325,3 +325,11 @@ Proof.
     destruct x; simpl; reflexivity.
     lra.
 Qed.
+
+Lemma Cmult_const_r: forall (a b c : C), 
+a = b -> a * c = b * c.
+Proof. 
+intros. 
+rewrite H. 
+reflexivity.
+Qed.
