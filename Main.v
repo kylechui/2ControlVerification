@@ -11,7 +11,7 @@ Require Import QuantumLib.Matrix.
   exists (P Q : Square 2),
     WF_Unitary P -> WF_Unitary Q -> *)
 
-Definition get_eigenvalues (A : Square 2) : list C :=
+(* Definition get_eigenvalues (A : Square 2) : list C :=
   let a := A 0%nat 0%nat in
   let b := A 0%nat 1%nat in
   let c := A 1%nat 0%nat in
@@ -32,7 +32,7 @@ Proof.
   destruct In_lambda as [lambda1 | lambda2].
   - exists (∣0⟩).
     unfold Eigenpair.
-Admitted.
+Admitted. *)
 
 Lemma m4_1 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
@@ -332,13 +332,11 @@ Proof.
           exact WF_beta.
         }
         2: {
-          intro absurd.
-          apply (f_equal (fun f => f 3%nat 0%nat)) in absurd.
-          unfold qubit1, Mmult, Zero in absurd.
-          revert absurd; compute; intro absurd.
-          replace ((R1 * R1 + - (R0 * R0))%R, (R1 * R0 + R0 * R1)%R) with C1 in absurd by lca.
-          contradict absurd.
-          apply C1_neq_C0.
+          apply nonzero_kron.
+          exact WF_qubit1.
+          exact WF_qubit1.
+          exact nonzero_qubit1.
+          exact nonzero_qubit1.
         }
         assert (u0_is_1 : u0 = C1).
         {

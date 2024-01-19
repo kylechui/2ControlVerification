@@ -98,6 +98,26 @@ Proof.
   }
 Qed.
 
+Lemma row_out_of_bounds: forall {m n} (A : Matrix m n) (i : nat),
+  WF_Matrix A -> (i >= m)%nat -> forall (j : nat), A i j = C0.
+Proof.
+  intros m n A i WF_A row_oob j.
+  unfold WF_Matrix in WF_A.
+  apply WF_A.
+  left.
+  assumption.
+Qed.
+
+Lemma col_out_of_bounds: forall {m n} (A : Matrix m n) (j : nat),
+  WF_Matrix A -> (j >= n)%nat -> forall (i : nat), A i j = C0.
+Proof.
+  intros m n A j WF_A col_oob i.
+  unfold WF_Matrix in WF_A.
+  apply WF_A.
+  right.
+  assumption.
+Qed.
+
 Lemma zero_def: forall {m n} (A : Matrix n m), A = Zero <-> forall (i j : nat), A i j = C0.
 Proof.
   split.
@@ -139,24 +159,44 @@ Proof.
     reflexivity.
 Qed.
 
-Lemma row_out_of_bounds: forall {m n} (A : Matrix m n) (i : nat),
-  WF_Matrix A -> (i >= m)%nat -> forall (j : nat), A i j = C0.
+Lemma nonzero_kron: forall {m n o p} (A : Matrix m n) (B : Matrix o p),
+  WF_Matrix A -> WF_Matrix B -> A <> Zero -> B <> Zero -> A ⊗ B <> Zero.
 Proof.
-  intros m n A i WF_A row_oob j.
-  unfold WF_Matrix in WF_A.
-  apply WF_A.
-  left.
-  assumption.
-Qed.
-
-Lemma col_out_of_bounds: forall {m n} (A : Matrix m n) (j : nat),
-  WF_Matrix A -> (j >= n)%nat -> forall (i : nat), A i j = C0.
-Proof.
-  intros m n A j WF_A col_oob i.
-  unfold WF_Matrix in WF_A.
-  apply WF_A.
-  right.
-  assumption.
+  intros.
+  rewrite nonzero_def in H1, H2.
+  destruct H1 as [i [j A_nonzero]].
+  destruct H2 as [k [l B_nonzero]].
+  rewrite nonzero_def.
+  exists (i * o + k)%nat.
+  exists (j * p + l)%nat.
+  unfold kron.
+  destruct (k <? o) eqn:L1.
+  {
+    apply Nat.ltb_lt in L1.
+    destruct (l <? p) eqn:L2.
+    apply Nat.ltb_lt in L2.
+    - repeat rewrite Nat.div_add_l by lia.
+      repeat rewrite Nat.div_small; auto.
+      rewrite Nat.add_mod with (n := o) by lia.
+      rewrite Nat.add_mod with (n := p) by lia.
+      repeat rewrite Nat.mod_mul by lia.
+      repeat rewrite Nat.mod_small; auto.
+      repeat rewrite Nat.add_0_l.
+      repeat rewrite Nat.add_0_r.
+      intro absurd.
+      apply Cmult_integral in absurd.
+      destruct absurd.
+      + contradiction.
+      + contradiction.
+    - apply Nat.ltb_ge in L2.
+      pose proof (col_out_of_bounds B l H0 L2 k) as b_zero.
+      contradiction.
+  }
+  {
+    apply Nat.ltb_ge in L1.
+    pose proof (row_out_of_bounds B k H0 L1 l) as b_zero.
+    contradiction.
+  }
 Qed.
 
 Lemma kron_cancel_l: forall {m n o p} (A : Matrix m n) (B C : Matrix o p),
