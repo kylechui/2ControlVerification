@@ -12,7 +12,7 @@ Require Import QuantumLib.Matrix.
   exists (P Q : Square 2),
     WF_Unitary P -> WF_Unitary Q -> *)
 
-Definition get_eigenvalues (A : Square 2) : (Vector 2 * C) * (Vector 2 * C) :=
+Definition get_eigenpairs (A : Square 2) : (Vector 2 * C) * (Vector 2 * C) :=
   let a := A 0%nat 0%nat in
   let b := A 0%nat 1%nat in
   let c := A 1%nat 0%nat in
@@ -32,15 +32,9 @@ Definition get_eigenvalues (A : Square 2) : (Vector 2 * C) * (Vector 2 * C) :=
                        end in
   ((v1, lambda1), (v2, lambda2)).
 
-Lemma bruh : WF_Matrix qubit0.
-Proof.
-  unfold qubit0.
-  show_wf.
-Qed.
-
-Lemma eigenvalues_are_eigenvalues : forall (A : Square 2),
+Lemma eigenpairs_are_eigenpairs : forall (A : Square 2),
   WF_Matrix A ->
-    let (eigenpair1, eigenpair2) := get_eigenvalues A in
+    let (eigenpair1, eigenpair2) := get_eigenpairs A in
     Eigenpair A eigenpair1 /\ Eigenpair A eigenpair2.
 Proof.
   intros A WF_A.
