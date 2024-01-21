@@ -420,6 +420,283 @@ Definition Entangled (u : Vector 4) := not (TensorProd u).
 
 Definition linearly_independent_2vec {n} (v1 v2 : Vector n) := 
   forall (c1 c2 : C), c1 .* v1 .+ c2 .* v2 = Zero -> c1 = 0 /\ c2=0.
+Definition linearly_dependent_2vec {n} (v1 v2 : Vector n) :=
+  not (linearly_independent_2vec v1 v2).
+
+Lemma implication_decomp: forall (P Q: Prop),
+(P -> Q) <-> ((not P) \/ Q).
+Proof.
+split.
+{
+  intros.
+  destruct (Coq.Logic.Classical_Prop.classic P).
+  apply H in H0.
+  right.
+  assumption.
+  left.
+  assumption.
+}
+{
+  intros.
+  destruct H.
+  contradict H.
+  assumption.
+  assumption. 
+}
+Qed.
+
+Lemma Mscale_access {m n}: forall (a : C) (B : Matrix m n) (i j : nat), 
+a * (B i j) = (a .* B) i j.
+Proof.
+intros.
+lca.
+Qed.
+
+Lemma Cmult_neq_zero: forall (a b: C), 
+a <> 0 -> b <> 0 -> a * b <> 0.
+Proof.
+intros.
+unfold not.
+intros.
+apply H.
+apply (f_equal (fun f => f * /b)) in H1.
+rewrite Cmult_0_l in H1.
+rewrite <- Cmult_assoc in H1.
+rewrite Cinv_r in H1. 2: assumption.
+rewrite Cmult_1_r in H1.
+assumption.
+Qed.
+
+Lemma Mscale_neq_zero {m n}: forall (c: C) (A : Matrix m n), 
+c <> 0 -> A <> Zero -> c .* A <> Zero.
+Proof.
+intros.
+rewrite nonzero_def in *.
+destruct H0. destruct H0.
+exists x, x0.
+rewrite <- Mscale_access.
+apply Cmult_neq_zero.
+all: assumption.
+Qed.
+
+Lemma Mplus_neq_zero {m n}: forall (A B: Matrix m n), 
+A <> Zero -> A .+ B = Zero -> B <> Zero.
+Proof.
+intros.
+unfold not.
+intros.
+apply H.
+rewrite H1 in H0.
+rewrite Mplus_0_r in H0.
+assumption.
+Qed.
+
+Lemma Mscale_neq_zero_implies_all_nonzero {m n}: forall (c: C) (A : Matrix m n),
+c .* A <> Zero -> (c <> 0 /\ A <> Zero).
+Proof.
+intros.
+split.
+{
+  unfold not. 
+  intros.
+  apply H.
+  rewrite H0.
+  rewrite Mscale_0_l.
+  reflexivity.
+}
+{
+  unfold not. 
+  intro.
+  apply H.
+  rewrite H0.
+  rewrite Mscale_0_r.
+  reflexivity.
+}
+Qed.
+
+Lemma Mplus_opp_0_r {m n}: forall (A: Matrix m n), 
+WF_Matrix A -> A .+ Mopp (A) = Zero.
+intros.
+lma'.
+solve_WF_matrix.
+Qed.
+
+Lemma Mplus_opp_0_l {m n}: forall (A: Matrix m n), 
+WF_Matrix A -> Mopp (A) .+ A = Zero.
+intros.
+rewrite Mplus_comm.
+apply Mplus_opp_0_r.
+assumption.
+Qed.
+
+Lemma neq_equiv_oppneq: forall (a b : C), 
+a <> b <-> -a <> -b.
+Proof.
+intros.
+split.
+{
+  intros.
+  unfold not.
+  intros.
+  apply H.
+  rewrite <- Copp_involutive.
+  rewrite <- H0.
+  rewrite Copp_involutive.
+  reflexivity.
+}
+{
+  intros.
+  unfold not. 
+  intros. 
+  apply H.
+  rewrite H0.
+  reflexivity.
+}
+Qed.
+
+Lemma lin_dep_def_alt {n}: forall (v1 v2: Vector n),
+WF_Matrix v1 ->  WF_Matrix v2 -> 
+linearly_dependent_2vec v1 v2 <-> 
+v1 = Zero \/ exists (c: C), c .* v1 = v2.
+Proof.
+intros v1 v2 WF_v1 WF_v2.
+split.
+{
+ intros.
+ destruct (vec_equiv_dec v1 Zero).
+ left.
+ apply mat_equiv_eq. 1,2: solve_WF_matrix. assumption. 
+ right.
+ assert (v1 <> Zero).
+ {
+  unfold not.
+  intros.
+  apply n0.
+  rewrite H0.
+  apply mat_equiv_refl.
+ }
+ clear n0.
+ unfold linearly_dependent_2vec in H.
+ unfold linearly_independent_2vec in H.
+ apply Coq.Logic.Classical_Pred_Type.not_all_ex_not in H.
+ destruct H as [c1 nfa].
+ apply Coq.Logic.Classical_Pred_Type.not_all_ex_not in nfa.
+ destruct nfa as [c2 nimpl].
+ rewrite implication_decomp in nimpl.
+ apply Coq.Logic.Classical_Prop.not_or_and in nimpl.
+ destruct nimpl as [comb_zero const_zero].
+ apply Coq.Logic.Classical_Prop.NNPP in comb_zero.
+ apply Coq.Logic.Classical_Prop.not_and_or in const_zero.
+ destruct const_zero.
+ {
+    assert (c1v1_n0 := Mscale_neq_zero c1 v1 H H0).
+    assert (c2v2_n0 := Mplus_neq_zero (c1 .* v1) (c2 .* v2) c1v1_n0 comb_zero).
+    assert (c2andv2_n0 := Mscale_neq_zero_implies_all_nonzero c2 v2 c2v2_n0).
+    destruct c2andv2_n0 as [c2_n0 v2_n0].
+    apply (f_equal (fun f => f .+ Mopp (c2 .* v2))) in comb_zero.
+    rewrite Mplus_0_l in comb_zero.
+    rewrite Mplus_assoc in comb_zero.
+    rewrite Mplus_opp_0_r in comb_zero. 2: solve_WF_matrix.
+    rewrite Mplus_0_r in comb_zero.
+    unfold Mopp in comb_zero.
+    rewrite Mscale_assoc in comb_zero.
+    apply (f_equal (fun f => (/ (- C1 * c2)) .* f)) in comb_zero.
+    do 2 rewrite Mscale_assoc in comb_zero.
+    rewrite Cinv_l in comb_zero.
+    rewrite Mscale_1_l in comb_zero.
+    exists (/ (- C1 * c2) * c1).
+    assumption.
+    apply Cmult_neq_zero. 2: assumption.
+    unfold not.
+    intro.
+    apply complex_split in H1.
+    destruct H1.
+    contradict H1.
+    simpl.
+    lra.
+  }
+  {
+    apply (f_equal (fun f => f .+ Mopp (c2 .* v2))) in comb_zero.
+    rewrite Mplus_0_l in comb_zero.
+    rewrite Mplus_assoc in comb_zero.
+    rewrite Mplus_opp_0_r in comb_zero. 2: solve_WF_matrix.
+    rewrite Mplus_0_r in comb_zero.
+    unfold Mopp in comb_zero.
+    rewrite Mscale_assoc in comb_zero.
+    apply (f_equal (fun f => (/ (- C1 * c2)) .* f)) in comb_zero.
+    do 2 rewrite Mscale_assoc in comb_zero.
+    rewrite Cinv_l in comb_zero.
+    rewrite Mscale_1_l in comb_zero.
+    exists (/ (- C1 * c2) * c1).
+    assumption.
+    apply Cmult_neq_zero. 2: assumption.
+    unfold not.
+    intro.
+    apply complex_split in H1.
+    destruct H1.
+    contradict H1.
+    simpl.
+    lra.
+  }
+}
+{
+  intros.
+  unfold linearly_dependent_2vec, linearly_independent_2vec.
+  destruct H.
+  {
+    apply Coq.Logic.Classical_Pred_Type.ex_not_not_all.
+    exists 1.
+    apply Coq.Logic.Classical_Pred_Type.ex_not_not_all.
+    exists 0.
+    rewrite implication_decomp.
+    apply Coq.Logic.Classical_Prop.and_not_or.
+    split.
+    {
+      unfold not.
+      intros.
+      apply H0.
+      rewrite H.
+      rewrite Mscale_0_r.
+      rewrite Mscale_0_l.
+      rewrite Mplus_0_l.
+      reflexivity.
+    }
+    {
+      apply Coq.Logic.Classical_Prop.or_not_and.
+      left.
+      apply C1_neq_C0.
+    }
+  }
+  {
+    destruct H.
+    apply Coq.Logic.Classical_Pred_Type.ex_not_not_all.
+    exists x.
+    apply Coq.Logic.Classical_Pred_Type.ex_not_not_all.
+    exists (-C1).
+    rewrite implication_decomp.
+    apply Coq.Logic.Classical_Prop.and_not_or.
+    split.
+    {
+      unfold not.
+      intros.
+      apply H0.
+      rewrite H.
+      rewrite <- Mscale_1_l with (A:= v2) at 1.
+      rewrite <- Mscale_plus_distr_l.
+      replace (C1 + -C1) with (C0) by lca.
+      rewrite Mscale_0_l.
+      reflexivity.
+    }
+    {
+      apply Coq.Logic.Classical_Prop.or_not_and.
+      right.
+      rewrite <- Copp_0.
+      rewrite <- neq_equiv_oppneq.
+      apply C1_neq_C0.
+    }
+  }
+}
+Qed.
 
 Lemma lin_indep_comm_2vec {n}:
 forall (v1 v2 : Vector n), 
@@ -695,21 +972,6 @@ assert (b10_val: b 1%nat 0%nat = (b ⊗ ∣0⟩) 2%nat 0%nat). lca.
 rewrite a10_val. rewrite H1. rewrite <- b10_val. reflexivity.
 Qed.
 
-Lemma Mplus_opp_0_r {m n}: forall (A: Matrix m n), 
-WF_Matrix A -> A .+ Mopp (A) = Zero.
-intros.
-lma'.
-solve_WF_matrix.
-Qed.
-
-Lemma Mplus_opp_0_l {m n}: forall (A: Matrix m n), 
-WF_Matrix A -> Mopp (A) .+ A = Zero.
-intros.
-rewrite Mplus_comm.
-apply Mplus_opp_0_r.
-assumption.
-Qed.
-
 Lemma kron_opp_distr_l {m n o p}: forall (A: Matrix m n) (B: Matrix o p), 
 WF_Matrix A -> WF_Matrix B -> Mopp (A ⊗ B) = (Mopp A) ⊗ B.
 Proof. 
@@ -786,13 +1048,6 @@ split.
     apply I_neq_zero. lia.
     assumption.
 }
-Qed.
-
-Lemma Mscale_access {m n}: forall (a : C) (B : Matrix m n) (i j : nat), 
-a * (B i j) = (a .* B) i j.
-Proof.
-intros.
-lca.
 Qed.
 
 Lemma Mplus_access {m n}: forall (A B : Matrix m n) (i j : nat), 
