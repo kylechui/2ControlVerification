@@ -215,14 +215,14 @@ Qed.
 
 (* If b = 0, then the value is real, in which case we should be using sqrt *)
 (* Could do casework here, but I think it might make `lca` fail *)
-Definition Csqrt (x : C) : C :=
+Definition Complex_sqrt (x : C) : C :=
   let norm := Cmod x in
   let a := fst x in
   let b := snd x in
     (√ ((norm + a) / 2), Rabs b / b * √ ((norm - a) / 2))%R.
 
 Lemma Complex_sqrt_sqrt : forall (x : C),
-  snd x <> 0 -> Csqrt x * Csqrt x = x.
+  snd x <> 0 -> Complex_sqrt x * Complex_sqrt x = x.
 Proof.
   intros.
   assert (H0 : forall (r s : R), r <= sqrt (r * r + s * s)).
@@ -264,7 +264,7 @@ Proof.
     apply Rle_0_sqr.
     apply Rle_0_sqr.
   }
-  unfold Csqrt, Cmult; simpl.
+  unfold Complex_sqrt, Cmult; simpl.
   rewrite sqrt_sqrt; auto.
   replace (Rabs (snd x) / snd x * √ ((Cmod x - fst x) / 2) *
   (Rabs (snd x) / snd x * √ ((Cmod x - fst x) / 2)))%R with ((Rabs (snd x) / snd x) * (Rabs (snd x) / snd x) * (√ ((Cmod x - fst x) / 2) * √ ((Cmod x - fst x) / 2)))%R by lra.

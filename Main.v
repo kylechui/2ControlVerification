@@ -18,8 +18,8 @@ Definition get_eigenpairs (A : Square 2) : (Vector 2 * C) * (Vector 2 * C) :=
   let c := A 1%nat 0%nat in
   let d := A 1%nat 1%nat in
   let discriminant := (a + d)^2 - (4 * (a * d - b * c)) in
-  let lambda1 := (((a + d) + Csqrt discriminant) / 2)%C in
-  let lambda2 := (((a + d) - Csqrt discriminant) / 2)%C in
+  let lambda1 := (((a + d) + Complex_sqrt discriminant) / 2)%C in
+  let lambda2 := (((a + d) - Complex_sqrt discriminant) / 2)%C in
   let v1 := fun x y => match x, y with
                        | 0, 0 => lambda1 - d
                        | 1, 0 => c
@@ -95,8 +95,8 @@ Proof.
       set (c := A 1%nat 0%nat).
       set (d := A 1%nat 1%nat).
       set (discriminant := (a + d) * (a + d) - (4 * (a * d - b * c))).
-      replace ((a + d + Csqrt discriminant) / C2 * ((a + d + Csqrt discriminant) / C2 - d)) with (((a + Csqrt discriminant) * (a + Csqrt discriminant) - d * d) / 4) by lca.
-      replace ((a + Csqrt discriminant) * (a + Csqrt discriminant) - d * d) with (a * a - d * d + Csqrt discriminant * Csqrt discriminant + 2 * a * Csqrt discriminant) by lca.
+      replace ((a + d + Complex_sqrt discriminant) / C2 * ((a + d + Complex_sqrt discriminant) / C2 - d)) with (((a + Complex_sqrt discriminant) * (a + Complex_sqrt discriminant) - d * d) / 4) by lca.
+      replace ((a + Complex_sqrt discriminant) * (a + Complex_sqrt discriminant) - d * d) with (a * a - d * d + Complex_sqrt discriminant * Complex_sqrt discriminant + 2 * a * Complex_sqrt discriminant) by lca.
       assert (snd_nonzero : snd discriminant <> 0).
       {
         (* Show that complex part is nonzero *)
@@ -113,7 +113,7 @@ Proof.
         admit.
       }
       rewrite Complex_sqrt_sqrt; auto.
-      replace (a * ((a + d + Csqrt discriminant) / C2 - d) + b * c) with ((2 * a * a - 2 * a * d + 4 * b * c + 2 * a * Csqrt discriminant) / 4) by lca.
+      replace (a * ((a + d + Complex_sqrt discriminant) / C2 - d) + b * c) with ((2 * a * a - 2 * a * d + 4 * b * c + 2 * a * Complex_sqrt discriminant) / 4) by lca.
       unfold Cdiv.
       apply Cmult_simplify; auto.
       apply Cplus_simplify; auto.
@@ -171,8 +171,8 @@ Proof.
       set (d := A 1%nat 1%nat).
       Csimpl.
       set (discriminant := (a + d) * (a + d) - (4 * (a * d - b * c))).
-      replace ((a + d - Csqrt discriminant) / C2 * ((a + d - Csqrt discriminant) / C2 - d)) with ((a * a + Csqrt discriminant * Csqrt discriminant - d * d - 2 * a * Csqrt discriminant) / 4) by lca.
-      replace (a * ((a + d - Csqrt discriminant) / C2 - d) + b * c) with ((2 * a * a - 2 * a * d + 4 * b * c - 2 * a * Csqrt discriminant) / 4) by lca.
+      replace ((a + d - Complex_sqrt discriminant) / C2 * ((a + d - Complex_sqrt discriminant) / C2 - d)) with ((a * a + Complex_sqrt discriminant * Complex_sqrt discriminant - d * d - 2 * a * Complex_sqrt discriminant) / 4) by lca.
+      replace (a * ((a + d - Complex_sqrt discriminant) / C2 - d) + b * c) with ((2 * a * a - 2 * a * d + 4 * b * c - 2 * a * Complex_sqrt discriminant) / 4) by lca.
       unfold Cdiv.
       apply Cmult_simplify; auto.
       apply Cplus_simplify; auto.
