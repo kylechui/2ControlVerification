@@ -219,10 +219,16 @@ Definition Complex_sqrt (x : C) : C :=
   let norm := Cmod x in
   let a := fst x in
   let b := snd x in
-    (√ ((norm + a) / 2), Rabs b / b * √ ((norm - a) / 2))%R.
+    if Req_EM_T b 0 then
+      if Rlt_dec a 0 then
+        (0, sqrt (- a))%R
+      else
+        (sqrt a, 0)
+    else
+      (√ ((norm + a) / 2), Rabs b / b * √ ((norm - a) / 2))%R.
 
 Lemma Complex_sqrt_sqrt : forall (x : C),
-  snd x <> 0 -> Complex_sqrt x * Complex_sqrt x = x.
+  Complex_sqrt x * Complex_sqrt x = x.
 Proof.
   intros.
   assert (H0 : forall (r s : R), r <= sqrt (r * r + s * s)).
@@ -265,6 +271,28 @@ Proof.
     apply Rle_0_sqr.
   }
   unfold Complex_sqrt, Cmult; simpl.
+  destruct (Req_EM_T (snd x) 0); simpl.
+  {
+    destruct (Rlt_dec (fst x) 0); simpl.
+    {
+      destruct x; simpl.
+      rewrite sqrt_sqrt.
+      simpl in e.
+      rewrite e.
+      lca.
+      simpl in r.
+      lra.
+    }
+    {
+      destruct x; simpl.
+      rewrite sqrt_sqrt.
+      simpl in e.
+      rewrite e.
+      lca.
+      simpl in n.
+      lra.
+    }
+  }
   rewrite sqrt_sqrt; auto.
   replace (Rabs (snd x) / snd x * √ ((Cmod x - fst x) / 2) *
   (Rabs (snd x) / snd x * √ ((Cmod x - fst x) / 2)))%R with ((Rabs (snd x) / snd x) * (Rabs (snd x) / snd x) * (√ ((Cmod x - fst x) / 2) * √ ((Cmod x - fst x) / 2)))%R by lra.
@@ -275,7 +303,7 @@ Proof.
     destruct (Rle_dec 0 r).
     - rewrite Rabs_right; auto.
       lra.
-    - apply Rnot_le_lt in n.
+    - apply Rnot_le_lt in n0.
       rewrite Rabs_left; auto.
       lra.
   }
@@ -288,7 +316,7 @@ Proof.
       assumption.
       apply Rle_ge.
       assumption.
-    - apply Rnot_le_lt in n.
+    - apply Rnot_le_lt in n0.
       rewrite Rabs_left; auto.
       field.
       assumption.
@@ -312,7 +340,7 @@ Proof.
     destruct x; simpl; reflexivity.
     assumption.
     lra.
-  - apply Rnot_ge_lt in n.
+  - apply Rnot_ge_lt in n0.
     rewrite Rabs_left; auto.
     unfold Rdiv at 1 4.
     rewrite <- Ropp_mult_distr_l.
