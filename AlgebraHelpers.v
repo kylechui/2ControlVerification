@@ -62,38 +62,17 @@ split.
 Qed.
 
 
-Lemma squared_norm_eq_0_implies_0: forall (a: C),
-a^* * a = 0 -> a = 0.
+Lemma squared_norm_eq_0_implies_0 : forall (a : C),
+a^* * a = C0 -> a = C0.
 Proof.
-intros.
-apply c_proj_eq.
-unfold Cconj in *; unfold Cmult in *.
-simpl in *.
-{
-    apply Rsqr_0_uniq.
-    assert (((fst a * fst a - - snd a * snd a)%R = 0 -> (fst a * fst a)%R = 0)).
-    {
-        rewrite <- Ropp_mult_distr_l.
-        unfold Rminus. rewrite Ropp_involutive.
-        apply Rplus_eq_0_l. apply Rle_0_sqr. apply Rle_0_sqr.
-    }
-    apply H0.
-    inversion H.
-    reflexivity.   
-}
-{
-    apply Rsqr_0_uniq. 
-    assert (((fst a * fst a - - snd a * snd a)%R = 0 -> (snd a * snd a)%R = 0)).
-    {
-        rewrite <- Ropp_mult_distr_l.
-        unfold Rminus. rewrite Ropp_involutive.
-        rewrite Rplus_comm.
-        apply Rplus_eq_0_l. apply Rle_0_sqr. apply Rle_0_sqr.
-    }
-    apply H0.
-    inversion H.
-    reflexivity. 
-}
+  intro a.
+  rewrite <- Cmod_sqr.
+  unfold Cpow; rewrite Cmult_1_r.
+  intro H.
+  apply Cmod_eq_0, RtoC_inj.
+  apply Cmult_integral in H; destruct H.
+  - assumption.
+  - assumption.
 Qed.
 
 Lemma sum_of_adjoints_re_nonneg: forall (b c d: C),
@@ -213,50 +192,13 @@ Qed.
 Lemma opp_equivalence: forall (a b: C), 
 a = b <-> -a = -b.
 Proof.
-split.
-intros.
-rewrite H. reflexivity.
-intros.
-rewrite <- Cplus_0_l.
-rewrite <- (Cplus_opp_l a).
-rewrite H.
-lca.
-Qed.
-
-Lemma Ceq_implies_el_eq: forall (a b : C), 
-a = b -> fst a = fst b /\ snd a = snd b.
-Proof.
-intros.
-split.
-rewrite H.
-reflexivity.
-rewrite H.
-reflexivity.
-Qed.
-
-Lemma Cmult_0_implies_zero: forall (a b : C), 
-a * b = 0 -> a = 0 \/ b = 0.
-Proof.
-intros.
-destruct (Ceq_dec a 0).
-{
-    left. assumption.
-}
-{
-    right.
-    apply (f_equal (fun f => /a * f)) in H.
-    rewrite Cmult_0_r in H.
-    rewrite Cmult_assoc in H.
-    rewrite Cinv_l in H. 2: assumption.
-    rewrite Cmult_1_l in H.
-    assumption.
-}
-Qed.
-
-(* can't find anything that does this *)
-Lemma Natgt_lt: forall (x y : nat), (x > y)%nat -> (y < x)%nat.
-Proof.
-auto.
+  split.
+  - intros.
+    rewrite H; reflexivity.
+  - intros.
+    apply f_equal with (f := fun x => -x) in H.
+    repeat rewrite Copp_involutive in H.
+    exact H.
 Qed.
 
 Lemma rtoc_neq_decomp: forall (r: R), 
@@ -265,10 +207,123 @@ Proof.
 intros. 
 unfold RtoC.
 intro.
-apply Ceq_implies_el_eq in H0.
+apply complex_split in H0.
 destruct H0 as [H0 _].
 apply H.
 trivial.
+Qed.
+
+(* If b = 0, then the value is real, in which case we should be using sqrt *)
+(* Could do casework here, but I think it might make `lca` fail *)
+Definition Complex_sqrt (x : C) : C :=
+  let norm := Cmod x in
+  let a := fst x in
+  let b := snd x in
+    (√ ((norm + a) / 2), Rabs b / b * √ ((norm - a) / 2))%R.
+
+Lemma Complex_sqrt_sqrt : forall (x : C),
+  snd x <> 0 -> Complex_sqrt x * Complex_sqrt x = x.
+Proof.
+  intros.
+  assert (H0 : forall (r s : R), r <= sqrt (r * r + s * s)).
+  {
+    intros.
+    destruct (Rle_dec 0 r).
+    - rewrite <- sqrt_square at 1. 2: assumption.
+      apply sqrt_le_1_alt.
+      rewrite <- Rplus_0_r at 1.
+      apply Rplus_le_compat_l.
+      apply Rle_0_sqr.
+    - apply Rnot_le_lt in n.
+      apply Rlt_le in n.
+      pose proof (sqrt_pos (r * r + s * s)) as H0.
+      apply Rle_trans with (r2 := 0); assumption.
+  }
+  assert (nonneg1 : 0 <= (Cmod x - fst x) / 2).
+  {
+    apply Rmult_le_pos.
+    rewrite <- Rplus_opp_r with (r := fst x).
+    apply Rplus_le_compat_r.
+    unfold Cmod; unfold pow; repeat rewrite Rmult_1_r.
+    apply H0.
+    lra.
+  }
+  assert (nonneg2 : 0 <= (Cmod x + fst x) / 2).
+  {
+    apply Rmult_le_pos.
+    rewrite <- Rplus_opp_l with (r := fst x).
+    apply Rplus_le_compat_r.
+    unfold Cmod; unfold pow; repeat rewrite Rmult_1_r.
+    replace (fst x * fst x)%R with ((- fst x) * (- fst x))%R by lra.
+    apply H0.
+    lra.
+  }
+  assert (nonneg3 : 0 <= fst x * fst x + snd x * snd x).
+  {
+    apply Rplus_le_le_0_compat.
+    apply Rle_0_sqr.
+    apply Rle_0_sqr.
+  }
+  unfold Complex_sqrt, Cmult; simpl.
+  rewrite sqrt_sqrt; auto.
+  replace (Rabs (snd x) / snd x * √ ((Cmod x - fst x) / 2) *
+  (Rabs (snd x) / snd x * √ ((Cmod x - fst x) / 2)))%R with ((Rabs (snd x) / snd x) * (Rabs (snd x) / snd x) * (√ ((Cmod x - fst x) / 2) * √ ((Cmod x - fst x) / 2)))%R by lra.
+  rewrite sqrt_sqrt; auto.
+  assert (step1 : forall (r : R), (Rabs r * Rabs r = r * r)%R).
+  {
+    intros.
+    destruct (Rle_dec 0 r).
+    - rewrite Rabs_right; auto.
+      lra.
+    - apply Rnot_le_lt in n.
+      rewrite Rabs_left; auto.
+      lra.
+  }
+  assert (step2 : forall (r : R), r <> 0 -> (Rabs r / r * (Rabs r / r) = 1)%R).
+  {
+    intros.
+    destruct (Rle_dec 0 r).
+    - rewrite Rabs_right; auto.
+      field.
+      assumption.
+      apply Rle_ge.
+      assumption.
+    - apply Rnot_le_lt in n.
+      rewrite Rabs_left; auto.
+      field.
+      assumption.
+  }
+  rewrite step2; auto; rewrite Rmult_1_l.
+  replace ((Cmod x + fst x) / 2 - (Cmod x - fst x) / 2)%R with (fst x) by lra.
+  rewrite Rmult_comm; rewrite Rmult_assoc.
+  rewrite <- sqrt_mult; auto.
+  replace ((Cmod x - fst x) / 2 * ((Cmod x + fst x) / 2))%R with ((Cmod x * Cmod x - fst x * fst x) / 4)%R by lra.
+  unfold Cmod.
+  unfold pow; repeat rewrite Rmult_1_r.
+  rewrite sqrt_sqrt; auto.
+  replace (fst x * fst x + snd x * snd x - fst x * fst x)%R with (snd x * snd x)%R by lra.
+  replace (snd x * snd x / 4)%R with (snd x / 2 * (snd x / 2))%R by lra.
+  destruct (Rge_dec (snd x) 0).
+  - rewrite Rabs_right; auto.
+    rewrite sqrt_square; auto.
+    unfold Rdiv at 1 3; rewrite Rinv_r.
+    rewrite Rmult_1_l.
+    replace (snd x / 2 + snd x / 2)%R with (snd x)%R by lra.
+    destruct x; simpl; reflexivity.
+    assumption.
+    lra.
+  - apply Rnot_ge_lt in n.
+    rewrite Rabs_left; auto.
+    unfold Rdiv at 1 4.
+    rewrite <- Ropp_mult_distr_l.
+    rewrite Rinv_r; auto.
+    replace (snd x / 2 * (snd x / 2))%R with (- (snd x / 2) * (- (snd x / 2)))%R by lra.
+    rewrite sqrt_square; auto.
+    rewrite <- Ropp_mult_distr_r.
+    rewrite Ropp_mult_distr_l, Ropp_involutive, Rmult_1_l.
+    replace (snd x / 2 + snd x / 2)%R with (snd x)%R by lra.
+    destruct x; simpl; reflexivity.
+    lra.
 Qed.
 
 Lemma Cmult_const_r: forall (a b c : C), 

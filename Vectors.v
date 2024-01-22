@@ -479,7 +479,7 @@ assert (Hb1 : ⟨b, a1⟩ <> 0).
   simpl.
   rewrite Rmult_0_l. rewrite Rminus_0_r.
   intros.
-  apply Ceq_implies_el_eq in H.
+  apply complex_split in H.
   destruct H as [H _].
   revert H. 
   simpl.

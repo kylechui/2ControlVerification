@@ -98,6 +98,26 @@ Proof.
   }
 Qed.
 
+Lemma row_out_of_bounds: forall {m n} (A : Matrix m n) (i : nat),
+  WF_Matrix A -> (i >= m)%nat -> forall (j : nat), A i j = C0.
+Proof.
+  intros m n A i WF_A row_oob j.
+  unfold WF_Matrix in WF_A.
+  apply WF_A.
+  left.
+  assumption.
+Qed.
+
+Lemma col_out_of_bounds: forall {m n} (A : Matrix m n) (j : nat),
+  WF_Matrix A -> (j >= n)%nat -> forall (i : nat), A i j = C0.
+Proof.
+  intros m n A j WF_A col_oob i.
+  unfold WF_Matrix in WF_A.
+  apply WF_A.
+  right.
+  assumption.
+Qed.
+
 Lemma zero_def: forall {m n} (A : Matrix n m), A = Zero <-> forall (i j : nat), A i j = C0.
 Proof.
   split.
@@ -139,24 +159,44 @@ Proof.
     reflexivity.
 Qed.
 
-Lemma row_out_of_bounds: forall {m n} (A : Matrix m n) (i : nat),
-  WF_Matrix A -> (i >= m)%nat -> forall (j : nat), A i j = C0.
+Lemma nonzero_kron: forall {m n o p} (A : Matrix m n) (B : Matrix o p),
+  WF_Matrix A -> WF_Matrix B -> A <> Zero -> B <> Zero -> A ⊗ B <> Zero.
 Proof.
-  intros m n A i WF_A row_oob j.
-  unfold WF_Matrix in WF_A.
-  apply WF_A.
-  left.
-  assumption.
-Qed.
-
-Lemma col_out_of_bounds: forall {m n} (A : Matrix m n) (j : nat),
-  WF_Matrix A -> (j >= n)%nat -> forall (i : nat), A i j = C0.
-Proof.
-  intros m n A j WF_A col_oob i.
-  unfold WF_Matrix in WF_A.
-  apply WF_A.
-  right.
-  assumption.
+  intros.
+  rewrite nonzero_def in H1, H2.
+  destruct H1 as [i [j A_nonzero]].
+  destruct H2 as [k [l B_nonzero]].
+  rewrite nonzero_def.
+  exists (i * o + k)%nat.
+  exists (j * p + l)%nat.
+  unfold kron.
+  destruct (k <? o) eqn:L1.
+  {
+    apply Nat.ltb_lt in L1.
+    destruct (l <? p) eqn:L2.
+    apply Nat.ltb_lt in L2.
+    - repeat rewrite Nat.div_add_l by lia.
+      repeat rewrite Nat.div_small; auto.
+      rewrite Nat.add_mod with (n := o) by lia.
+      rewrite Nat.add_mod with (n := p) by lia.
+      repeat rewrite Nat.mod_mul by lia.
+      repeat rewrite Nat.mod_small; auto.
+      repeat rewrite Nat.add_0_l.
+      repeat rewrite Nat.add_0_r.
+      intro absurd.
+      apply Cmult_integral in absurd.
+      destruct absurd.
+      + contradiction.
+      + contradiction.
+    - apply Nat.ltb_ge in L2.
+      pose proof (col_out_of_bounds B l H0 L2 k) as b_zero.
+      contradiction.
+  }
+  {
+    apply Nat.ltb_ge in L1.
+    pose proof (row_out_of_bounds B k H0 L1 l) as b_zero.
+    contradiction.
+  }
 Qed.
 
 Lemma kron_cancel_l: forall {m n o p} (A : Matrix m n) (B C : Matrix o p),
@@ -242,32 +282,54 @@ Proof.
     reflexivity.
 Qed.
 
+Lemma nonzero_qubit0: ∣0⟩ <> Zero.
+Proof.
+  intro.
+  apply f_equal with (f := fun f => f 0%nat 0%nat) in H.
+  contradict H.
+  exact C1_neq_C0.
+Qed.
+
+Lemma nonzero_qubit1: ∣1⟩ <> Zero.
+Proof.
+  intro.
+  apply f_equal with (f := fun f => f 1%nat 0%nat) in H.
+  contradict H.
+  exact C1_neq_C0.
+Qed.
+
 Lemma kron_0_cancel_l: forall {m n} (B C : Matrix m n),
   WF_Matrix B -> WF_Matrix C -> ∣0⟩ ⊗ B = ∣0⟩ ⊗ C -> B = C.
 Proof.
-  assert (qubit0_neq_Zero : ∣0⟩ <> Zero).
-  {
-    intro.
-    apply f_equal with (f := fun f => f 0%nat 0%nat) in H.
-    contradict H.
-    exact C1_neq_C0.
-  }
   intros.
-  apply (@kron_cancel_l m n) with (A := ∣0⟩); auto.
+  apply (@kron_cancel_l 2 1) with (A := ∣0⟩); auto.
+  exact nonzero_qubit0.
 Qed.
 
 Lemma kron_1_cancel_l: forall {m n} (B C : Matrix m n),
   WF_Matrix B -> WF_Matrix C -> ∣1⟩ ⊗ B = ∣1⟩ ⊗ C -> B = C.
 Proof.
-  assert (qubit1_neq_Zero : ∣1⟩ <> Zero).
-  {
-    intro.
-    apply f_equal with (f := fun f => f 1%nat 0%nat) in H.
-    contradict H.
-    exact C1_neq_C0.
-  }
   intros.
-  apply (@kron_cancel_l m n) with (A := ∣1⟩); auto.
+  apply (@kron_cancel_l 2 1) with (A := ∣1⟩); auto.
+  exact nonzero_qubit1.
+Qed.
+
+Lemma kron_0_cancel_r: forall {m n} (A B : Matrix m n),
+  WF_Matrix A -> WF_Matrix B -> A ⊗ ∣0⟩ = B ⊗ ∣0⟩ -> A = B.
+Proof.
+  intros.
+  apply (@kron_cancel_r _ _ 2 1) with (C := ∣0⟩); auto.
+  exact WF_qubit0.
+  exact nonzero_qubit0.
+Qed.
+
+Lemma kron_1_cancel_r: forall {m n} (A B : Matrix m n),
+  WF_Matrix A -> WF_Matrix B -> A ⊗ ∣1⟩ = B ⊗ ∣1⟩ -> A = B.
+Proof.
+  intros.
+  apply (@kron_cancel_r _ _ 2 1) with (C := ∣1⟩); auto.
+  exact WF_qubit1.
+  exact nonzero_qubit1.
 Qed.
 
 Lemma WF_ket0bra1: WF_Matrix ∣0⟩⟨1∣.
@@ -957,21 +1019,6 @@ Lemma adjoint01: (∣0⟩⟨1∣) † = ∣1⟩⟨0∣. Proof. lma'. Qed.
 Lemma adjoint10: (∣1⟩⟨0∣) † = ∣0⟩⟨1∣. Proof. lma'. Qed.
 Lemma adjoint11: (∣1⟩⟨1∣) † = ∣1⟩⟨1∣. Proof. lma'. Qed.
 
-(* Very specific lemma for now *)
-Lemma kron_0_cancel_r: forall (a b: Vector 2),
-WF_Matrix a -> WF_Matrix b -> 
-a ⊗ ∣0⟩ = b ⊗ ∣0⟩ -> a = b.
-Proof.
-intros.
-lma'.
-assert (a00_val: a 0%nat 0%nat = (a ⊗ ∣0⟩) 0%nat 0%nat). lca.
-assert (b00_val: b 0%nat 0%nat = (b ⊗ ∣0⟩) 0%nat 0%nat). lca.
-rewrite a00_val. rewrite H1. rewrite <- b00_val. reflexivity.
-assert (a10_val: a 1%nat 0%nat = (a ⊗ ∣0⟩) 2%nat 0%nat). lca.
-assert (b10_val: b 1%nat 0%nat = (b ⊗ ∣0⟩) 2%nat 0%nat). lca.
-rewrite a10_val. rewrite H1. rewrite <- b10_val. reflexivity.
-Qed.
-
 Lemma kron_opp_distr_l {m n o p}: forall (A: Matrix m n) (B: Matrix o p), 
 WF_Matrix A -> WF_Matrix B -> Mopp (A ⊗ B) = (Mopp A) ⊗ B.
 Proof. 
@@ -988,7 +1035,7 @@ rewrite nonzero_def in H0.
 destruct H0 as [x [y Aij_neq_0]].
 rewrite zero_def in H1.
 specialize (H1 x y).
-apply Cmult_0_implies_zero in H1.
+apply Cmult_integral in H1.
 destruct H1.
 assumption.
 contradict H0.
@@ -1005,7 +1052,6 @@ simpl.
 destruct (0 <? n) eqn:Hlt.
 apply C1_neq_C0.
 apply Nat.ltb_ge in Hlt.
-apply Natgt_lt in H.
 contradict H.
 apply Nat.le_ngt.
 assumption.

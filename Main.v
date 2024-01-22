@@ -1,4 +1,5 @@
 Require Import Proof.UnitaryMatrices.
+Require Import Proof.AlgebraHelpers.
 Require Import Proof.MatrixHelpers.
 Require Import Proof.GateHelpers.
 Require Import QuantumLib.Complex.
@@ -11,28 +12,189 @@ Require Import QuantumLib.Matrix.
   exists (P Q : Square 2),
     WF_Unitary P -> WF_Unitary Q -> *)
 
-Definition get_eigenvalues (A : Square 2) : list C :=
+Definition get_eigenpairs (A : Square 2) : (Vector 2 * C) * (Vector 2 * C) :=
   let a := A 0%nat 0%nat in
   let b := A 0%nat 1%nat in
   let c := A 1%nat 0%nat in
   let d := A 1%nat 1%nat in
   let discriminant := (a + d)^2 - (4 * (a * d - b * c)) in
-  let lambda1 := (((a + d) + Csqrt discriminant) / 2)%C in
-  let lambda2 := (((a + d) - Csqrt discriminant) / 2)%C in
-  [lambda1; lambda2].
+  let lambda1 := (((a + d) + Complex_sqrt discriminant) / 2)%C in
+  let lambda2 := (((a + d) - Complex_sqrt discriminant) / 2)%C in
+  let v1 := fun x y => match x, y with
+                       | 0, 0 => lambda1 - d
+                       | 1, 0 => c
+                       | _, _ => C0
+                       end in
+  let v2 := fun x y => match x, y with
+                       | 0, 0 => lambda2 - d
+                       | 1, 0 => c
+                       | _, _ => C0
+                       end in
+  ((v1, lambda1), (v2, lambda2)).
 
-Lemma eigenvalues_are_eigenvalues : forall (A : Square 2),
+Lemma eigenpairs_are_eigenpairs : forall (A : Square 2),
   WF_Matrix A ->
-  forall (lambda : C), In lambda (get_eigenvalues A) -> 
-    exists (v : Vector 2), Eigenpair A (v, lambda).
+    let (eigenpair1, eigenpair2) := get_eigenpairs A in
+    Eigenpair A eigenpair1 /\ Eigenpair A eigenpair2.
 Proof.
-  intros A WF_A lambda In_lambda.
-  unfold get_eigenvalues in In_lambda.
-  simpl in In_lambda.
-  destruct In_lambda as [lambda1 | lambda2].
-  - exists (∣0⟩).
+  intros A WF_A.
+  split; simpl.
+  - simpl.
     unfold Eigenpair.
-Admitted.
+    lma'.
+    {
+      simpl.
+      unfold Mmult; unfold WF_Matrix; unfold big_sum; simpl.
+      intros.
+      destruct H.
+      {
+        unfold WF_Matrix in WF_A.
+        specialize (WF_A x).
+        assert (H2 : forall y, A x y = C0).
+        {
+          intro.
+          apply WF_A.
+          left.
+          assumption.
+        }
+        do 2 rewrite H2; clear H2.
+        lca.
+      }
+      {
+        destruct y.
+        - lia.
+        - lca.
+      }
+    }
+    {
+      unfold scale; simpl.
+      unfold WF_Matrix.
+      intros.
+      destruct H.
+      {
+        destruct x.
+        + lia.
+        + destruct x.
+          * lia.
+          * lca.
+      }
+      {
+        destruct y.
+        - lia.
+        - destruct x.
+          + lca.
+          + destruct x; lca. (* I have no clue why this works *)
+      }
+    }
+    {
+      unfold Mmult; simpl.
+      unfold scale.
+      Csimpl.
+      set (a := A 0%nat 0%nat).
+      set (b := A 0%nat 1%nat).
+      set (c := A 1%nat 0%nat).
+      set (d := A 1%nat 1%nat).
+      set (discriminant := (a + d) * (a + d) - (4 * (a * d - b * c))).
+      replace ((a + d + Complex_sqrt discriminant) / C2 * ((a + d + Complex_sqrt discriminant) / C2 - d)) with (((a + Complex_sqrt discriminant) * (a + Complex_sqrt discriminant) - d * d) / 4) by lca.
+      replace ((a + Complex_sqrt discriminant) * (a + Complex_sqrt discriminant) - d * d) with (a * a - d * d + Complex_sqrt discriminant * Complex_sqrt discriminant + 2 * a * Complex_sqrt discriminant) by lca.
+      assert (snd_nonzero : snd discriminant <> 0).
+      {
+        (* Show that complex part is nonzero *)
+        simpl.
+        rewrite Rmult_0_l; rewrite Rplus_0_r.
+        set (a1 := fst a).
+        set (a2 := snd a).
+        set (b1 := fst b).
+        set (b2 := snd b).
+        set (c1 := fst c).
+        set (c2 := snd c).
+        set (d1 := fst d).
+        set (d2 := snd d).
+        admit.
+      }
+      rewrite Complex_sqrt_sqrt; auto.
+      replace (a * ((a + d + Complex_sqrt discriminant) / C2 - d) + b * c) with ((2 * a * a - 2 * a * d + 4 * b * c + 2 * a * Complex_sqrt discriminant) / 4) by lca.
+      unfold Cdiv.
+      apply Cmult_simplify; auto.
+      apply Cplus_simplify; auto.
+      lca.
+    }
+  - unfold Eigenpair.
+    lma'.
+    {
+      unfold Mmult, big_sum, WF_Matrix; simpl.
+      intros.
+      destruct H.
+      {
+        unfold WF_Matrix in WF_A.
+        specialize (WF_A x).
+        assert (H2 : forall y, A x y = C0).
+        {
+          intro.
+          apply WF_A.
+          left.
+          assumption.
+        }
+        do 2 rewrite H2; clear H2.
+        lca.
+      }
+      {
+        destruct y.
+        - lia.
+        - lca.
+      }
+    }
+    {
+      unfold WF_Matrix, scale; simpl.
+      intros.
+      destruct H.
+      {
+        destruct x.
+        + lia.
+        + destruct x.
+          * lia.
+          * lca.
+      }
+      {
+        destruct y.
+        - lia.
+        - destruct x.
+          + lca.
+          + destruct x; lca. (* I have no clue why this works *)
+      }
+    }
+    {
+      unfold Mmult, scale; simpl.
+      set (a := A 0%nat 0%nat).
+      set (b := A 0%nat 1%nat).
+      set (c := A 1%nat 0%nat).
+      set (d := A 1%nat 1%nat).
+      Csimpl.
+      set (discriminant := (a + d) * (a + d) - (4 * (a * d - b * c))).
+      replace ((a + d - Complex_sqrt discriminant) / C2 * ((a + d - Complex_sqrt discriminant) / C2 - d)) with ((a * a + Complex_sqrt discriminant * Complex_sqrt discriminant - d * d - 2 * a * Complex_sqrt discriminant) / 4) by lca.
+      replace (a * ((a + d - Complex_sqrt discriminant) / C2 - d) + b * c) with ((2 * a * a - 2 * a * d + 4 * b * c - 2 * a * Complex_sqrt discriminant) / 4) by lca.
+      unfold Cdiv.
+      apply Cmult_simplify; auto.
+      apply Cplus_simplify; auto.
+      assert (snd_nonzero : snd discriminant <> 0).
+      {
+        (* Show that complex part is nonzero *)
+        simpl.
+        rewrite Rmult_0_l; rewrite Rplus_0_r.
+        set (a1 := fst a).
+        set (a2 := snd a).
+        set (b1 := fst b).
+        set (b2 := snd b).
+        set (c1 := fst c).
+        set (c2 := snd c).
+        set (d1 := fst d).
+        set (d2 := snd d).
+        admit.
+      }
+      rewrite Complex_sqrt_sqrt; auto.
+      lca.
+    }
+Qed.
 
 Lemma m4_1 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
@@ -332,13 +494,11 @@ Proof.
           exact WF_beta.
         }
         2: {
-          intro absurd.
-          apply (f_equal (fun f => f 3%nat 0%nat)) in absurd.
-          unfold qubit1, Mmult, Zero in absurd.
-          revert absurd; compute; intro absurd.
-          replace ((R1 * R1 + - (R0 * R0))%R, (R1 * R0 + R0 * R1)%R) with C1 in absurd by lca.
-          contradict absurd.
-          apply C1_neq_C0.
+          apply nonzero_kron.
+          exact WF_qubit1.
+          exact WF_qubit1.
+          exact nonzero_qubit1.
+          exact nonzero_qubit1.
         }
         assert (u0_is_1 : u0 = C1).
         {
