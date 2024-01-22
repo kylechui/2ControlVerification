@@ -1019,21 +1019,6 @@ Lemma adjoint01: (∣0⟩⟨1∣) † = ∣1⟩⟨0∣. Proof. lma'. Qed.
 Lemma adjoint10: (∣1⟩⟨0∣) † = ∣0⟩⟨1∣. Proof. lma'. Qed.
 Lemma adjoint11: (∣1⟩⟨1∣) † = ∣1⟩⟨1∣. Proof. lma'. Qed.
 
-Lemma Mplus_opp_0_r {m n}: forall (A: Matrix m n), 
-WF_Matrix A -> A .+ Mopp (A) = Zero.
-intros.
-lma'.
-solve_WF_matrix.
-Qed.
-
-Lemma Mplus_opp_0_l {m n}: forall (A: Matrix m n), 
-WF_Matrix A -> Mopp (A) .+ A = Zero.
-intros.
-rewrite Mplus_comm.
-apply Mplus_opp_0_r.
-assumption.
-Qed.
-
 Lemma kron_opp_distr_l {m n o p}: forall (A: Matrix m n) (B: Matrix o p), 
 WF_Matrix A -> WF_Matrix B -> Mopp (A ⊗ B) = (Mopp A) ⊗ B.
 Proof. 
