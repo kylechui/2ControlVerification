@@ -97,22 +97,7 @@ Proof.
       set (discriminant := (a + d) * (a + d) - (4 * (a * d - b * c))).
       replace ((a + d + Complex_sqrt discriminant) / C2 * ((a + d + Complex_sqrt discriminant) / C2 - d)) with (((a + Complex_sqrt discriminant) * (a + Complex_sqrt discriminant) - d * d) / 4) by lca.
       replace ((a + Complex_sqrt discriminant) * (a + Complex_sqrt discriminant) - d * d) with (a * a - d * d + Complex_sqrt discriminant * Complex_sqrt discriminant + 2 * a * Complex_sqrt discriminant) by lca.
-      assert (snd_nonzero : snd discriminant <> 0).
-      {
-        (* Show that complex part is nonzero *)
-        simpl.
-        rewrite Rmult_0_l; rewrite Rplus_0_r.
-        set (a1 := fst a).
-        set (a2 := snd a).
-        set (b1 := fst b).
-        set (b2 := snd b).
-        set (c1 := fst c).
-        set (c2 := snd c).
-        set (d1 := fst d).
-        set (d2 := snd d).
-        admit.
-      }
-      rewrite Complex_sqrt_sqrt; auto.
+      rewrite Complex_sqrt_sqrt.
       replace (a * ((a + d + Complex_sqrt discriminant) / C2 - d) + b * c) with ((2 * a * a - 2 * a * d + 4 * b * c + 2 * a * Complex_sqrt discriminant) / 4) by lca.
       unfold Cdiv.
       apply Cmult_simplify; auto.
@@ -176,22 +161,7 @@ Proof.
       unfold Cdiv.
       apply Cmult_simplify; auto.
       apply Cplus_simplify; auto.
-      assert (snd_nonzero : snd discriminant <> 0).
-      {
-        (* Show that complex part is nonzero *)
-        simpl.
-        rewrite Rmult_0_l; rewrite Rplus_0_r.
-        set (a1 := fst a).
-        set (a2 := snd a).
-        set (b1 := fst b).
-        set (b2 := snd b).
-        set (c1 := fst c).
-        set (c2 := snd c).
-        set (d1 := fst d).
-        set (d2 := snd d).
-        admit.
-      }
-      rewrite Complex_sqrt_sqrt; auto.
+      rewrite Complex_sqrt_sqrt.
       lca.
     }
 Qed.
