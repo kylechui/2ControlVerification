@@ -111,8 +111,8 @@ Proof.
         set (d1 := fst d).
         set (d2 := snd d).
         admit.
-      } 
-      rewrite AlgebraHelpers.Csqrt_sqrt; auto.
+      }
+      rewrite Complex_sqrt_sqrt; auto.
       replace (a * ((a + d + Csqrt discriminant) / C2 - d) + b * c) with ((2 * a * a - 2 * a * d + 4 * b * c + 2 * a * Csqrt discriminant) / 4) by lca.
       unfold Cdiv.
       apply Cmult_simplify; auto.
@@ -191,7 +191,7 @@ Proof.
         set (d2 := snd d).
         admit.
       }
-      rewrite AlgebraHelpers.Csqrt_sqrt; auto.
+      rewrite Complex_sqrt_sqrt; auto.
       lca.
     }
 Qed.

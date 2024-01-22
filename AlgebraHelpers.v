@@ -221,7 +221,7 @@ Definition Csqrt (x : C) : C :=
   let b := snd x in
     (√ ((norm + a) / 2), Rabs b / b * √ ((norm - a) / 2))%R.
 
-Lemma Csqrt_sqrt : forall (x : C),
+Lemma Complex_sqrt_sqrt : forall (x : C),
   snd x <> 0 -> Csqrt x * Csqrt x = x.
 Proof.
   intros.
