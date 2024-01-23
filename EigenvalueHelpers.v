@@ -282,6 +282,45 @@ unfold pow.
 lra.
 Qed.
 
+Lemma Rle_lower_bound: forall (a b c d: R), 
+a <= b + d -> b <= c -> a <= c + d.
+Proof.
+intros.
+apply Rle_trans with (r2 := (b + d)%R).
+assumption.
+apply Rplus_le_compat_r.
+assumption.
+Qed.
+
+Lemma Rabs_plus_le: forall (x : R), 
+(0 <= Rabs x + x)%R.
+Proof. 
+intros.
+unfold Rabs.
+destruct (Rcase_abs x).
+rewrite Rplus_opp_l.
+apply Rle_refl.
+replace (0%R) with ((2 * 0)%R) by lra.
+replace ((x + x)%R) with ((2 * x)%R) by lra.
+apply Rmult_le_compat_l. lra.
+apply Rge_le. assumption.
+Qed.
+
+Lemma Rabs_minus_le: forall (x : R), 
+(0 <= Rabs x + -x)%R.
+Proof. 
+intros.
+unfold Rabs.
+destruct (Rcase_abs x).
+replace (0%R) with ((-(2) * 0)%R) by lra.
+replace ((-x + - x)%R) with ((-(2) * x)%R) by lra.
+apply Rmult_le_compat_neg_l. lra.
+apply Rlt_le. assumption.
+rewrite Rplus_opp_r.
+apply Rle_refl.
+Qed.
+
+
 Lemma Complex_sqrt_adj_mult: forall (x: C), 
 let norm := Cmod x in
 (Complex_sqrt x)^* * (Complex_sqrt x) = 
@@ -357,6 +396,16 @@ destruct (Req_EM_T (snd x) 0).
   apply c_proj_eq.
   {
     simpl.
+    assert (Rsqr_ge_0: forall (r: R), (0 <= (r)^2)%R).
+    {
+      intros.
+      rewrite pow2_equiv_Rsqr.
+      destruct (Req_dec r 0).
+      rewrite H. unfold Rsqr. lra.
+      apply Rlt_le.
+      apply Rsqr_pos_lt.
+      assumption.
+    }
     rewrite sqrt_sqrt.
     rewrite <- Ropp_mult_distr_l.
     unfold Rminus.
@@ -366,13 +415,46 @@ destruct (Req_EM_T (snd x) 0).
     (((√ ((Cmod x + - fst x) / 2)* √ ((Cmod x + - fst x) / 2)) *
     (Rabs (snd x) / snd x  * (Rabs (snd x) / snd x)))%R) by lra.
     rewrite sqrt_sqrt.
+    replace ((Rabs (snd x) / snd x * (Rabs (snd x) / snd x))%R) with
+    (((Rabs (snd x) * Rabs (snd x)) *  ((/ snd x) * (/ snd x)))%R) by lra.
+    replace ((Rabs (snd x) * Rabs (snd x))%R) with ((Rsqr (Rabs (snd x)))%R). 2: unfold Rsqr. 2: reflexivity.
+    rewrite <- Rsqr_abs with (x:= snd x).
+    unfold Rsqr.
+    rewrite Rmult_assoc.
+    rewrite <- Rmult_assoc with (r2 := (/ snd x)%R).
+    rewrite Rinv_r.
+    rewrite Rmult_1_l.
+    rewrite Rinv_r.
+    2,3: assumption.
+    rewrite Rmult_1_r.
+    unfold Rdiv.
+    rewrite <- Rmult_plus_distr_r.
+    replace (((Cmod x + fst x + (Cmod x + - fst x)) * / 2)%R) with (Cmod x) by lra.
+    fold norm. reflexivity.
+    all: rewrite <- Rmult_0_l with (r:= (/2)%R).
+    all: unfold Rdiv.
+    all: apply Rmult_le_compat_r.
+    1,3: lra.
+    all: unfold Cmod.
+    all: apply Rle_lower_bound with (b := √ (fst x ^ 2)).
+    1,3: rewrite pow2_equiv_Rsqr.
+    1,2: rewrite sqrt_Rsqr_abs.
+    apply Rabs_minus_le.
+    apply Rabs_plus_le.
+    all: apply sqrt_le_1.
+    1,4: apply Rsqr_ge_0.
+    1,3: rewrite <- Rplus_0_l with (r:= 0%R).
+    3,4: rewrite <- Rplus_0_r with (r:= (fst x ^ 2)%R) at 1.
+    all: apply Rplus_le_compat.
+    1,2,3,4,6,8: apply Rsqr_ge_0.
+    all: apply Rle_refl.
   }
   {
     simpl.
     lra.
   }
 }
-Admitted.
+Qed.
 
 Lemma eigenvectors_are_orthogonal: forall (A : Square 2), 
 match get_eigenpairs A with 
