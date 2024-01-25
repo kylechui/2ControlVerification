@@ -478,7 +478,7 @@ split. solve_WF_matrix.
 lma'.
 Qed.
 
-Definition WF_PSD {n} (A : Square n) := WF_Hermitian A /\ forall (x: Vector 2), WF_Matrix x -> 0 <= fst (⟨ A × x, x ⟩) /\ 0 = snd (⟨ A × x, x ⟩).
+Definition WF_PSD {n} (A : Square n) := WF_Hermitian A /\ forall (x: Vector n), WF_Matrix x -> 0 <= fst (⟨ A × x, x ⟩) /\ 0 = snd (⟨ A × x, x ⟩).
 
 Lemma gram_matrix_psd_2: forall (A: Square 2), 
 WF_Matrix A -> WF_PSD (A† × A).
@@ -529,8 +529,42 @@ rewrite <- Mmult_assoc.
 reflexivity.
 Qed.
 
-Lemma psd_implies_nonneg_eigenvalues: forall (A: Square 2), 
-WF_PSD A -> forall (v : Vector 2) (lambda : C), WF_Matrix v -> v <> Zero ->  
+Lemma hermitian_implies_real_eigenvalues {n}: forall (A: Square n), 
+WF_Hermitian A -> forall (v : Vector n) (lambda : C), WF_Matrix v -> v <> Zero ->  
+Eigenpair A (v, lambda) -> 0 = snd lambda.
+intros A a_hermitian v lambda WF_v nonzero_v eigenpair_v_lambda.
+revert eigenpair_v_lambda.
+unfold Eigenpair. simpl.
+intro eigenpair_v_lambda.
+assert (hermitian_prop := hermitian_inner_prod A v v).
+apply hermitian_prop in a_hermitian.
+rewrite eigenpair_v_lambda in a_hermitian.
+rewrite inner_product_scale_r, inner_product_scale_l in a_hermitian.
+apply (f_equal (fun f => f * / (⟨ v, v ⟩))) in a_hermitian.
+do 2 rewrite <- Cmult_assoc in a_hermitian.
+rewrite Cinv_r in a_hermitian. 2: rewrite inner_product_zero_iff_zero. 2,3: assumption.
+do 2 rewrite Cmult_1_r in a_hermitian.
+apply complex_split in a_hermitian.
+destruct a_hermitian as [fst_her snd_her].
+unfold Cconj in snd_her. 
+revert snd_her.
+simpl.
+intro snd_her.
+apply (f_equal (fun f => (f + (snd lambda))%R)) in snd_her.
+revert snd_her.
+replace ((- snd lambda + snd lambda)%R) with (0%R) by lra.
+replace ((snd lambda + snd lambda)%R) with ((2 * snd lambda)%R) by lra.
+intro snd_her.
+apply (f_equal (fun f => (/2 * f)%R)) in snd_her.
+rewrite Rmult_0_r in snd_her.
+rewrite <- Rmult_assoc in snd_her.
+rewrite Rinv_l in snd_her. 2: lra.
+rewrite Rmult_1_l in snd_her.
+assumption.
+Qed.
+
+Lemma psd_implies_nonneg_eigenvalues {n}: forall (A: Square n), 
+WF_PSD A -> forall (v : Vector n) (lambda : C), WF_Matrix v -> v <> Zero ->  
 Eigenpair A (v, lambda) -> 0 <= fst lambda /\ 0 = snd lambda.
 intros A PSD v lambda WF_v nonzero_v eigenpair_v_lambda.
 destruct PSD as [a_hermitian psd_prop].
