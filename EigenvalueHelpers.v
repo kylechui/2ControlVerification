@@ -1,5 +1,6 @@
 From Proof Require Import AlgebraHelpers.
 From Proof Require Import ExplicitDecompositions.
+From Proof Require Import MatrixHelpers.
 Require Import QuantumLib.Eigenvectors.
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Complex.
@@ -320,6 +321,26 @@ rewrite Rplus_opp_r.
 apply Rle_refl.
 Qed.
 
+Lemma Rsqr_ge_0: forall (r: R), (0 <= (r)^2)%R.
+Proof.
+intros.
+rewrite pow2_equiv_Rsqr.
+destruct (Req_dec r 0).
+rewrite H. unfold Rsqr. lra.
+apply Rlt_le.
+apply Rsqr_pos_lt.
+assumption.
+Qed.
+
+Lemma sum_squares_pos: forall (a b : R), 
+(0 <= a^2 + b^2)%R.
+Proof.
+intros.
+rewrite <- Rplus_0_l with (r:= 0%R).
+apply Rplus_le_compat.
+all: apply Rsqr_ge_0.
+Qed.
+
 
 Lemma Complex_sqrt_adj_mult: forall (x: C), 
 let norm := Cmod x in
@@ -396,16 +417,6 @@ destruct (Req_EM_T (snd x) 0).
   apply c_proj_eq.
   {
     simpl.
-    assert (Rsqr_ge_0: forall (r: R), (0 <= (r)^2)%R).
-    {
-      intros.
-      rewrite pow2_equiv_Rsqr.
-      destruct (Req_dec r 0).
-      rewrite H. unfold Rsqr. lra.
-      apply Rlt_le.
-      apply Rsqr_pos_lt.
-      assumption.
-    }
     rewrite sqrt_sqrt.
     rewrite <- Ropp_mult_distr_l.
     unfold Rminus.
@@ -443,10 +454,10 @@ destruct (Req_EM_T (snd x) 0).
     apply Rabs_plus_le.
     all: apply sqrt_le_1.
     1,4: apply Rsqr_ge_0.
-    1,3: rewrite <- Rplus_0_l with (r:= 0%R).
-    3,4: rewrite <- Rplus_0_r with (r:= (fst x ^ 2)%R) at 1.
+    1,3: apply sum_squares_pos.
+    all: rewrite <- Rplus_0_r with (r:= (fst x ^ 2)%R) at 1.
     all: apply Rplus_le_compat.
-    1,2,3,4,6,8: apply Rsqr_ge_0.
+    2,4: apply Rsqr_ge_0.
     all: apply Rle_refl.
   }
   {
@@ -456,62 +467,124 @@ destruct (Req_EM_T (snd x) 0).
 }
 Qed.
 
-Lemma eigenvectors_are_orthogonal: forall (A : Square 2), 
-match get_eigenpairs A with 
-| ((v1, _), (v2, _)) => ⟨ v1 , v2 ⟩ = 0
-end.
+Definition WF_Hermitian {n} (A : Square n) := WF_Matrix A /\ A = A†.
+
+Lemma gram_matrix_hermitian_2: forall (A : Square 2), 
+WF_Matrix A -> WF_Hermitian (A† × A).
 Proof.
 intros.
-simpl.
-rewrite vector2_inner_prod_decomp. 2: apply WF_fst_eigenvector. 2: apply WF_snd_eigenvector.
-set (a := A 0%nat 0%nat).
-set (b := A 0%nat 1%nat).
-set (c := A 1%nat 0%nat).
-set (d := A 1%nat 1%nat).
-Csimpl.
-set (sqrt_term := (a + d) * (a + d) - 4 * (a * d - b * c)).
-set (s := Complex_sqrt sqrt_term).
-rewrite Cconj_minus_distr.
-rewrite Cconj_half_distr.
-rewrite Cconj_plus_distr.
-rewrite Cconj_plus_distr.
-rewrite Cmult_minus_distr_l.
-repeat rewrite Cmult_minus_distr_r.
-repeat rewrite Cmult_plus_distr_l.
-rewrite half_half_mult.
-rewrite half_mult_l. 
-rewrite half_mult_r.
-apply Cmult_cancel_r with (a:=RtoC 4). apply four_neq_0.
-rewrite Cmult_0_l.
-rewrite Cmult_plus_distr_r.
-rewrite Cmult_minus_distr_r.
-rewrite Cmult_minus_distr_r.
-rewrite Cmult_minus_distr_r.
-rewrite quarter_mult_4_r.
-rewrite half_mult_4_r. rewrite half_mult_4_r.
-repeat rewrite Cmult_minus_distr_l.
-repeat rewrite Cmult_plus_distr_r.
-repeat rewrite Cmult_plus_distr_l.
-repeat rewrite Cmult_minus_distr_r.
-repeat rewrite Cmult_plus_distr_r.
-set (aa := a ^* * a).
-set (ad := a ^* * d).
-set (da := d ^* * a).
-set (dd := d ^* * d).
-set (sa := s ^* * a).
-set (sd := s ^* * d).
-set (as_ := a ^* * s).
-set (ds := d ^* * s).
-set (ss := s ^* * s).
-set (cc := c ^* * c).
-replace (aa + ad + (da + dd) + (sa + sd) - (as_ + ds + ss) -
-(da * C2 + dd * C2 - ds * C2) - (ad * C2 + dd * C2 + sd * C2 - dd * 4) +
-cc * 4) with ((aa) - (ad + da) + (dd) + (sa - as_) - (sd - ds) - (ss) +
-cc * 4) by lca.
-replace (da) with (ad ^*) by lca.
-rewrite add_conj.
-replace (ds) with (sd ^*) by lca.
-rewrite sub_conj.
-replace (as_) with (sa ^*) by lca.
-rewrite sub_conj.
-Admitted.
+unfold WF_Hermitian.
+split. solve_WF_matrix.
+lma'.
+Qed.
+
+Definition WF_PSD {n} (A : Square n) := WF_Hermitian A /\ forall (x: Vector 2), WF_Matrix x -> 0 <= fst (⟨ A × x, x ⟩) /\ 0 = snd (⟨ A × x, x ⟩).
+
+Lemma gram_matrix_psd_2: forall (A: Square 2), 
+WF_Matrix A -> WF_PSD (A† × A).
+Proof.
+intros.
+unfold WF_PSD.
+split. apply gram_matrix_hermitian_2. assumption.
+intros.
+unfold inner_product.
+rewrite Mmult_adjoint. rewrite Mmult_adjoint.
+rewrite adjoint_involutive.
+replace ((x) † × ((A) † × A) × x) with ((A × x) † × (A × x)) by lma'.
+replace ((((A × x) † × (A × x)) 0%nat 0%nat)) with (⟨A × x, A × x⟩) by lca.
+split. apply inner_product_ge_0. symmetry. apply norm_real.
+Qed.
+
+Lemma mult_adjoint_hermitian_2: forall (A : Square 2),
+WF_Matrix A -> WF_Hermitian (A × A†).
+Proof.
+intros.
+unfold WF_Hermitian.
+split. solve_WF_matrix.
+lma'.
+Qed.
+
+Lemma mult_adjoint_psd_2: forall (A : Square 2),
+WF_Matrix A -> WF_PSD (A × A†).
+intros.
+unfold WF_PSD.
+split. apply mult_adjoint_hermitian_2. assumption.
+intros.
+unfold inner_product.
+rewrite Mmult_adjoint. rewrite Mmult_adjoint.
+rewrite adjoint_involutive.
+replace ((x) † × (A × (A) †) × x) with ((A† × x) † × (A† × x)) by lma'.
+replace (((A† × x) † × (A† × x)) 0%nat 0%nat) with (⟨A† × x, A† × x⟩) by lca.
+split. apply inner_product_ge_0. symmetry. apply norm_real.
+Qed.
+
+Lemma hermitian_inner_prod {n}: forall (A: Square n) (u v: Vector n), 
+WF_Hermitian A -> ⟨ A × u, v ⟩ = ⟨ u, A × v ⟩.
+Proof.
+intros.
+unfold inner_product.
+rewrite Mmult_adjoint.
+destruct H. rewrite <- H0.
+rewrite <- Mmult_assoc.
+reflexivity.
+Qed.
+
+Lemma psd_implies_nonneg_eigenvalues: forall (A: Square 2), 
+WF_PSD A -> forall (v : Vector 2) (lambda : C), WF_Matrix v -> v <> Zero ->  
+Eigenpair A (v, lambda) -> 0 <= fst lambda /\ 0 = snd lambda.
+intros A PSD v lambda WF_v nonzero_v eigenpair_v_lambda.
+destruct PSD as [a_hermitian psd_prop].
+specialize (psd_prop v).
+rewrite hermitian_inner_prod in psd_prop. 2: assumption.
+revert eigenpair_v_lambda.
+unfold Eigenpair. simpl.
+intro eigenpair_v_lambda.
+rewrite eigenpair_v_lambda in psd_prop.
+rewrite inner_product_scale_r in psd_prop.
+set (vv:= ⟨ v, v ⟩).
+fold vv in psd_prop.
+assert (psd_spec: 0%R <= fst (lambda * vv) /\ 0%R = snd (lambda * vv)).
+{
+  apply psd_prop. apply WF_v.
+}
+revert psd_spec.
+unfold Cmult.
+replace (fst ((fst lambda * fst vv - snd lambda * snd vv)%R,
+(fst lambda * snd vv + snd lambda * fst vv)%R)) with (fst lambda * fst vv - snd lambda * snd vv)%R by (simpl; reflexivity).
+replace (snd
+((fst lambda * fst vv - snd lambda * snd vv)%R,
+(fst lambda * snd vv + snd lambda * fst vv)%R)) with (fst lambda * snd vv + snd lambda * fst vv)%R by (simpl; reflexivity).
+replace (snd vv) with (0) by (symmetry; unfold vv; apply norm_real).
+rewrite Rmult_0_r. rewrite Rmult_0_r.
+rewrite Rminus_0_r. rewrite Rplus_0_l.
+intro psd_spec.
+destruct psd_spec as [psd_fst psd_snd].
+assert (inner_gt_0: 0 < fst vv).
+{
+  assert (ge_0 := inner_product_ge_0 v).
+  apply Rle_lt_or_eq_dec in ge_0.
+  destruct ge_0.
+  assumption.
+  contradict nonzero_v.
+  apply inner_product_zero_iff_zero. assumption.
+  apply c_proj_eq.
+  rewrite <- e.
+  simpl. reflexivity.
+  rewrite norm_real.
+  simpl. reflexivity.
+}
+split.
+{
+  apply Rmult_le_reg_l with (r := fst vv).
+  assumption.
+  rewrite Rmult_0_r. rewrite Rmult_comm.
+  assumption.
+}
+{
+  apply (f_equal (fun f => (f * /(fst vv))%R)) in psd_snd.
+  rewrite Rmult_assoc in psd_snd.
+  rewrite Rinv_r in psd_snd. 2: apply Rgt_not_eq. 2: apply Rlt_gt. 2: assumption.
+  rewrite Rmult_0_l in psd_snd. rewrite Rmult_1_r in psd_snd.
+  assumption. 
+}
+Qed.
