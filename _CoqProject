@@ -1,14 +1,17 @@
 -Q . Proof
-# VQC files from Robert Rand's Library
-Complex.v
-Matrix.v
-Multiqubit.v
-Qubit.v
-Real.v
-SQIR.v
-# Definitions taken from YT Jeong
-Definitions.v
-Assumptions.v
-Permutation.v
+# Helper Lemmas and Definitions
+MatrixHelpers.v
+PartialTraceDefinitions.v
+AlgebraHelpers.v
+SwapHelpers.v
+GateHelpers.v
+SwapProperty.v
+QubitHelpers.v
+ExplicitDecompositions.v
+
 # Appendix of proof
 SquareMatrices.v
+UnitaryMatrices.v
+Swaps.v
+Vectors.v
+ControlledUnitaries.v
