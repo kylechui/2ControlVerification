@@ -1141,18 +1141,18 @@ Proof.
   intros.
   split; unfold Eigenpair; simpl.
   {
-    unfold diag2, Mmult, scale, qubit0; simpl.
-    prep_matrix_equality.
-    destruct x.
-    - destruct y; lca.
-    - destruct x; destruct y; lca.
+    lma'.
+    solve_WF_matrix.
+    apply WF_diag2.
+    unfold Mmult, scale, diag2, qubit0; simpl.
+    lca.
   }
   {
-    unfold diag2, Mmult, scale, qubit1; simpl.
-    prep_matrix_equality.
-    destruct x.
-    - destruct y; lca.
-    - destruct x; destruct y; lca.
+    lma'.
+    solve_WF_matrix.
+    apply WF_diag2.
+    unfold Mmult, scale, diag2, qubit1; simpl.
+    lca.
   }
 Qed.
 
