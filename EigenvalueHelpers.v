@@ -623,56 +623,6 @@ split.
 }
 Qed.
 
-
-Lemma cneq_implies_sub_neq: forall (a b : C), 
-a <> b -> a - b <> 0.
-Proof.
-intros.
-unfold not. 
-intro. 
-apply H.
-apply (f_equal (fun f => f + b)) in H0.
-rewrite Cplus_0_l in H0.
-rewrite <- H0.
-lca.
-Qed.
-
-Lemma Cmult_0_cancel_l: forall (a b : C), 
-a <> 0 -> a * b = 0 -> b = 0.
-Proof.
-intros.
-apply (f_equal (fun f => /a * f)) in H0.
-rewrite Cmult_0_r in H0.
-rewrite Cmult_assoc in H0.
-rewrite Cinv_l in H0. rewrite Cmult_1_l in H0. 
-all: assumption.
-Qed.
-
-Lemma Ceq_impl_minus_0: forall (a b: C),
-a = b -> a - b = 0. 
-Proof.
-intros.
-rewrite H. 
-lca.
-Qed. 
-
-Lemma Ceq_opp_implies_0: forall (a : C), 
-a = -a -> a = 0.
-Proof.
-intros.
-apply (f_equal (fun f => f + a)) in H.
-revert H.
-replace (a + a) with (2 * a) by lca.
-replace (-a + a) with (C0) by lca.
-intro H.
-apply (f_equal (fun f => /C2 * f)) in H.
-rewrite Cmult_0_r in H.
-rewrite Cmult_assoc in H.
-rewrite Cinv_l in H. 2: apply rtoc_neq_decomp. 2: lra.
-rewrite Cmult_1_l in H.
-assumption.
-Qed.
-
 Lemma hermitian_implies_orthogonal_eigenvectors {n}: forall (A: Square n), 
 WF_Hermitian A -> forall (v1 v2: Vector n) (l1 l2: C), 
 WF_Matrix v1 -> WF_Matrix v2 -> v1 <> Zero -> 
