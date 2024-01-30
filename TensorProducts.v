@@ -828,11 +828,39 @@ destruct (Ceq_dec b1 C0).
 }
 Qed.
 
+Lemma unitary_n0_tensor_yields_n0_components: forall (U: Square 4) (a: Vector 4) (b c: Vector 2), 
+WF_Unitary U -> WF_Matrix a -> WF_Matrix b -> WF_Matrix c -> 
+U × a = b ⊗ c -> a <> Zero -> b <> Zero /\ c <> Zero.
+Proof.
+intros U a b c U_unitary WF_a WF_b WF_c tens an0.
+rewrite <- inner_product_zero_iff_zero in an0. 2: assumption.
+rewrite unitary_preserves_inner_prod with (U := U) in an0. 2,3: assumption.
+rewrite tens in an0.
+assert (kip_help: ⟨ b ⊗ c, b ⊗ c ⟩ = ⟨ b, b ⟩ * ⟨ c, c ⟩). apply kron_inner_prod.
+rewrite kip_help in an0 at 1.
+split.
+{
+    unfold not.
+    intro. 
+    apply an0.
+    rewrite <- inner_product_zero_iff_zero in H. 2: assumption.
+    rewrite H.
+    apply Cmult_0_l.
+}
+{
+    unfold not.
+    intro. 
+    apply an0.
+    rewrite <- inner_product_zero_iff_zero in H. 2: assumption.
+    rewrite H.
+    apply Cmult_0_r.
+}
+Qed.
 
 Lemma a23: forall (U : Square 4), WF_Unitary U -> (forall (x : Vector 2), TensorProd (U × (x ⊗ ∣0⟩))) ->
-(exists (psi: Vector 2), forall (x: Vector 2), exists (z: Vector 2), U × (x ⊗ ∣0⟩) = z ⊗ psi
+(exists (psi: Vector 2), forall (x: Vector 2), WF_Matrix x ->  exists (z: Vector 2), U × (x ⊗ ∣0⟩) = z ⊗ psi)
 \/
-exists (psi: Vector 2), forall (x: Vector 2), exists (z: Vector 2), U × (x ⊗ ∣0⟩) = psi ⊗ z).
+(exists (psi: Vector 2), forall (x: Vector 2), WF_Matrix x -> exists (z: Vector 2), U × (x ⊗ ∣0⟩) = psi ⊗ z).
 Proof. 
 intros U U_unitary tensorProp.
 assert (ts0 : TensorProd (U × (∣0⟩ ⊗ ∣0⟩))). apply tensorProp.
@@ -842,6 +870,18 @@ unfold TensorProd in ts0, ts1, tsP.
 assert (WF_Matrix (U × (∣0⟩ ⊗ ∣0⟩))). solve_WF_matrix. apply U_unitary.
 apply ts0 in H. clear ts0.
 destruct H as [a0 [b0 [WF_a0 [WF_b0 a0b0_def]]]].
+assert (a0 <> Zero /\ b0 <> Zero).
+{
+    apply unitary_n0_tensor_yields_n0_components with (U:= U) (a := ∣0⟩ ⊗ ∣0⟩).
+    1,2,3,4,5: solve_WF_matrix.
+    rewrite nonzero_def.
+    exists 0%nat, 0%nat.
+    unfold qubit0, kron.
+    simpl.
+    rewrite Cmult_1_r.
+    apply C1_neq_C0.   
+}
+destruct H as [a0n0 b0n0].
 assert (WF_Matrix (U × (∣1⟩ ⊗ ∣0⟩))). solve_WF_matrix. apply U_unitary.
 apply ts1 in H. clear ts1.
 destruct H as [a1 [b1 [WF_a1 [WF_b1 a1b1_def]]]].
@@ -888,5 +928,54 @@ assert (casework: (⟨ b0_orth, bp ⟩ = C0) /\ (/(sqrt 2) * ⟨ b0_orth, b1 ⟩
 {
     apply scale_eq_implies_0l_or_ldep.
     all: assumption.
+}
+destruct casework as [blindep|alindep].
+{
+    destruct blindep as [bpb0orth b1b0orth].
+    apply (f_equal (fun f => √ 2 * f)) in b1b0orth.
+    rewrite Cmult_0_r in b1b0orth.
+    rewrite Cmult_assoc in b1b0orth.
+    rewrite Cinv_r in b1b0orth. 2: apply Csqrt2_neq_0.
+    rewrite Cmult_1_l in b1b0orth.
+    assert (blindep: linearly_dependent_2vec b0 b1).
+    {
+        rewrite inner_prod_0_comm in b0_is_orth, b1b0orth.
+        apply both_orth_implies_lin_dep2 with (b:= b0_orth).
+        1,2,3,5,6,7,8,9,10: assumption.
+        unfold not. 
+        intro.
+        apply b0n0.
+        rewrite <- b0_orth_zero_cond.
+        assumption.
+    }
+    rewrite lin_dep_def_alt in blindep. 2,3: assumption.
+    destruct blindep as [b00 | proportional].
+    {
+        contradict b0n0. assumption.   
+    }
+    {
+        destruct proportional as [c lindepeq].
+        left.
+        exists b0.
+        intros x WF_x.
+        exists (x 0%nat 0%nat .* a0 .+ x 1%nat 0%nat .* (c .* a1)).
+        rewrite qubit_decomposition1 with (phi:= x) at 1. 2: assumption.
+        rewrite kron_plus_distr_r.
+        rewrite Mmult_plus_distr_l.
+        do 2 rewrite Mscale_kron_dist_l.
+        do 2 rewrite Mscale_mult_dist_r.
+        assert (def_help: (U × (∣0⟩ ⊗ ∣0⟩)) = a0 ⊗ b0). apply a0b0_def.
+        rewrite def_help at 1. clear def_help.
+        assert (def_help: (U × (∣1⟩ ⊗ ∣0⟩)) = a1 ⊗ b1). apply a1b1_def.
+        rewrite def_help at 1. clear def_help.
+        rewrite <- lindepeq.
+        rewrite Mscale_kron_dist_r.
+        rewrite <- Mscale_kron_dist_l.
+        rewrite kron_plus_distr_r.
+        replace (x 0%nat 0%nat .* a0 ⊗ b0) with (x 0%nat 0%nat .* (a0 ⊗ b0)). 2: symmetry. 2: apply Mscale_kron_dist_l.
+        replace (x 1%nat 0%nat .* (c .* a1) ⊗ b0) with (x 1%nat 0%nat .* (c .* a1 ⊗ b0)).
+        reflexivity.
+        lma'.
+    }
 }
 Admitted.
