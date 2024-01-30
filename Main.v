@@ -8,10 +8,757 @@ Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
 Require Import QuantumLib.Matrix.
 
-(* Lemma 3_2 : forall (u0 u1 : C),
+Lemma 3_2 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
-  exists (P Q : Square 2),
-    WF_Unitary P -> WF_Unitary Q -> *)
+  (exists (P Q : Square 2) (a b p q : C) (v1 v2 v3 v4 : Vector 2),
+    WF_Unitary P /\ WF_Unitary Q /\
+    WF_Matrix v1 /\ WF_Matrix v2 /\ WF_Matrix v3 /\ WF_Matrix v4 /\
+    Eigenpair P (v1, a) /\ Eigenpair P (v2, b) /\
+    Eigenpair Q (v3, p) /\ Eigenpair Q (v4, q) /\
+      (Eigenpair (P ⊗ Q) (v1 ⊗ v3, C1) /\
+      Eigenpair (P ⊗ Q) (v1 ⊗ v4, C1) /\
+      Eigenpair (P ⊗ Q) (v2 ⊗ v3, u0) /\
+      Eigenpair (P ⊗ Q) (v2 ⊗ v4, u1) \/
+      Eigenpair (P ⊗ Q) (v1 ⊗ v3, C1) /\
+      Eigenpair (P ⊗ Q) (v1 ⊗ v4, u1) /\
+      Eigenpair (P ⊗ Q) (v2 ⊗ v3, u0) /\
+      Eigenpair (P ⊗ Q) (v2 ⊗ v4, C1)))
+  <-> u0 = u1 \/ u0 * u1 = C1.
+Proof.
+  intros u0 u1 unit_u0 unit_u1.
+  split.
+  {
+    intro.
+    destruct H as [P [Q [a [b [p [q [v1 [v2 [v3 [v4 H]]]]]]]]]].
+    destruct H as [Unitary_P [Unitary_Q [wf_v1 [wf_v2 [wf_v3 [wf_v4 H]]]]]].
+    assert (WF_P : WF_Matrix P).
+    {
+      destruct Unitary_P.
+      assumption.
+    }
+    assert (WF_Q : WF_Matrix Q).
+    {
+      destruct Unitary_Q.
+      assumption.
+    }
+    destruct H as [epair1 [epair2 [epair3 [epair4 H]]]].
+    destruct H.
+    {
+      destruct H as [epair5 [epair6 [epair7 epair8]]].
+      assert (help1 : a * p = C1).
+      {
+        pose proof (
+          a5_left v1 v3 a p
+          P Q
+          wf_v1 wf_v3
+          Unitary_P Unitary_Q
+          epair1
+          epair3
+        ) as H.
+        unfold Eigenpair in epair5, H; simpl in epair5, H.
+        rewrite epair5 in H.
+        (* TODO: Need to somehow cancel tensor product (via non-zero?) *)
+        admit.
+      }
+      assert (help2 : a * q = C1).
+      {
+        pose proof (
+          a5_left v1 v4 a q
+          P Q
+          wf_v1 wf_v4
+          Unitary_P Unitary_Q
+          epair1
+          epair4
+        ) as H.
+        unfold Eigenpair in epair6, H; simpl in epair6, H.
+        rewrite epair6 in H.
+        (* TODO: Need to somehow cancel tensor product (via non-zero?) *)
+        admit.
+      }
+      assert (help3 : b * p = u0).
+      {
+        pose proof (
+          a5_left v2 v3 b p
+          P Q
+          wf_v2 wf_v3
+          Unitary_P Unitary_Q
+          epair2
+          epair3
+        ) as H.
+        unfold Eigenpair in epair7, H; simpl in epair7, H.
+        rewrite epair7 in H.
+        (* TODO: Need to somehow cancel tensor product (via non-zero?) *)
+        admit.
+      }
+      assert (help4 : b * q = u1).
+      {
+        pose proof (
+          a5_left v2 v4 b q
+          P Q
+          wf_v2 wf_v4
+          Unitary_P Unitary_Q
+          epair2
+          epair4
+        ) as H.
+        unfold Eigenpair in epair8, H; simpl in epair8, H.
+        rewrite epair8 in H.
+        (* TODO: Need to somehow cancel tensor product (via non-zero?) *)
+        admit.
+      }
+      left.
+      rewrite <- help3, <- help4.
+      rewrite <- Cmult_1_l with (x := b).
+      rewrite <- help2 at 1.
+      rewrite <- help1 at 1.
+      lca.
+    }
+    {
+      destruct H as [epair5 [epair6 [epair7 epair8]]].
+      assert (help1 : a * p = C1).
+      {
+        pose proof (
+          a5_left v1 v3 a p
+          P Q
+          wf_v1 wf_v3
+          Unitary_P Unitary_Q
+          epair1
+          epair3
+        ) as H.
+        unfold Eigenpair in epair5, H; simpl in epair5, H.
+        rewrite epair5 in H.
+        (* TODO: Need to somehow cancel tensor product (via non-zero?) *)
+        admit.
+      }
+      assert (help2 : a * q = u1).
+      {
+        pose proof (
+          a5_left v1 v4 a q
+          P Q
+          wf_v1 wf_v4
+          Unitary_P Unitary_Q
+          epair1
+          epair4
+        ) as H.
+        unfold Eigenpair in epair6, H; simpl in epair6, H.
+        rewrite epair6 in H.
+        (* TODO: Need to somehow cancel tensor product (via non-zero?) *)
+        admit.
+      }
+      assert (help3 : b * p = u0).
+      {
+        pose proof (
+          a5_left v2 v3 b p
+          P Q
+          wf_v2 wf_v3
+          Unitary_P Unitary_Q
+          epair2
+          epair3
+        ) as H.
+        unfold Eigenpair in epair7, H; simpl in epair7, H.
+        rewrite epair7 in H.
+        (* TODO: Need to somehow cancel tensor product (via non-zero?) *)
+        admit.
+      }
+      assert (help4 : b * q = C1).
+      {
+        pose proof (
+          a5_left v2 v4 b q
+          P Q
+          wf_v2 wf_v4
+          Unitary_P Unitary_Q
+          epair2
+          epair4
+        ) as H.
+        unfold Eigenpair in epair8, H; simpl in epair8, H.
+        rewrite epair8 in H.
+        (* TODO: Need to somehow cancel tensor product (via non-zero?) *)
+        admit.
+      }
+      right.
+      rewrite <- help2, <- help3.
+      rewrite <- Cmult_1_l with (x := C1).
+      rewrite <- help1 at 1.
+      rewrite <- help4 at 1.
+      lca.
+    }
+  }
+  {
+    intros.
+    destruct H.
+    {
+      exists (diag2 1 u1), (I 2).
+      exists C1, u1, C1, C1.
+      exists ∣0⟩, ∣1⟩, ∣0⟩, ∣1⟩.
+      split.
+      {
+        unfold WF_Unitary.
+        split.
+        {
+          apply WF_diag2.
+        }
+        {
+          solve_matrix.
+          unfold diag2; simpl.
+          rewrite <- Cmod_sqr.
+          rewrite unit_u1.
+          lca.
+        }
+      }
+      split.
+      {
+        apply id_unitary.
+      }
+      split.
+      {
+        apply WF_qubit0.
+      }
+      split.
+      {
+        apply WF_qubit1.
+      }
+      split.
+      {
+        apply WF_qubit0.
+      }
+      split.
+      {
+        apply WF_qubit1.
+      }
+      split.
+      {
+        apply diag2_eigenpairs.
+      }
+      split.
+      {
+        apply diag2_eigenpairs.
+      }
+      split.
+      {
+        apply id2_eigenpairs.
+      }
+      split.
+      {
+        apply id2_eigenpairs.
+      }
+      left.
+      split.
+      {
+        lma'.
+        solve_WF_matrix.
+        apply WF_diag2.
+        solve_WF_matrix.
+      }
+      split.
+      {
+        lma'.
+        solve_WF_matrix.
+        apply WF_diag2.
+        solve_WF_matrix.
+      }
+      split.
+      {
+        lma'.
+        solve_WF_matrix.
+        apply WF_diag2.
+        solve_WF_matrix.
+        rewrite H.
+        unfold scale, Mmult, kron, diag2, I, qubit0, qubit1; simpl.
+        lca.
+      }
+      {
+        lma'.
+        solve_WF_matrix.
+        apply WF_diag2.
+        solve_WF_matrix.
+        unfold scale, Mmult, kron, diag2, I, qubit0, qubit1; simpl.
+        lca.
+      }
+    }
+    {
+      exists (diag2 1 u0), (diag2 1 u1).
+      exists C1, u0, C1, u1.
+      exists ∣0⟩, ∣1⟩, ∣0⟩, ∣1⟩.
+      split.
+      {
+        unfold WF_Unitary.
+        split.
+        {
+          apply WF_diag2.
+        }
+        {
+          solve_matrix.
+          unfold diag2; simpl.
+          rewrite <- Cmod_sqr.
+          rewrite unit_u0.
+          lca.
+        }
+      }
+      split.
+      {
+        unfold WF_Unitary.
+        split.
+        {
+          apply WF_diag2.
+        }
+        {
+          solve_matrix.
+          unfold diag2; simpl.
+          rewrite <- Cmod_sqr.
+          rewrite unit_u1.
+          lca.
+        }
+      }
+      split.
+      {
+        apply WF_qubit0.
+      }
+      split.
+      {
+        apply WF_qubit1.
+      }
+      split.
+      {
+        apply WF_qubit0.
+      }
+      split.
+      {
+        apply WF_qubit1.
+      }
+      split.
+      {
+        apply diag2_eigenpairs.
+      }
+      split.
+      {
+        apply diag2_eigenpairs.
+      }
+      split.
+      {
+        apply diag2_eigenpairs.
+      }
+      split.
+      {
+        apply diag2_eigenpairs.
+      }
+      right.
+      split.
+      {
+        lma'.
+        solve_WF_matrix.
+        apply WF_diag2.
+        apply WF_diag2.
+        solve_WF_matrix.
+      }
+      split.
+      {
+        lma'.
+        solve_WF_matrix.
+        apply WF_diag2.
+        apply WF_diag2.
+        solve_WF_matrix.
+        unfold scale, Mmult, kron, diag2, I, qubit0, qubit1; simpl.
+        lca.
+      }
+      split.
+      {
+        lma'.
+        solve_WF_matrix.
+        apply WF_diag2.
+        apply WF_diag2.
+        solve_WF_matrix.
+        unfold scale, Mmult, kron, diag2, I, qubit0, qubit1; simpl.
+        lca.
+      }
+      {
+        lma'.
+        solve_WF_matrix.
+        apply WF_diag2.
+        apply WF_diag2.
+        solve_WF_matrix.
+        unfold scale, Mmult, kron, diag2, I, qubit0, qubit1; simpl.
+        rewrite H.
+        lca.
+      }
+    }
+  }
+Admitted.
+
+
+(* Giga-scuffed garbage, left here for posterity *)
+(* Lemma m3_2 : forall (u0 u1 : C),
+  Cmod u0 = 1 -> Cmod u1 = 1 ->
+  (exists (P Q : Square 2),
+    let (epair_p1, epair_p2) := get_eigenpairs P in
+    let (epair_q1, epair_q2) := get_eigenpairs Q in
+    WF_Unitary P /\ WF_Unitary Q /\
+    Eigenpair (P ⊗ Q) (fst epair_p1 ⊗ fst epair_q1, C1) /\
+    Eigenpair (P ⊗ Q) (fst epair_p1 ⊗ fst epair_q2, C1) /\
+    Eigenpair (P ⊗ Q) (fst epair_p2 ⊗ fst epair_q1, u0) /\
+    Eigenpair (P ⊗ Q) (fst epair_p2 ⊗ fst epair_q2, u1))
+  <-> u0 = u1 \/ u0 * u1 = C1.
+Proof.
+  intros.
+  split.
+  - intro.
+    destruct H1 as [P [Q [Unitary_P [Unitary_Q [epair1 [epair2 [epair3 epair4]]]]]]].
+    assert (WF_P : WF_Matrix P).
+    {
+      destruct Unitary_P.
+      assumption.
+    }
+    assert (WF_Q : WF_Matrix Q).
+    {
+      destruct Unitary_Q.
+      assumption.
+    }
+    pose (epairs_p := eigenpairs_are_eigenpairs P WF_P).
+    pose (epairs_q := eigenpairs_are_eigenpairs Q WF_Q).
+    pose (pairs_p := get_eigenpairs P).
+    pose (pairs_q := get_eigenpairs Q).
+    destruct epairs_p as [epair_p1 epair_p2].
+    destruct epairs_q as [epair_q1 epair_q2].
+    assert (wf1 : WF_Matrix (fst (fst pairs_p))) by admit.
+    assert (wf2 : WF_Matrix (fst (fst pairs_q))) by admit.
+    pose proof (
+      a5_left
+      (fst (fst pairs_p))
+      (fst (fst pairs_q))
+      (snd (fst pairs_p))
+      (snd (fst pairs_q))
+      P Q
+      wf1 wf2
+      Unitary_P Unitary_Q
+      epair_p1
+      epair_q1
+    ) as bruh.
+    clear epair2 epair3 epair4.
+
+
+
+
+    admit.
+  - intros.
+    destruct H1.
+    {
+      exists (diag2 C1 u1).
+      exists (I 2).
+      split.
+      {
+        apply Unitary_diag2; auto.
+        apply Cmod_1.
+      }
+      split.
+      {
+        apply id_unitary.
+      }
+      split.
+      {
+        rewrite <- Cmult_1_l with (x := C1) at 10.
+        apply a5_left.
+        {
+          unfold WF_Matrix.
+          intros.
+          destruct H2.
+          destruct x.
+          - lia.
+          - destruct x.
+            + lia.
+            + destruct x; reflexivity.
+          - destruct y.
+            + lia.
+            + simpl.
+              destruct x.
+              * reflexivity.
+              * destruct x; reflexivity.
+        }
+        {
+          unfold WF_Matrix, I; simpl.
+          intros.
+          destruct H2.
+          destruct x.
+          - lia.
+          - destruct x.
+            + lia.
+            + reflexivity.
+          - destruct y.
+            + lia.
+            + simpl.
+              destruct x.
+              * reflexivity.
+              * destruct x; reflexivity.
+        }
+        {
+          apply Unitary_diag2; auto.
+          apply Cmod_1.
+        }
+        {
+          apply id_unitary.
+        }
+        {
+          unfold diag2; simpl; Csimpl.
+          unfold Eigenpair, Mmult, scale; simpl.
+          prep_matrix_equality.
+          destruct y; Csimpl.
+          destruct x; Csimpl.
+          reflexivity.
+          destruct x; lca.
+          destruct x.
+          reflexivity.
+          destruct x; reflexivity.
+        }
+        {
+          unfold diag2; simpl; Csimpl.
+          unfold Eigenpair, Mmult, scale; simpl.
+          prep_matrix_equality.
+          destruct y; Csimpl.
+          destruct x; Csimpl.
+          reflexivity.
+          destruct x; lca.
+          destruct x.
+          reflexivity.
+          destruct x; reflexivity.
+        }
+      }
+      split.
+      {
+        rewrite <- Cmult_1_l with (x := C1) at 10.
+        apply a5_left; try solve_wf.
+        {
+          unfold WF_Matrix, diag2; simpl; Csimpl.
+          intros.
+          destruct H2.
+          {
+            destruct x.
+            - lia.
+            - destruct x.
+              + lia.
+              + destruct x; reflexivity.
+          }
+          {
+            destruct y.
+            - lia.
+            - simpl.
+              destruct x.
+              + reflexivity.
+              + destruct x; reflexivity.
+          }
+        }
+        {
+          unfold WF_Matrix, I; simpl; Csimpl.
+          intros.
+          destruct H2.
+          {
+            destruct x.
+            - lia.
+            - destruct x.
+              + lia.
+              + reflexivity.
+          }
+          {
+            destruct y.
+            - lia.
+            - simpl.
+              destruct x.
+              + reflexivity.
+              + destruct x; reflexivity.
+          }
+        }
+        {
+          apply Unitary_diag2.
+          exact Cmod_1.
+          exact H0.
+        }
+        {
+          apply id_unitary.
+        }
+        {
+          unfold diag2; simpl; Csimpl.
+          unfold Eigenpair, Mmult, scale; simpl.
+          prep_matrix_equality.
+          destruct y; Csimpl.
+          destruct x; Csimpl.
+          reflexivity.
+          destruct x; lca.
+          destruct x.
+          reflexivity.
+          destruct x; reflexivity.
+        }
+        {
+          unfold diag2; simpl; Csimpl.
+          unfold Eigenpair, Mmult, scale; simpl.
+          prep_matrix_equality.
+          destruct y; Csimpl.
+          destruct x; Csimpl.
+          reflexivity.
+          destruct x; lca.
+          destruct x.
+          reflexivity.
+          destruct x; reflexivity.
+        }
+      }
+      split.
+      {
+        (* Eigenpair (diag2 C1 u1 ⊗ I 2) (fst epair_p2 ⊗ fst epair_q1, u0) *)
+        rewrite <- Cmult_1_r with (x := u0).
+        rewrite H1.
+        apply a5_left; try solve_wf.
+        {
+          unfold WF_Matrix, diag2; simpl.
+          intros.
+          destruct H2.
+          {
+            destruct x.
+            - lia.
+            - destruct x.
+              + lia.
+              + destruct x; reflexivity.
+          }
+          {
+            destruct y.
+            - lia.
+            - simpl.
+              destruct x.
+              + reflexivity.
+              + destruct x; reflexivity.
+          }
+        }
+        {
+          unfold WF_Matrix, I; simpl.
+          intros.
+          destruct H2.
+          {
+            destruct x.
+            - lia.
+            - destruct x.
+              + lia.
+              + reflexivity.
+          }
+          {
+            destruct y.
+            - lia.
+            - simpl.
+              destruct x.
+              + reflexivity.
+              + destruct x; reflexivity.
+          }
+        }
+        {
+          apply Unitary_diag2.
+          exact Cmod_1.
+          exact H0.
+        }
+        {
+          apply id_unitary.
+        }
+        {
+          unfold diag2; simpl; Csimpl.
+          unfold Eigenpair, Mmult, scale; simpl.
+          prep_matrix_equality.
+          destruct x; Csimpl.
+          destruct y; Csimpl; auto.
+          rewrite <- Cmult_1_l at 1.
+          apply Cmult_simplify; try reflexivity.
+
+
+
+          admit.
+        }
+        {
+          pose proof (diag2_eigenpairs C1 u1) as H2.
+          destruct H2.
+          unfold diag2; simpl; Csimpl.
+          unfold Eigenpair, Mmult, scale; simpl.
+          prep_matrix_equality.
+          destruct y; Csimpl.
+          destruct x; Csimpl.
+          reflexivity.
+          destruct x; lca.
+          destruct x.
+          reflexivity.
+          destruct x; reflexivity.
+        }
+      }
+      {
+        pose proof (diag2_eigenpairs C1 u1) as H2.
+        destruct H2.
+        unfold diag2; simpl; Csimpl.
+        unfold Eigenpair, Mmult, scale; simpl.
+        prep_matrix_equality.
+        admit.
+      }
+    }
+    {
+      exists (diag2 1 u0).
+      exists (diag2 1 u1).
+      split.
+      {
+        apply Unitary_diag2.
+        apply Cmod_1.
+        exact H.
+      }
+      split.
+      {
+        apply Unitary_diag2.
+        apply Cmod_1.
+        exact H0.
+      }
+      split.
+      {
+        rewrite <- Cmult_1_l with (x := C1) at 3.
+        apply a5_left; try solve_wf.
+        apply Unitary_diag2.
+        apply Cmod_1.
+        exact H.
+        apply Unitary_diag2.
+        apply Cmod_1.
+        exact H0.
+        apply diag2_eigenpairs.
+        apply diag2_eigenpairs.
+      }
+      split.
+      {
+        rewrite <- H1.
+        apply a5_left; try solve_wf.
+        apply Unitary_diag2.
+        rewrite H1.
+        apply Cmod_1.
+        exact H.
+        apply Unitary_diag2.
+        rewrite H1.
+        apply Cmod_1.
+        exact H0.
+        rewrite H1.
+        apply diag2_eigenpairs.
+        apply diag2_eigenpairs.
+      }
+      split.
+      {
+        rewrite <- Cmult_1_r with (x := u0) at 2.
+        apply a5_left; try solve_wf.
+        apply Unitary_diag2.
+        apply Cmod_1.
+        exact H.
+        apply Unitary_diag2.
+        apply Cmod_1.
+        exact H0.
+        apply diag2_eigenpairs.
+        apply diag2_eigenpairs.
+      }
+      {
+        rewrite <- Cmult_1_l with (x := u1) at 2.
+        apply a5_left; try solve_wf.
+        apply Unitary_diag2.
+        apply Cmod_1.
+        exact H.
+        apply Unitary_diag2.
+        apply Cmod_1.
+        exact H0.
+        apply diag2_eigenpairs.
+        apply diag2_eigenpairs.
+      }
+    }
+Admitted. *)
+
 
 Lemma m4_1 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
