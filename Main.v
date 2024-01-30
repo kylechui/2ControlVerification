@@ -8,7 +8,7 @@ Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
 Require Import QuantumLib.Matrix.
 
-Lemma 3_2 : forall (u0 u1 : C),
+Lemma m3_2 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
   (exists (P Q : Square 2) (a b p q : C) (v1 v2 v3 v4 : Vector 2),
     WF_Unitary P /\ WF_Unitary Q /\
