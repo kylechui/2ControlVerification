@@ -544,23 +544,9 @@ apply (f_equal (fun f => f * / (⟨ v, v ⟩))) in a_hermitian.
 do 2 rewrite <- Cmult_assoc in a_hermitian.
 rewrite Cinv_r in a_hermitian. 2: rewrite inner_product_zero_iff_zero. 2,3: assumption.
 do 2 rewrite Cmult_1_r in a_hermitian.
-apply complex_split in a_hermitian.
-destruct a_hermitian as [fst_her snd_her].
-unfold Cconj in snd_her. 
-revert snd_her.
-simpl.
-intro snd_her.
-apply (f_equal (fun f => (f + (snd lambda))%R)) in snd_her.
-revert snd_her.
-replace ((- snd lambda + snd lambda)%R) with (0%R) by lra.
-replace ((snd lambda + snd lambda)%R) with ((2 * snd lambda)%R) by lra.
-intro snd_her.
-apply (f_equal (fun f => (/2 * f)%R)) in snd_her.
-rewrite Rmult_0_r in snd_her.
-rewrite <- Rmult_assoc in snd_her.
-rewrite Rinv_l in snd_her. 2: lra.
-rewrite Rmult_1_l in snd_her.
-assumption.
+rewrite surjective_pairing in a_hermitian.
+apply pair_equal_spec in a_hermitian.
+lra.
 Qed.
 
 Lemma psd_implies_nonneg_eigenvalues {n}: forall (A: Square n), 

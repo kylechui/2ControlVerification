@@ -21,15 +21,6 @@ unfold Im, Cconj, Cmult.
 simpl. lra.
 Qed.
 
-Lemma complex_split: forall (a b: C),
-a = b  -> fst a = fst b /\ snd a = snd b.
-Proof.
-intros.
-split.
-rewrite H. reflexivity.
-rewrite H. reflexivity.
-Qed.
-
 Lemma sum_of_pos_c_is_0_implies_0: forall (a b: C),
 Re a >= 0 -> Im a = 0 -> Re b >= 0 -> Im b = 0 ->
 a + b = C0 -> a = C0 /\ b = C0.
@@ -39,7 +30,7 @@ unfold Re in *; unfold Im in *.
 unfold Cplus in H3.
 rewrite H0 in H3.
 rewrite H2 in H3.
-apply complex_split in H3.
+apply pair_equal_spec in H3.
 destruct H3 as [H3 _].
 split.
 {
@@ -207,7 +198,7 @@ Proof.
 intros. 
 unfold RtoC.
 intro.
-apply complex_split in H0.
+apply pair_equal_spec in H0.
 destruct H0 as [H0 _].
 apply H.
 trivial.

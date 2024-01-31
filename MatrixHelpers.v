@@ -682,7 +682,7 @@ split.
     apply Cmult_neq_zero. 2: assumption.
     unfold not.
     intro.
-    apply complex_split in H1.
+    apply pair_equal_spec in H1.
     destruct H1.
     contradict H1.
     simpl.
@@ -705,7 +705,7 @@ split.
     apply Cmult_neq_zero. 2: assumption.
     unfold not.
     intro.
-    apply complex_split in H1.
+    apply pair_equal_spec in H1.
     destruct H1.
     contradict H1.
     simpl.

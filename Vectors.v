@@ -276,7 +276,7 @@ assert (r_unit_coefs: (Re (L 0%nat 0%nat) ^ 2 + Re (L 1%nat 1%nat)^ 2 = 1)%R).
   repeat rewrite Rmult_1_r. repeat rewrite Rmult_0_r.
   repeat rewrite Rplus_0_l. repeat rewrite Ropp_0.
   repeat rewrite Rmult_0_l.
-  intros unit_coefs. apply complex_split in unit_coefs.
+  intros unit_coefs. apply pair_equal_spec in unit_coefs.
   destruct unit_coefs as [unit_coefs _].
   revert unit_coefs. unfold Cplus. simpl.
   trivial.
@@ -479,7 +479,7 @@ assert (Hb1 : ⟨b, a1⟩ <> 0).
   simpl.
   rewrite Rmult_0_l. rewrite Rminus_0_r.
   intros.
-  apply complex_split in H.
+  apply pair_equal_spec in H.
   destruct H as [H _].
   revert H. 
   simpl.
