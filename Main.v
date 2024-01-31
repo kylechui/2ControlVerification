@@ -13,6 +13,7 @@ Lemma m3_2 : forall (u0 u1 : C),
   (exists (P Q : Square 2) (a b p q : C) (v1 v2 v3 v4 : Vector 2),
     WF_Unitary P /\ WF_Unitary Q /\
     WF_Matrix v1 /\ WF_Matrix v2 /\ WF_Matrix v3 /\ WF_Matrix v4 /\
+    v1 <> Zero /\ v2 <> Zero /\ v3 <> Zero /\ v4 <> Zero /\
     Eigenpair P (v1, a) /\ Eigenpair P (v2, b) /\
     Eigenpair Q (v3, p) /\ Eigenpair Q (v4, q) /\
       (Eigenpair (P ⊗ Q) (v1 ⊗ v3, C1) /\
@@ -41,13 +42,8 @@ Proof.
       destruct Unitary_Q.
       assumption.
     }
+    destruct H as [v1_nonzero [v2_nonzero [v3_nonzero [v4_nonzero H]]]].
     destruct H as [epair1 [epair2 [epair3 [epair4 H]]]].
-    (* TODO: Eigenvectors should be non-zero, but this is not built into the
-       definition of an `Eigenpair` in QuantumLib *)
-    assert (v1_nonzero : v1 <> Zero) by admit.
-    assert (v2_nonzero : v2 <> Zero) by admit.
-    assert (v3_nonzero : v3 <> Zero) by admit.
-    assert (v4_nonzero : v4 <> Zero) by admit.
     destruct H.
     {
       destruct H as [epair5 [epair6 [epair7 epair8]]].
@@ -240,6 +236,22 @@ Proof.
       }
       split.
       {
+        apply nonzero_qubit0.
+      }
+      split.
+      {
+        apply nonzero_qubit1.
+      }
+      split.
+      {
+        apply nonzero_qubit0.
+      }
+      split.
+      {
+        apply nonzero_qubit1.
+      }
+      split.
+      {
         apply diag2_eigenpairs.
       }
       split.
@@ -340,6 +352,22 @@ Proof.
       }
       split.
       {
+        apply nonzero_qubit0.
+      }
+      split.
+      {
+        apply nonzero_qubit1.
+      }
+      split.
+      {
+        apply nonzero_qubit0.
+      }
+      split.
+      {
+        apply nonzero_qubit1.
+      }
+      split.
+      {
         apply diag2_eigenpairs.
       }
       split.
@@ -395,7 +423,7 @@ Proof.
       }
     }
   }
-Admitted.
+Qed.
 
 Lemma m4_1 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
