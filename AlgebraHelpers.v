@@ -345,14 +345,6 @@ Proof.
     lra.
 Qed.
 
-Lemma Cmult_const_r: forall (a b c : C), 
-a = b -> a * c = b * c.
-Proof. 
-intros. 
-rewrite H. 
-reflexivity.
-Qed.
-
 Lemma cneq_implies_sub_neq: forall (a b : C), 
 a <> b -> a - b <> 0.
 Proof.

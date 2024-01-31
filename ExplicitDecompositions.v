@@ -597,7 +597,7 @@ all: rewrite Mmult44_explicit_decomp.
 2,3,5,6,8,9,11,12: assumption.
 all: repeat rewrite <- Cmult_plus_distr_r.
 all: rewrite <- Cmult_1_l.
-all: apply Cmult_const_r.
+all: apply Cmult_simplify; auto.
 all: rewrite Mmult44_explicit_decomp.
 2,3,5,6,8,9,11,12: assumption.
 all: fold a00 a01 a02 a03.
