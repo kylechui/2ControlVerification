@@ -42,6 +42,12 @@ Proof.
       assumption.
     }
     destruct H as [epair1 [epair2 [epair3 [epair4 H]]]].
+    (* TODO: Eigenvectors should be non-zero, but this is not built into the
+       definition of an `Eigenpair` in QuantumLib *)
+    assert (v1_nonzero : v1 <> Zero) by admit.
+    assert (v2_nonzero : v2 <> Zero) by admit.
+    assert (v3_nonzero : v3 <> Zero) by admit.
+    assert (v4_nonzero : v4 <> Zero) by admit.
     destruct H.
     {
       destruct H as [epair5 [epair6 [epair7 epair8]]].
@@ -57,8 +63,9 @@ Proof.
         ) as H.
         unfold Eigenpair in epair5, H; simpl in epair5, H.
         rewrite epair5 in H.
-        (* TODO: Need to somehow cancel tensor product (via non-zero?) *)
-        admit.
+        apply @scale_cancel_r with (A := v1 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
+        solve_WF_matrix.
+        apply nonzero_kron; auto.
       }
       assert (help2 : a * q = C1).
       {
@@ -72,8 +79,9 @@ Proof.
         ) as H.
         unfold Eigenpair in epair6, H; simpl in epair6, H.
         rewrite epair6 in H.
-        (* TODO: Need to somehow cancel tensor product (via non-zero?) *)
-        admit.
+        apply @scale_cancel_r with (A := v1 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
+        solve_WF_matrix.
+        apply nonzero_kron; auto.
       }
       assert (help3 : b * p = u0).
       {
@@ -87,8 +95,9 @@ Proof.
         ) as H.
         unfold Eigenpair in epair7, H; simpl in epair7, H.
         rewrite epair7 in H.
-        (* TODO: Need to somehow cancel tensor product (via non-zero?) *)
-        admit.
+        apply @scale_cancel_r with (A := v2 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
+        solve_WF_matrix.
+        apply nonzero_kron; auto.
       }
       assert (help4 : b * q = u1).
       {
@@ -102,8 +111,9 @@ Proof.
         ) as H.
         unfold Eigenpair in epair8, H; simpl in epair8, H.
         rewrite epair8 in H.
-        (* TODO: Need to somehow cancel tensor product (via non-zero?) *)
-        admit.
+        apply @scale_cancel_r with (A := v2 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
+        solve_WF_matrix.
+        apply nonzero_kron; auto.
       }
       left.
       rewrite <- help3, <- help4.
@@ -126,8 +136,9 @@ Proof.
         ) as H.
         unfold Eigenpair in epair5, H; simpl in epair5, H.
         rewrite epair5 in H.
-        (* TODO: Need to somehow cancel tensor product (via non-zero?) *)
-        admit.
+        apply @scale_cancel_r with (A := v1 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
+        solve_WF_matrix.
+        apply nonzero_kron; auto.
       }
       assert (help2 : a * q = u1).
       {
@@ -141,8 +152,9 @@ Proof.
         ) as H.
         unfold Eigenpair in epair6, H; simpl in epair6, H.
         rewrite epair6 in H.
-        (* TODO: Need to somehow cancel tensor product (via non-zero?) *)
-        admit.
+        apply @scale_cancel_r with (A := v1 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
+        solve_WF_matrix.
+        apply nonzero_kron; auto.
       }
       assert (help3 : b * p = u0).
       {
@@ -156,8 +168,9 @@ Proof.
         ) as H.
         unfold Eigenpair in epair7, H; simpl in epair7, H.
         rewrite epair7 in H.
-        (* TODO: Need to somehow cancel tensor product (via non-zero?) *)
-        admit.
+        apply @scale_cancel_r with (A := v2 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
+        solve_WF_matrix.
+        apply nonzero_kron; auto.
       }
       assert (help4 : b * q = C1).
       {
@@ -171,8 +184,9 @@ Proof.
         ) as H.
         unfold Eigenpair in epair8, H; simpl in epair8, H.
         rewrite epair8 in H.
-        (* TODO: Need to somehow cancel tensor product (via non-zero?) *)
-        admit.
+        apply @scale_cancel_r with (A := v2 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
+        solve_WF_matrix.
+        apply nonzero_kron; auto.
       }
       right.
       rewrite <- help2, <- help3.

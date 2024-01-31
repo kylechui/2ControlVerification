@@ -282,6 +282,17 @@ Proof.
     reflexivity.
 Qed.
 
+Lemma scale_cancel_r: forall {m n} (c1 c2 : C) (A : Matrix m n),
+  WF_Matrix A -> A <> Zero -> c1 .* A = c2 .* A -> c1 = c2.
+Proof.
+  intros.
+  rewrite nonzero_def in H0.
+  destruct H0 as [i [j a_nonzero]].
+  apply (f_equal (fun f => f i j)) in H1.
+  unfold scale in H1.
+  apply Cmult_cancel_r with (a := A i j); auto.
+Qed.
+
 Lemma nonzero_qubit0: ∣0⟩ <> Zero.
 Proof.
   intro.
