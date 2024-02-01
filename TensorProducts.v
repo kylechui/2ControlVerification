@@ -866,6 +866,158 @@ Qed.
 
 Definition TensorProdQubit (c: Vector 4) := WF_Matrix c -> exists (a b : Vector 2), WF_Qubit a /\ WF_Qubit b /\ c = a ⊗ b.
 
+Lemma qubit_tensor_inner_product: forall (a b : Vector 2) (c: Vector 4), 
+WF_Qubit c -> c = a ⊗ b ->  ⟨ a, a ⟩* ⟨ b, b ⟩ = C1.
+Proof.
+intros.
+destruct H as [_ [WF_c c_unit]].
+rewrite <- kron_inner_prod.
+rewrite <- H0.
+assumption.
+Qed.
+
+Lemma Cmult_neq_0_implies_n0_arg: forall (a b c : C),
+c = a * b -> c <> 0 -> a <> 0 /\ b <> 0.
+Proof.
+intros.
+split.
+{
+    destruct (Ceq_dec a 0).
+    contradict H0.
+    rewrite H. 
+    rewrite e.
+    apply Cmult_0_l.
+    assumption.
+}
+{
+    destruct (Ceq_dec b 0).
+    contradict H0.
+    rewrite H. 
+    rewrite e.
+    apply Cmult_0_r.
+    assumption.
+}
+Qed.
+
+Lemma inner_prod_is_norm_squared {n}: forall (a: Vector n), 
+norm a * norm a = ⟨ a, a ⟩.
+Proof.
+intros.
+unfold norm, RtoC.
+unfold Cmult.
+apply c_proj_eq.
+simpl.
+rewrite Rmult_0_l.
+rewrite Rminus_0_r.
+apply sqrt_sqrt.
+apply inner_product_ge_0.
+simpl.
+rewrite Rmult_0_l. rewrite Rmult_0_r.
+rewrite Rplus_0_l.
+symmetry.
+apply norm_real.
+Qed.
+
+Lemma tensor_prod_of_qubit: forall (c : Vector 4), 
+WF_Qubit c -> (TensorProd c <-> TensorProdQubit c).
+Proof. 
+intros c c_qubit.
+unfold TensorProdQubit, TensorProd.
+split.
+{
+    intro.
+    assert (temp: WF_Qubit c). assumption.
+    destruct temp as [_ [WF_c c_unit]].
+    apply H in WF_c.
+    destruct WF_c as [a [b [WF_a [WF_b c_def]]]].
+    exists (normalize a), (normalize b).
+    assert (inner_mult := qubit_tensor_inner_product a b c c_qubit c_def).
+    assert (⟨ a, a ⟩ <> 0 /\ ⟨ b, b ⟩ <> 0). apply Cmult_neq_0_implies_n0_arg with (c:= C1). symmetry. assumption. apply C1_neq_C0.
+    destruct H1.
+    assert (norm a <> 0). 
+    {
+        unfold not.
+        intro.
+        apply H1.
+        apply norm_zero_iff_zero in H3. 2: assumption.
+        apply inner_product_zero_iff_zero. all: assumption.
+    }
+    assert (norm b <> 0). 
+    {
+        unfold not.
+        intro.
+        apply H2.
+        apply norm_zero_iff_zero in H4. 2: assumption.
+        apply inner_product_zero_iff_zero. all: assumption.
+    }
+    split.
+    {
+        unfold WF_Qubit.
+        split. exists 1%nat. trivial.
+        split. solve_WF_matrix.
+        rewrite <- inner_prod_is_norm_squared.
+        rewrite normalized_norm_1.
+        apply Cmult_1_l.
+        assumption.
+    }
+    split. 
+    {
+        unfold WF_Qubit.
+        split. exists 1%nat. trivial.
+        split. solve_WF_matrix.
+        rewrite <- inner_prod_is_norm_squared.
+        rewrite normalized_norm_1.
+        apply Cmult_1_l.
+        assumption.
+    }
+    unfold normalize.
+    rewrite Mscale_kron_dist_l.
+    rewrite Mscale_kron_dist_r.
+    rewrite Mscale_assoc.
+    rewrite <- Cinv_mult_distr. 2,3: apply RtoC_neq. 2,3: assumption.
+    assert (norm a * norm b = C1).
+    {
+        rewrite <- inner_prod_is_norm_squared in inner_mult.
+        rewrite <- inner_prod_is_norm_squared in inner_mult.
+        apply complex_split in inner_mult.
+        destruct inner_mult.
+        revert H5.
+        simpl.
+        replace (((norm a * norm a - 0 * 0) *
+        (norm b * norm b - 0 * 0) -
+        (norm a * 0 + 0 * norm a) *
+        (norm b * 0 + 0 * norm b))%R) with (((norm a * norm b) * (norm a * norm b))%R) by lra.
+        replace ((norm a * norm b * (norm a * norm b))%R) with ((Rsqr (norm a * norm b))%R).
+        2: unfold Rsqr. 2: lra.
+        intro.
+        apply (f_equal (fun f => sqrt f)) in H5.
+        rewrite sqrt_Rsqr in H5.
+        rewrite sqrt_1 in H5.
+        apply c_proj_eq.
+        simpl. rewrite H5. lra.
+        simpl. lra.
+        rewrite <- Rmult_0_l with (r:= norm b).
+        apply Rmult_le_compat_r.
+        all: apply norm_ge_0.
+    }
+    rewrite H5.
+    replace (/C1) with (C1) by lca.
+    rewrite Mscale_1_l.
+    assumption.
+}
+{
+    intro.
+    destruct c_qubit as [_ [WF_c c_unit]].
+    apply H in WF_c.
+    destruct WF_c as [a [b [a_qubit [b_qubit c_def]]]].
+    intro.
+    exists a, b.
+    split. apply a_qubit. 
+    split. apply b_qubit. 
+    assumption.
+}
+Qed.
+
 Lemma a23: forall (U : Square 4), WF_Unitary U -> (forall (x : Vector 2), TensorProdQubit (U × (x ⊗ ∣0⟩))) ->
 (exists (psi: Vector 2), forall (x: Vector 2), WF_Matrix x ->  exists (z: Vector 2), U × (x ⊗ ∣0⟩) = z ⊗ psi)
 \/
@@ -1084,3 +1236,14 @@ destruct casework as [blindep|alindep].
     }
 }
 Qed.
+
+Lemma a24: forall (U V W00 W11 : Square 4), 
+WF_Unitary U -> WF_Unitary V -> WF_Unitary W00 -> WF_Unitary W11 -> 
+acgate U × acgate V = ∣0⟩⟨0∣ ⊗ W00 .+ ∣1⟩⟨1∣ ⊗ W11 -> 
+exists (P0 Q0 P1 Q1 : Square 2), 
+WF_Unitary P0 /\ WF_Unitary Q0 /\ WF_Unitary P1 /\ WF_Unitary Q1 /\
+acgate U × acgate V = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1.
+Proof.
+intros U V W00 W11 U_unitary V_unitary W00_unitary W11_unitary acgate_mult.
+assert (temp:= a21 V V_unitary).
+Admitted.
