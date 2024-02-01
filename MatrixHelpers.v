@@ -282,6 +282,17 @@ Proof.
     reflexivity.
 Qed.
 
+Lemma scale_cancel_r: forall {m n} (c1 c2 : C) (A : Matrix m n),
+  WF_Matrix A -> A <> Zero -> c1 .* A = c2 .* A -> c1 = c2.
+Proof.
+  intros.
+  rewrite nonzero_def in H0.
+  destruct H0 as [i [j a_nonzero]].
+  apply (f_equal (fun f => f i j)) in H1.
+  unfold scale in H1.
+  apply Cmult_cancel_r with (a := A i j); auto.
+Qed.
+
 Lemma nonzero_qubit0: ∣0⟩ <> Zero.
 Proof.
   intro.
@@ -1127,4 +1138,37 @@ rewrite <- Cmult_assoc in H.
 rewrite Cinv_r in H.
 rewrite Cmult_1_r in H.
 all: assumption.
+Qed.
+
+Lemma id2_diag2: I 2 = diag2 C1 C1.
+Proof.
+  lma'.
+  apply WF_diag2.
+Qed.
+
+Lemma diag2_eigenpairs: forall (c1 c2 : C),
+  Eigenpair (diag2 c1 c2) (∣0⟩, c1) /\ Eigenpair (diag2 c1 c2) (∣1⟩, c2).
+Proof.
+  intros.
+  split; unfold Eigenpair; simpl.
+  {
+    lma'.
+    solve_WF_matrix.
+    apply WF_diag2.
+    unfold Mmult, scale, diag2, qubit0; simpl.
+    lca.
+  }
+  {
+    lma'.
+    solve_WF_matrix.
+    apply WF_diag2.
+    unfold Mmult, scale, diag2, qubit1; simpl.
+    lca.
+  }
+Qed.
+
+Lemma id2_eigenpairs: Eigenpair (I 2) (∣0⟩, C1) /\ Eigenpair (I 2) (∣1⟩, C1).
+Proof.
+  rewrite id2_diag2.
+  apply diag2_eigenpairs.
 Qed.
