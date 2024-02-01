@@ -345,19 +345,6 @@ Proof.
     lra.
 Qed.
 
-Lemma cneq_implies_sub_neq: forall (a b : C), 
-a <> b -> a - b <> 0.
-Proof.
-intros.
-unfold not. 
-intro. 
-apply H.
-apply (f_equal (fun f => f + b)) in H0.
-rewrite Cplus_0_l in H0.
-rewrite <- H0.
-lca.
-Qed.
-
 Lemma Cmult_0_cancel_l: forall (a b : C), 
 a <> 0 -> a * b = 0 -> b = 0.
 Proof.

@@ -618,7 +618,7 @@ Eigenpair A (v1, l1) -> Eigenpair A (v2, l2) ->
 Proof.
 intros A a_hermitian v1 v2 l1 l2 WF_v1 WF_v2 v1_nonz l1_neq_l2 eigenpair1 eigenpair2.
 apply Cmult_0_cancel_l with (a:= (l1 - l2)).
-apply cneq_implies_sub_neq. assumption.
+apply Cminus_eq_contra. assumption.
 rewrite Cmult_minus_distr_r.
 apply Ceq_impl_minus_0.
 assert (l1_real: l1 = l1^*).
