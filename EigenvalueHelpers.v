@@ -267,14 +267,6 @@ Lemma sub_conj: forall (a: C),
 a - a^* = (0, (2 * snd a)%R).
 Proof. intros. lca. Qed.
 
-Lemma neg_pow2: forall (a: R), 
-(a ^ 2)%R = ((-a)^2)%R.
-Proof.
-intros.
-unfold pow.
-lra.
-Qed.
-
 Lemma Rle_lower_bound: forall (a b c d: R), 
 a <= b + d -> b <= c -> a <= c + d.
 Proof.
@@ -361,8 +353,8 @@ destruct (Req_EM_T (snd x) 0).
       rewrite e.
       replace ((fst x ^ 2 + 0 ^ 2)%R) with ((fst x ^ 2)%R) by lra.
       symmetry.
-      rewrite neg_pow2.
       rewrite <- Rsqr_pow2.
+      rewrite Rsqr_neg.
       apply sqrt_Rsqr.
       1,2: rewrite <- Rmult_0_r with (r := (-(1))%R).
       1,2: rewrite <- Rmult_1_l with (r := fst x).
