@@ -264,12 +264,12 @@ Qed.
 
 Lemma a21: forall (U : Square 4), 
 WF_Unitary U -> exists (psi : Vector 2), 
-TensorProd (U × (∣0⟩ ⊗ psi)).
+WF_Qubit psi /\ TensorProd (U × (∣0⟩ ⊗ psi)).
 Proof. 
 intros U WF_U.
 destruct (Classical_Prop.classic (TensorProd (U × (∣0⟩ ⊗ ∣0⟩)))).
 {
-    exists ∣0⟩. assumption.
+    exists ∣0⟩. split. apply qubit0_qubit. assumption.
 }
 {
     set (a00 := (U × (∣0⟩ ⊗ ∣0⟩)) 0%nat 0%nat).
@@ -1237,6 +1237,59 @@ destruct casework as [blindep|alindep].
 }
 Qed.
 
+Lemma exists_unitary_mapping_qubit_to_0: forall (a : Vector 2), 
+WF_Qubit a -> exists (P : Square 2), WF_Unitary P /\ P × a = ∣0⟩.
+Proof.
+intros a a_qubit.
+assert (temp: WF_Qubit a). assumption.
+destruct temp as [_ [WF_a a_unit]].
+set (P := (fun x y => 
+match (x,y) with 
+| (0,0) => (a 0%nat 0%nat)^*
+| (0,1) => (a 1%nat 0%nat)^*
+| (1,0) => - (a 1%nat 0%nat) 
+| (1,1) => a 0%nat 0%nat
+| _ => C0
+end) : Square 2).
+assert (WF_P: WF_Matrix P).
+{
+    unfold WF_Matrix.
+    intros.
+    unfold P.
+    destruct H.
+    destruct x as [|b]. contradict H. lia.
+    destruct b as [|x]. contradict H. lia. reflexivity.
+    destruct x as [|b]. destruct y as [|c]. contradict H. lia.
+    destruct c as [|y]. contradict H. lia. reflexivity.
+    destruct b as [|x]. destruct y as [|c]. contradict H. lia.
+    destruct c as [|y]. contradict H. lia.
+    reflexivity. reflexivity.   
+}
+exists P.
+split.
+{
+    unfold WF_Unitary.
+    split. assumption.
+    lma'.
+    all: rewrite Mmult_square2_explicit.
+    2,3,5,6,8,9,11,12: solve_WF_matrix.
+    all: repeat rewrite Madj_explicit_decomp.
+    all: unfold P,I.
+    all: simpl.
+    2,3: lca.
+    all: rewrite <- a_unit. 
+    all: lca.
+}
+{
+    lma'.
+    all: rewrite Mv_prod_21_explicit.
+    2,3,5,6: assumption.
+    all: unfold P.
+    rewrite <- a_unit. lca.
+    lca.
+}
+Qed.
+
 Lemma a24: forall (U V W00 W11 : Square 4), 
 WF_Unitary U -> WF_Unitary V -> WF_Unitary W00 -> WF_Unitary W11 -> 
 acgate U × acgate V = ∣0⟩⟨0∣ ⊗ W00 .+ ∣1⟩⟨1∣ ⊗ W11 -> 
@@ -1245,5 +1298,26 @@ WF_Unitary P0 /\ WF_Unitary Q0 /\ WF_Unitary P1 /\ WF_Unitary Q1 /\
 acgate U × acgate V = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1.
 Proof.
 intros U V W00 W11 U_unitary V_unitary W00_unitary W11_unitary acgate_mult.
+assert (temp: WF_Unitary V). assumption.
+destruct temp as [WF_V V_inv].
 assert (temp:= a21 V V_unitary).
+destruct temp as [psi [psi_qubit tens]].
+assert (temp: WF_Qubit psi). assumption.
+destruct temp as [_ [WF_psi psi_unit]].
+rewrite tensor_prod_of_qubit in tens.
+2: {
+    unfold WF_Qubit.
+    split. exists 2%nat. trivial.
+    split. solve_WF_matrix.
+    rewrite <- unitary_preserves_inner_prod. 2: assumption. 2: solve_WF_matrix.
+    assert (kip_help: ⟨ ∣0⟩ ⊗ psi, ∣0⟩ ⊗ psi ⟩ = ⟨ ∣0⟩, ∣0⟩ ⟩ * ⟨ psi, psi ⟩). apply kron_inner_prod.
+    rewrite kip_help at 1. clear kip_help.
+    replace (⟨ ∣0⟩, ∣0⟩ ⟩) with (C1) by lca.
+    rewrite psi_unit.
+    apply Cmult_1_l.
+}
+assert (temp: WF_Matrix (V × (∣0⟩ ⊗ psi))). solve_WF_matrix.
+unfold TensorProdQubit in tens.
+apply tens in temp.
+destruct temp as [a [b [a_qubit [b_qubit ab_decomp]]]].
 Admitted.
