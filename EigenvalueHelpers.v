@@ -267,14 +267,6 @@ Lemma sub_conj: forall (a: C),
 a - a^* = (0, (2 * snd a)%R).
 Proof. intros. lca. Qed.
 
-Lemma pow2_equiv_Rsqr: forall (a : R),
-(a ^ 2)%R = Rsqr a.
-Proof.
-intros. 
-unfold pow, Rsqr.
-lra.
-Qed.
-
 Lemma neg_pow2: forall (a: R), 
 (a ^ 2)%R = ((-a)^2)%R.
 Proof.
@@ -324,7 +316,7 @@ Qed.
 Lemma Rsqr_ge_0: forall (r: R), (0 <= (r)^2)%R.
 Proof.
 intros.
-rewrite pow2_equiv_Rsqr.
+rewrite <- Rsqr_pow2.
 destruct (Req_dec r 0).
 rewrite H. unfold Rsqr. lra.
 apply Rlt_le.
@@ -370,7 +362,7 @@ destruct (Req_EM_T (snd x) 0).
       replace ((fst x ^ 2 + 0 ^ 2)%R) with ((fst x ^ 2)%R) by lra.
       symmetry.
       rewrite neg_pow2.
-      rewrite pow2_equiv_Rsqr.
+      rewrite <- Rsqr_pow2.
       apply sqrt_Rsqr.
       1,2: rewrite <- Rmult_0_r with (r := (-(1))%R).
       1,2: rewrite <- Rmult_1_l with (r := fst x).
@@ -401,7 +393,7 @@ destruct (Req_EM_T (snd x) 0).
       unfold norm, Cmod.
       rewrite e.
       replace ((fst x ^ 2 + 0 ^ 2)%R) with ((fst x ^ 2)%R) by lra.
-      rewrite pow2_equiv_Rsqr.
+      rewrite <- Rsqr_pow2.
       symmetry.
       apply sqrt_Rsqr.
       all: assumption.
@@ -448,7 +440,7 @@ destruct (Req_EM_T (snd x) 0).
     1,3: lra.
     all: unfold Cmod.
     all: apply Rle_lower_bound with (b := √ (fst x ^ 2)).
-    1,3: rewrite pow2_equiv_Rsqr.
+    1,3: rewrite <- Rsqr_pow2.
     1,2: rewrite sqrt_Rsqr_abs.
     apply Rabs_minus_le.
     apply Rabs_plus_le.
