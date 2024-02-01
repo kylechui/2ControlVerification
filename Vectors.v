@@ -5,6 +5,7 @@ Require Import QuantumLib.Eigenvectors.
 From Proof Require Import QubitHelpers.
 From Proof Require Import MatrixHelpers.
 From Proof Require Import AlgebraHelpers.
+From Proof Require Import Swaps.
 
 Lemma a14 : forall (psi : Vector 4), 
 WF_Matrix psi -> ⟨ psi , psi ⟩ = 1 -> 
@@ -551,5 +552,43 @@ Proof.
 split.
 apply a16_part2 with (w1:= w1) (a0:= a0) (a1:= a1).
 7: apply a16_part1 with (w0:= w0) (a0:= a0) (a1:= a1).
+all: assumption.
+Qed.
+
+Lemma a16b_vec2_part1: forall (w0 w1 : Vector 2) (a0 a1 : Vector 2), 
+WF_Matrix w0 -> WF_Matrix w1 -> WF_Qubit a0 -> WF_Qubit a1 -> 
+linearly_independent_2vec a0 a1 -> a0 ⊗ w0 .+ a1 ⊗ w1 = (Zero (m:= (4)%nat) (n := 1%nat)) -> w1 = Zero.
+Proof.
+intros w0 w1 a0 a1 WF_w0 WF_w1 a0_qubit a1_qubit alinindep tens.
+rewrite <- a10 in tens. 2: assumption. 2: apply a0_qubit.
+rewrite <- a10 with (b:= a1) in tens. 2: assumption. 2: apply a1_qubit.
+rewrite <- Mmult_plus_distr_l in tens.
+apply (f_equal (fun f => swap × f)) in tens.
+rewrite Mmult_0_r in tens.
+rewrite <- Mmult_assoc in tens.
+rewrite swap_swap in tens.
+rewrite Mmult_1_l in tens. 2: solve_WF_matrix. 2: apply a0_qubit. 2: apply a1_qubit.
+apply a16_part1 with (w0 := w0) (a0 := a0) (a1 := a1).
+all: assumption.
+Qed.
+
+Lemma a16b_vec2_part2: forall (w0 w1 : Vector 2) (a0 a1 : Vector 2), 
+WF_Matrix w0 -> WF_Matrix w1 -> WF_Qubit a0 -> WF_Qubit a1 -> 
+linearly_independent_2vec a0 a1 -> a0 ⊗ w0 .+ a1 ⊗ w1 = (Zero (m:= (4)%nat) (n := 1%nat)) -> w0 = Zero.
+Proof. 
+intros.
+apply lin_indep_comm_2vec in H3.
+rewrite Mplus_comm in H4.
+apply a16b_vec2_part1 with (w0 := w1) (a0 := a1) (a1 := a0) (w1 := w0).
+all: assumption.
+Qed.
+
+Lemma a16b_vec2: forall (w0 w1 : Vector 2) (a0 a1 : Vector 2), 
+WF_Matrix w0 -> WF_Matrix w1 -> WF_Qubit a0 -> WF_Qubit a1 -> 
+linearly_independent_2vec a0 a1 -> a0 ⊗ w0 .+ a1 ⊗ w1 = (Zero (m:= (4)%nat) (n := 1%nat)) -> w0 = Zero /\ w1 = Zero.
+Proof.
+split. 
+apply a16b_vec2_part2 with (w1:= w1) (a0:= a0) (a1:= a1).
+7: apply a16b_vec2_part1 with (w0:= w0) (a0:= a0) (a1:= a1).
 all: assumption.
 Qed.

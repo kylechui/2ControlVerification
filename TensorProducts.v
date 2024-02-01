@@ -584,30 +584,37 @@ split.
 }
 Qed.
 
-Lemma both_orth_implies_lin_dep2: forall (a b c : Vector 2), 
-WF_Matrix a -> WF_Matrix b -> WF_Matrix c ->
-b <> Zero -> ⟨ a, b ⟩ = 0 -> ⟨ c, b ⟩ = 0 -> linearly_dependent_2vec a c.
+Lemma both_orth_qubit_implies_lin_dep2: forall (a b c : Vector 2), 
+WF_Qubit a -> WF_Qubit b -> WF_Qubit c ->
+⟨ a, b ⟩ = 0 -> ⟨ c, b ⟩ = 0 -> linearly_dependent_2vec a c.
 Proof.
-intros a b c WF_a WF_b WF_c bn0 ab_orth cb_orth.
+intros a b c a_qubit b_qubit c_qubit ab_orth cb_orth.
+destruct a_qubit as [_ [WF_a a_unit]].
+destruct b_qubit as [_ [WF_b b_unit]].
+destruct c_qubit as [_ [WF_c c_unit]].
 rewrite lin_dep_def_alt. 2,3: assumption.
-destruct (vec_equiv_dec a Zero).
-{
-    left.
-    apply mat_equiv_eq.
-    1,3: assumption.
-    apply WF_Zero.
-}
 right.
-assert (an0: a <> Zero). unfold not. intro. apply n. rewrite H. apply mat_equiv_refl.
-destruct (vec_equiv_dec c Zero).
+assert (an0: a <> Zero). 
 {
-    exists C0.
-    rewrite Mscale_0_l. symmetry.
-    apply mat_equiv_eq.
-    1,3: assumption.
-    apply WF_Zero.
+    unfold not.
+    rewrite <- inner_product_zero_iff_zero. 2: assumption.
+    rewrite a_unit.
+    apply C1_neq_C0.
 }
-assert (cn0: c <> Zero). unfold not. intro. apply n0. rewrite H. apply mat_equiv_refl.
+assert (bn0: b <> Zero). 
+{
+    unfold not.
+    rewrite <- inner_product_zero_iff_zero. 2: assumption.
+    rewrite b_unit.
+    apply C1_neq_C0.
+}
+assert (cn0: c <> Zero). 
+{
+    unfold not.
+    rewrite <- inner_product_zero_iff_zero. 2: assumption.
+    rewrite c_unit.
+    apply C1_neq_C0.
+}
 rewrite vector2_inner_prod_decomp in ab_orth, cb_orth.
 (* casing by which b val is nonzero *)
 set (a0 := a 0%nat 0%nat).
@@ -857,37 +864,37 @@ split.
 }
 Qed.
 
-Lemma a23: forall (U : Square 4), WF_Unitary U -> (forall (x : Vector 2), TensorProd (U × (x ⊗ ∣0⟩))) ->
+Definition TensorProdQubit (c: Vector 4) := WF_Matrix c -> exists (a b : Vector 2), WF_Qubit a /\ WF_Qubit b /\ c = a ⊗ b.
+
+Lemma a23: forall (U : Square 4), WF_Unitary U -> (forall (x : Vector 2), TensorProdQubit (U × (x ⊗ ∣0⟩))) ->
 (exists (psi: Vector 2), forall (x: Vector 2), WF_Matrix x ->  exists (z: Vector 2), U × (x ⊗ ∣0⟩) = z ⊗ psi)
 \/
 (exists (psi: Vector 2), forall (x: Vector 2), WF_Matrix x -> exists (z: Vector 2), U × (x ⊗ ∣0⟩) = psi ⊗ z).
 Proof. 
 intros U U_unitary tensorProp.
-assert (ts0 : TensorProd (U × (∣0⟩ ⊗ ∣0⟩))). apply tensorProp.
-assert (ts1 : TensorProd (U × (∣1⟩ ⊗ ∣0⟩))). apply tensorProp.
-assert (tsP : TensorProd (U × (∣+⟩ ⊗ ∣0⟩))). apply tensorProp.
-unfold TensorProd in ts0, ts1, tsP.
+assert (ts0 : TensorProdQubit (U × (∣0⟩ ⊗ ∣0⟩))). apply tensorProp.
+assert (ts1 : TensorProdQubit (U × (∣1⟩ ⊗ ∣0⟩))). apply tensorProp.
+assert (tsp : TensorProdQubit (U × (∣+⟩ ⊗ ∣0⟩))). apply tensorProp.
+unfold TensorProdQubit in ts0, ts1, tsp.
 assert (WF_Matrix (U × (∣0⟩ ⊗ ∣0⟩))). solve_WF_matrix. apply U_unitary.
 apply ts0 in H. clear ts0.
-destruct H as [a0 [b0 [WF_a0 [WF_b0 a0b0_def]]]].
-assert (a0 <> Zero /\ b0 <> Zero).
-{
-    apply unitary_n0_tensor_yields_n0_components with (U:= U) (a := ∣0⟩ ⊗ ∣0⟩).
-    1,2,3,4,5: solve_WF_matrix.
-    rewrite nonzero_def.
-    exists 0%nat, 0%nat.
-    unfold qubit0, kron.
-    simpl.
-    rewrite Cmult_1_r.
-    apply C1_neq_C0.   
-}
-destruct H as [a0n0 b0n0].
+destruct H as [a0 [b0 [a0_qubit [b0_qubit a0b0_def]]]].
+assert (temp: WF_Qubit a0). assumption.
+destruct temp as [_ [WF_a0 a0_unit]].
+assert (temp: WF_Qubit b0). assumption.
+destruct temp as [_ [WF_b0 b0_unit]].
 assert (WF_Matrix (U × (∣1⟩ ⊗ ∣0⟩))). solve_WF_matrix. apply U_unitary.
 apply ts1 in H. clear ts1.
-destruct H as [a1 [b1 [WF_a1 [WF_b1 a1b1_def]]]].
+destruct H as [a1 [b1 [a1_qubit [b1_qubit a1b1_def]]]].
+assert (temp: WF_Qubit a1). assumption.
+destruct temp as [_ [WF_a1 a1_unit]].
+assert (temp: WF_Qubit b1). assumption.
+destruct temp as [_ [WF_b1 b1_unit]].
 assert (WF_Matrix (U × (∣+⟩ ⊗ ∣0⟩))). solve_WF_matrix. apply U_unitary.
-apply tsP in H. clear tsP.
-destruct H as [ap [bp [WF_ap [WF_bp apbp_def]]]].
+apply tsp in H. clear tsp.
+destruct H as [ap [bp [ap_qubit [bp_qubit apbp_def]]]].
+destruct ap_qubit as [_ [WF_ap ap_unit]].
+destruct bp_qubit as [_ [WF_bp bp_unit]].
 assert (Main1: ap ⊗ bp = / (√ 2) .* (a0 ⊗ b0 .+ a1 ⊗ b1)).
 {
     rewrite <- apbp_def.
@@ -900,30 +907,36 @@ assert (Main1: ap ⊗ bp = / (√ 2) .* (a0 ⊗ b0 .+ a1 ⊗ b1)).
     rewrite <- a1b1_def.
     reflexivity.
 }
-assert (temp := exists_orthogonal_vector b0 WF_b0).
-destruct temp as [b0_orth [WF_b0_orth [b0_orth_zero_cond b0_is_orth]]].
-apply (f_equal (fun f => (I 2 ⊗ b0_orth†) × f)) in Main1.
-rewrite kron_mixed_product in Main1.
-rewrite Mmult_1_l in Main1. 2: assumption.
-rewrite kron_11_r_is_scale in Main1.
-assert (ip_fold_helper: ((b0_orth) † × bp) 0%nat 0%nat = ⟨ b0_orth, bp⟩). unfold inner_product. reflexivity.
-rewrite ip_fold_helper in Main1. clear ip_fold_helper.
-rewrite Mscale_mult_dist_r in Main1.
-rewrite Mmult_plus_distr_l in Main1.
-rewrite kron_mixed_product in Main1.
-rewrite kron_11_r_is_scale in Main1.
-assert (ip_fold_helper: ((b0_orth) † × b0) 0%nat 0%nat = ⟨ b0_orth, b0⟩). unfold inner_product. reflexivity.
-rewrite ip_fold_helper in Main1. clear ip_fold_helper.
+assert (temp := exists_orthogonal_qubit b0 b0_qubit).
+destruct temp as [b0_orth [b0orth_qubit b0_is_orth]].
+assert (temp : WF_Qubit b0_orth). assumption. 
+destruct temp as [_ [WF_b0orth b0orth_unit]].
 apply inner_prod_0_comm in b0_is_orth. 2,3: assumption.
-rewrite b0_is_orth in Main1.
-rewrite Mscale_0_l in Main1. 
-rewrite Mplus_0_l in Main1.
-rewrite kron_mixed_product in Main1.
-rewrite Mmult_1_l in Main1. 2: assumption.
-rewrite kron_11_r_is_scale in Main1.
-assert (ip_fold_helper: ((b0_orth) † × b1) 0%nat 0%nat = ⟨ b0_orth, b1⟩). unfold inner_product. reflexivity.
-rewrite ip_fold_helper in Main1. clear ip_fold_helper.
-rewrite Mscale_assoc in Main1.
+assert(Main2: ⟨ b0_orth, bp ⟩ .* ap = / √ 2 * ⟨ b0_orth, b1 ⟩ .* a1).
+{
+    apply (f_equal (fun f => (I 2 ⊗ b0_orth†) × f)) in Main1.
+    rewrite kron_mixed_product in Main1.
+    rewrite Mmult_1_l in Main1. 2: assumption.
+    rewrite kron_11_r_is_scale in Main1.
+    assert (ip_fold_helper: ((b0_orth) † × bp) 0%nat 0%nat = ⟨ b0_orth, bp⟩). unfold inner_product. reflexivity.
+    rewrite ip_fold_helper in Main1. clear ip_fold_helper.
+    rewrite Mscale_mult_dist_r in Main1.
+    rewrite Mmult_plus_distr_l in Main1.
+    rewrite kron_mixed_product in Main1.
+    rewrite kron_11_r_is_scale in Main1.
+    assert (ip_fold_helper: ((b0_orth) † × b0) 0%nat 0%nat = ⟨ b0_orth, b0⟩). unfold inner_product. reflexivity.
+    rewrite ip_fold_helper in Main1. clear ip_fold_helper.
+    rewrite b0_is_orth in Main1.
+    rewrite Mscale_0_l in Main1. 
+    rewrite Mplus_0_l in Main1.
+    rewrite kron_mixed_product in Main1.
+    rewrite Mmult_1_l in Main1. 2: assumption.
+    rewrite kron_11_r_is_scale in Main1.
+    assert (ip_fold_helper: ((b0_orth) † × b1) 0%nat 0%nat = ⟨ b0_orth, b1⟩). unfold inner_product. reflexivity.
+    rewrite ip_fold_helper in Main1. clear ip_fold_helper.
+    rewrite Mscale_assoc in Main1.
+    assumption.
+}
 assert (casework: (⟨ b0_orth, bp ⟩ = C0) /\ (/(sqrt 2) * ⟨ b0_orth, b1 ⟩ = C0) \/ linearly_dependent_2vec ap a1).
 {
     apply scale_eq_implies_0l_or_ldep.
@@ -940,18 +953,20 @@ destruct casework as [blindep|alindep].
     assert (blindep: linearly_dependent_2vec b0 b1).
     {
         rewrite inner_prod_0_comm in b0_is_orth, b1b0orth.
-        apply both_orth_implies_lin_dep2 with (b:= b0_orth).
-        1,2,3,5,6,7,8,9,10: assumption.
-        unfold not. 
-        intro.
-        apply b0n0.
-        rewrite <- b0_orth_zero_cond.
-        assumption.
+        apply both_orth_qubit_implies_lin_dep2 with (b:= b0_orth).
+        all: assumption.
     }
     rewrite lin_dep_def_alt in blindep. 2,3: assumption.
     destruct blindep as [b00 | proportional].
     {
-        contradict b0n0. assumption.   
+        contradict b0_unit.
+        rewrite <- inner_product_zero_iff_zero in b00. 2: assumption.
+        rewrite b00.
+        unfold not. 
+        intro.
+        apply eq_sym in H.
+        apply C1_neq_C0.
+        assumption.
     }
     {
         destruct proportional as [c lindepeq].
@@ -978,4 +993,94 @@ destruct casework as [blindep|alindep].
         lma'.
     }
 }
-Admitted.
+{
+    assert (linearly_dependent_2vec a0 a1).
+    {
+        unfold linearly_dependent_2vec, not.
+        intro a10indep.
+        apply lin_dep_comm_2vec in alindep.
+        apply lin_dep_def_alt in alindep. 2,3: assumption.
+        destruct alindep as [contr | proportional].
+        {
+            contradict a1_unit.
+            rewrite <- inner_product_zero_iff_zero in contr. 2: assumption.
+            rewrite contr.
+            unfold not.
+            intro.
+            apply eq_sym in H.
+            apply C1_neq_C0. 
+            assumption.
+        }
+        {
+            destruct proportional as [c  prop].
+            rewrite <- prop in Main1.
+            rewrite Mscale_kron_dist_l in Main1.
+            rewrite <- Mscale_kron_dist_r in Main1.
+            apply eq_sym in Main1.
+            rewrite Mscale_plus_distr_r in Main1.
+            do 2 rewrite <- Mscale_kron_dist_r in Main1.
+            apply (f_equal (fun f => f .+ Mopp (a1 ⊗ (c .* bp)))) in Main1.
+            rewrite Mplus_opp_0_r in Main1. 2: solve_WF_matrix.
+            unfold Mopp in Main1.
+            rewrite <- Mscale_kron_dist_r in Main1.
+            rewrite Mplus_assoc in Main1.
+            rewrite <- kron_plus_distr_l in Main1.
+            assert (contr: / √ 2 .* b0 = Zero).
+            {
+                apply a16b_vec2_part2 with (a0 := a0) (a1 := a1) (w1 := (/ √ 2 .* b1 .+ - C1 .* (c .* bp))).
+                1,2: solve_WF_matrix.
+                all: assumption.
+            }
+            apply Mscale_0_cancel_r in contr.
+            apply C1_neq_C0.
+            rewrite <- b0_unit.
+            apply inner_product_zero_iff_zero in contr. 2: assumption.
+            assumption.
+            unfold not. 
+            intro.
+            apply (f_equal (fun f => f * √ 2)) in H.
+            rewrite Cmult_0_l in H.
+            rewrite Cinv_l in H.
+            revert H.
+            apply C1_neq_C0.
+            apply Csqrt2_neq_0.
+        }
+    }
+    rewrite lin_dep_def_alt in H. 2,3: assumption.
+    destruct H as [a00 | proportional].
+    {
+        contradict a0_unit.
+        rewrite <- inner_product_zero_iff_zero in a00. 2: assumption.
+        rewrite a00.
+        unfold not. 
+        intro.
+        apply eq_sym in H.
+        apply C1_neq_C0.
+        assumption.
+    }
+    {
+        destruct proportional as [c prop].
+        right.
+        exists a0.
+        intros x WF_x.
+        exists (x 0%nat 0%nat .* b0 .+ x 1%nat 0%nat .* (c .* b1)).
+        rewrite qubit_decomposition1 with (phi:= x) at 1. 2: assumption.
+        rewrite kron_plus_distr_r.
+        rewrite Mmult_plus_distr_l.
+        do 2 rewrite Mscale_kron_dist_l.
+        do 2 rewrite Mscale_mult_dist_r.
+        assert (def_help: (U × (∣0⟩ ⊗ ∣0⟩)) = a0 ⊗ b0). apply a0b0_def.
+        rewrite def_help at 1. clear def_help.
+        assert (def_help: (U × (∣1⟩ ⊗ ∣0⟩)) = a1 ⊗ b1). apply a1b1_def.
+        rewrite def_help at 1. clear def_help.
+        rewrite <- prop.
+        rewrite Mscale_kron_dist_l.
+        rewrite <- Mscale_kron_dist_r.
+        rewrite kron_plus_distr_l.
+        replace (a0 ⊗ (x 0%nat 0%nat .* b0)) with (x 0%nat 0%nat .* (a0 ⊗ b0)). 2: symmetry. 2: apply Mscale_kron_dist_r.
+        replace (a0 ⊗ (x 1%nat 0%nat .* (c .* b1))) with (x 1%nat 0%nat .*(a0 ⊗ (c .* b1))).
+        reflexivity.
+        lma'.
+    }
+}
+Qed.
