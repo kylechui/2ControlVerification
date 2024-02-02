@@ -1321,3 +1321,148 @@ unfold TensorProdQubit in tens.
 apply tens in temp.
 destruct temp as [a [b [a_qubit [b_qubit ab_decomp]]]].
 Admitted.
+
+Lemma RtoC_conj (x: R): (RtoC x)^* = RtoC x.
+Proof. intros. unfold RtoC, Cconj. apply c_proj_eq. simpl. reflexivity. simpl. lra. Qed.
+
+Lemma lin_indep_scale_invariant {n}: forall (a b : C) (u v: Vector n), 
+a <> 0 -> b <> 0 -> (linearly_independent_2vec u v <-> linearly_independent_2vec (a .* u) (b .* v)).
+Proof.
+intros a b u v an0 bn0.
+split.
+{
+    intro linindep.
+    unfold linearly_independent_2vec in *.
+    intros c1 c2 zero.
+    repeat rewrite Mscale_assoc in zero.
+    apply linindep in zero.
+    destruct zero as [aprod bprod].
+    rewrite Cmult_comm in aprod, bprod.
+    apply Cmult_0_cancel_l in aprod, bprod.
+    split. all: assumption.
+}
+{
+    intro linindep.
+    unfold linearly_independent_2vec in *.
+    intros c1 c2 zero.
+    specialize (linindep (c1 * /a) (c2 * /b)).
+    repeat rewrite Mscale_assoc in linindep.
+    repeat rewrite <- Cmult_assoc in linindep.
+    rewrite Cinv_l in linindep.
+    rewrite Cinv_l in linindep. 2,3: assumption.
+    repeat rewrite Cmult_1_r in linindep.
+    apply linindep in zero.
+    destruct zero as [aprod bprod].
+    rewrite Cmult_comm in aprod, bprod.
+    apply Cmult_0_cancel_l in aprod, bprod.
+    split. 1,2: assumption.
+    all: apply nonzero_div_nonzero.
+    all: assumption.
+}
+Qed.
+
+Lemma a26: forall (U : Square 4), 
+WF_Unitary U -> (forall (z : Vector 2), WF_Qubit z -> 
+exists (b : Vector 2), WF_Qubit b /\ U × (z ⊗ ∣0⟩) = z ⊗ b )
+-> exists (b : Vector 2), WF_Qubit b /\ forall (z: Vector 2), WF_Qubit z -> U × (z ⊗ ∣0⟩) = z ⊗ b.
+Proof.
+intros U U_unitary all_q_tensor.
+assert (temp: WF_Qubit ∣0⟩). apply qubit0_qubit.
+apply all_q_tensor in temp.
+destruct temp as [b0 [b0_qubit b0_def]].
+assert (temp: WF_Qubit b0). assumption.
+destruct temp as [_ [WF_b0 b0_unit]].
+assert (temp: WF_Qubit ∣1⟩). apply qubit1_qubit.
+apply all_q_tensor in temp.
+destruct temp as [b1 [b1_qubit b1_def]].
+assert (temp: WF_Qubit b1). assumption.
+destruct temp as [_ [WF_b1 b1_unit]].
+assert (temp: WF_Qubit ∣+⟩).
+{
+    unfold WF_Qubit.
+    split. exists 1%nat. trivial.
+    split. solve_WF_matrix.
+    unfold xbasis_plus.
+    rewrite vector2_inner_prod_decomp.
+    repeat rewrite <- Mscale_access.
+    repeat rewrite Mplus_access.
+    Csimpl.
+    rewrite <- RtoC_inv.
+    rewrite RtoC_conj.
+    rewrite <- RtoC_mult.
+    rewrite <- Rinv_mult_distr.
+    rewrite sqrt_sqrt.
+    lca.
+    lra.
+    all: apply sqrt2_neq_0.
+}
+apply all_q_tensor in temp.
+destruct temp as [bp [bp_qubit bp_def]].
+assert (temp: WF_Qubit bp). assumption. 
+destruct temp as [_ [WF_bp bp_unit]].
+assert (First_way: U × (∣+⟩ ⊗ ∣0⟩) = ((/ √ 2) .* ∣0⟩) ⊗ b0 .+ ((/ √ 2) .* ∣1⟩) ⊗ b1).
+{
+    unfold xbasis_plus.
+    repeat rewrite Mscale_kron_dist_l.
+    rewrite Mscale_mult_dist_r.
+    rewrite kron_plus_distr_r.
+    rewrite Mmult_plus_distr_l.
+    rewrite <- b0_def. rewrite <- b1_def.
+    rewrite <- Mscale_plus_distr_r.
+    reflexivity.
+}
+assert (Second_way: ∣+⟩ ⊗ bp = ((/ √ 2) .* ∣0⟩) ⊗ bp .+ ((/ √ 2) .* ∣1⟩) ⊗ bp).
+{
+    unfold xbasis_plus.
+    repeat rewrite Mscale_kron_dist_l.
+    rewrite kron_plus_distr_r.
+    rewrite Mscale_plus_distr_r.
+    reflexivity.
+}
+rewrite First_way, Second_way in bp_def.
+apply (f_equal (fun f => f .+ Mopp (/ √ 2 .* ∣1⟩ ⊗ bp))) in bp_def.
+repeat rewrite Mplus_assoc in bp_def.
+rewrite Mplus_opp_0_r in bp_def. 2: solve_WF_matrix.
+rewrite Mplus_0_r in bp_def.
+unfold Mopp in bp_def.
+rewrite <- Mscale_kron_dist_r in bp_def.
+rewrite <- kron_plus_distr_l in bp_def.
+rewrite Mplus_comm in bp_def.
+apply (f_equal (fun f => f .+ Mopp (/ √ 2 .* ∣0⟩ ⊗ bp))) in bp_def.
+rewrite Mplus_opp_0_r in bp_def. 2: solve_WF_matrix.
+rewrite Mplus_assoc in bp_def.
+unfold Mopp in bp_def.
+rewrite <- Mscale_kron_dist_r in bp_def.
+rewrite <- kron_plus_distr_l in bp_def.
+repeat rewrite Mscale_kron_dist_l in bp_def.
+rewrite <- Mscale_plus_distr_r in bp_def.
+apply (f_equal (fun f => √ 2 .* f)) in bp_def.
+rewrite Mscale_assoc in bp_def.
+rewrite Cinv_r in bp_def. 2: apply Csqrt2_neq_0.
+rewrite Mscale_1_l in bp_def.
+rewrite Mscale_0_r in bp_def.
+apply a16b_vec2 in bp_def. 2,3: solve_WF_matrix. 2: apply qubit1_qubit. 2: apply qubit0_qubit.
+2: apply lin_indep_comm_2vec. 2: apply qubit_01_lin_indep.
+destruct bp_def as [b1bp b0bp].
+apply (f_equal (fun f => f .+ bp)) in b1bp, b0bp.
+replace (b1 .+ - C1 .* bp .+ bp) with (b1) in b1bp by lma'.
+replace (b0 .+ - C1 .* bp .+ bp) with (b0) in b0bp by lma'.
+rewrite Mplus_0_l in b1bp,b0bp.
+exists bp.
+split. assumption.
+intros z z_qubit.
+assert (temp: WF_Qubit z). assumption. 
+destruct temp as [_ [WF_z z_unit]].
+assert (z_decomp:= qubit_decomposition1 z WF_z).
+rewrite z_decomp.
+rewrite kron_plus_distr_r.
+repeat rewrite Mscale_kron_dist_l.
+rewrite Mmult_plus_distr_l.
+repeat rewrite Mscale_mult_dist_r.
+assert (def_help: (U × (∣0⟩ ⊗ ∣0⟩)) = ∣0⟩ ⊗ b0). apply b0_def.
+rewrite def_help at 1. clear def_help.
+assert (def_help: (U × (∣1⟩ ⊗ ∣0⟩)) = ∣1⟩ ⊗ b1). apply b1_def.
+rewrite def_help at 1. clear def_help.
+rewrite b1bp. rewrite b0bp.
+lma'.
+Qed.
