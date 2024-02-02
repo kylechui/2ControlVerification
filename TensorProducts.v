@@ -1322,6 +1322,115 @@ apply tens in temp.
 destruct temp as [a [b [a_qubit [b_qubit ab_decomp]]]].
 Admitted.
 
+Lemma orth_qubit_unitary: forall (a b: Vector 2), 
+WF_Qubit a -> WF_Qubit b -> ⟨ a, b ⟩ = 0 -> 
+WF_Unitary (a × ⟨0∣ .+ b × ⟨1∣).
+Proof.
+intros a b a_qubit b_qubit orth.
+assert (temp: WF_Qubit a). assumption. 
+destruct temp as [_ [WF_a a_unit]].
+assert (temp: WF_Qubit b). assumption. 
+destruct temp as [_ [WF_b b_unit]].
+unfold WF_Unitary.
+split. solve_WF_matrix.
+assert (a00: (a × ⟨0∣) 0%nat 0%nat = a 0%nat 0%nat). lca.
+assert (a01: (a × ⟨0∣) 0%nat 1%nat = C0). lca.
+assert (a10: (a × ⟨0∣) 1%nat 0%nat = a 1%nat 0%nat). lca.
+assert (a11: (a × ⟨0∣) 1%nat 1%nat = C0). lca.
+assert (b01: (b × ⟨1∣) 0%nat 1%nat = b 0%nat 0%nat). lca.
+assert (b00: (b × ⟨1∣) 0%nat 0%nat = C0). lca.
+assert (b11: (b × ⟨1∣) 1%nat 1%nat = b 1%nat 0%nat). lca.
+assert (b10: (b × ⟨1∣) 1%nat 0%nat = C0). lca.
+lma'.
+all: rewrite Mmult_square2_explicit. 2,3,5,6,8,9,11,12: solve_WF_matrix.
+all: repeat rewrite Madj_explicit_decomp.
+all: repeat rewrite Mplus_access.
+all: try rewrite a00.
+all: try rewrite a01.
+all: try rewrite a10.
+all: try rewrite a11.
+all: try rewrite b00.
+all: try rewrite b01.
+all: try rewrite b10.
+all: try rewrite b11.
+all: unfold I.
+all: simpl.
+all: Csimpl.
+rewrite <- a_unit. lca.
+rewrite <- orth. lca.
+rewrite <- Cconj_0. rewrite <- orth. lca.
+rewrite <- b_unit. lca.
+Qed.
+
+Lemma a25: forall (V : Square 4), 
+WF_Unitary V -> 
+(exists (psi : Vector 2), WF_Qubit psi /\ 
+(forall (x : Vector 2), WF_Qubit x -> 
+(exists (phi : Vector 2), WF_Qubit phi /\ V × (x ⊗ ∣0⟩) = psi ⊗ phi ))) -> 
+(exists (Q : Square 2), WF_Unitary Q /\
+(exists (psi : Vector 2), WF_Qubit psi /\
+(forall (x : Vector 2), WF_Qubit x -> V × (x ⊗ ∣0⟩) = psi ⊗ (Q × x)))).
+Proof. 
+intros V V_unitary first_prop.
+destruct first_prop as [psi [psi_qubit first_prop]].
+assert(temp: WF_Qubit psi). assumption.
+destruct temp as [_ [WF_psi psi_unit]].
+assert(w0_def:= first_prop qubit0 qubit0_qubit).
+destruct w0_def as [w0 [w0_qubit w0_decomp]].
+assert(temp: WF_Qubit w0). assumption. 
+destruct temp as [_ [WF_w0 w0_unit]].
+assert(w1_def:= first_prop qubit1 qubit1_qubit).
+destruct w1_def as [w1 [w1_qubit w1_decomp]].
+assert(temp: WF_Qubit w1). assumption. 
+destruct temp as [_ [WF_w1 w1_unit]].
+assert(orth_prop: ⟨ ∣0⟩ ⊗ ∣0⟩, ∣1⟩ ⊗ ∣0⟩ ⟩ = C0). lca.
+rewrite unitary_preserves_inner_prod with (U := V) in orth_prop. 2,3: solve_WF_matrix.
+rewrite w0_decomp in orth_prop at 1.
+rewrite w1_decomp in orth_prop at 1.
+rewrite kron_inner_prod in orth_prop.
+rewrite psi_unit in orth_prop.
+rewrite Cmult_1_l in orth_prop.
+set (Q:= w0 × ⟨0∣ .+ w1 × ⟨1∣).
+assert (Q_unitary: WF_Unitary Q). { unfold Q. apply orth_qubit_unitary. all: assumption. }
+assert (forall (x: Vector 2), WF_Qubit x -> Q × x = (x 0%nat 0%nat) .* w0 .+ (x 1%nat 0%nat) .* w1).
+{
+    intros x x_qubit.
+    rewrite (qubit_decomposition1 x) at 1. 2: apply x_qubit.
+    unfold Q.
+    rewrite Mmult_plus_distr_l.
+    repeat rewrite Mmult_plus_distr_r.
+    repeat rewrite Mmult_assoc.
+    repeat rewrite Mscale_mult_dist_r.
+    rewrite Mmult00, Mmult01, Mmult10, Mmult11.
+    repeat rewrite Mmult_0_r.
+    repeat rewrite Mscale_0_r.
+    repeat rewrite Mmult_1_r. 2,3: assumption.
+    rewrite Mplus_0_l, Mplus_0_r.
+    reflexivity.
+}
+exists Q.
+split. assumption.
+exists psi.
+split. assumption.
+intros x x_qubit.
+assert (temp: WF_Qubit x). assumption.
+destruct temp as [_ [WF_x x_unit]].
+rewrite (qubit_decomposition1 x) at 1. 2: assumption.
+rewrite kron_plus_distr_r.
+do 2 rewrite Mscale_kron_dist_l.
+rewrite Mmult_plus_distr_l.
+do 2 rewrite Mscale_mult_dist_r.
+rewrite w0_decomp at 1.
+rewrite w1_decomp at 1.
+rewrite <- Mscale_kron_dist_r with (A := psi) (B:= w0) (x:= x 0%nat 0%nat) at 1.
+rewrite <- Mscale_kron_dist_r with (A := psi) (B:= w1) (x:= x 1%nat 0%nat) at 1.
+rewrite <- kron_plus_distr_l with (A:= psi) (B:= (x 0%nat 0%nat .* w0)) (C:= (x 1%nat 0%nat .* w1)) at 1.
+specialize (H x). apply H in x_qubit.
+rewrite x_qubit.
+reflexivity.
+Qed.
+
+
 Lemma RtoC_conj (x: R): (RtoC x)^* = RtoC x.
 Proof. intros. unfold RtoC, Cconj. apply c_proj_eq. simpl. reflexivity. simpl. lra. Qed.
 
