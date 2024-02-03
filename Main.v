@@ -710,9 +710,45 @@ Proof.
         }
         rewrite beta_mult_0_0 in H2.
         rewrite beta_perp_mult_1_1 in H2.
-        admit. (* TODO: Eigenvalues! *)
-      * destruct H2 as [P0 [P1 [WF_P0 [WF_P1 H2]]]].
-        apply (f_equal (fun f => f × (∣1⟩ ⊗ ∣1⟩ ⊗ beta))) in H2.
+        assert (step1 : I 2 ⊗ I 2 = diag4 1 1 1 u0).
+        {
+          admit.
+        }
+        assert (step2 : P0 ⊗ P1 = diag4 1 1 1 u1).
+        {
+          admit.
+        }
+        assert (u0_is_1 : u0 = C1).
+        {
+          apply (f_equal (fun f => f 3%nat 3%nat)) in step1.
+          unfold kron, diag4, I in step1; simpl in step1.
+          rewrite <- step1.
+          lca.
+        }
+        assert (u1_is_1 : u1 = C1).
+        {
+          pose proof step2 as H13.
+          pose proof step2 as H14.
+          pose proof step2 as H15.
+          pose proof step2 as H16.
+          apply f_equal with (f := fun f => f 0%nat 0%nat) in H13.
+          unfold kron, diag4 in H13; simpl in H13.
+          apply f_equal with (f := fun f => f 1%nat 1%nat) in H14.
+          unfold kron, diag4 in H14; simpl in H14.
+          apply f_equal with (f := fun f => f 2%nat 2%nat) in H15.
+          unfold kron, diag4 in H15; simpl in H15.
+          apply f_equal with (f := fun f => f 3%nat 3%nat) in H16.
+          unfold kron, diag4 in H16; simpl in H16.
+          rewrite <- Cmult_1_l at 1.
+          rewrite <- Cmult_1_l.
+          rewrite <- H13 at 1.
+          rewrite <- H14 at 1.
+          rewrite <- H15 at 1.
+          rewrite <- H16 at 1.
+          lca.
+        }
+        split; assumption.
+      * apply (f_equal (fun f => f × (∣1⟩ ⊗ ∣1⟩ ⊗ beta))) in H2.
         assert (H3 : beta_perp† × beta = Zero).
         {
           unfold beta_perp, beta.
@@ -817,18 +853,73 @@ Proof.
         ** exact u0_is_1.
         ** exact u1_is_1.
   - intros.
-    destruct H2.
     exists (I 2), (I 2).
+    destruct H2 as [u0_is_1 u1_is_1].
+    rewrite u0_is_1, u1_is_1.
+    exists C1, C1, C1, C1.
+    exists ∣0⟩, ∣1⟩, ∣0⟩, ∣1⟩.
     split.
-    + exact (@id_unitary 2).
-    + split.
-      * exact (@id_unitary 2).
-      * rewrite <- kron_plus_distr_l.
-        unfold beta, beta_perp, ccu.
-        rewrite a8. 2: assumption.
-        rewrite H2, H3.
-        lma'.
-        apply WF_control with (n := 4%nat).
-        apply WF_control with (n := 2%nat).
-        apply WF_diag2.
+    {
+      apply id_unitary.
+    }
+    split.
+    {
+      apply id_unitary.
+    }
+    split.
+    {
+      apply WF_qubit0.
+    }
+    split.
+    {
+      apply WF_qubit1.
+    }
+    split.
+    {
+      apply WF_qubit0.
+    }
+    split.
+    {
+      apply WF_qubit1.
+    }
+    split.
+    {
+      apply nonzero_qubit0.
+    }
+    split.
+    {
+      apply nonzero_qubit1.
+    }
+    split.
+    {
+      apply nonzero_qubit0.
+    }
+    split.
+    {
+      apply nonzero_qubit1.
+    }
+    split.
+    {
+      apply id2_eigenpairs.
+    }
+    split.
+    {
+      apply id2_eigenpairs.
+    }
+    split.
+    {
+      apply id2_eigenpairs.
+    }
+    split.
+    {
+      apply id2_eigenpairs.
+    }
+    {
+      rewrite <- kron_plus_distr_l.
+      unfold beta, beta_perp.
+      rewrite a8; auto.
+      lma'.
+      apply WF_ccu.
+      apply WF_diag2.
+    }
 Qed.
