@@ -68,6 +68,16 @@ Definition diag2 (c1 c2 : C) : Square 2 :=
     | _      => C0
     end.
 
+Definition diag4 (c1 c2 c3 c4 : C) : Square 4 :=
+  fun x y =>
+    match (x,y) with
+    | (0, 0) => c1
+    | (1, 1) => c2
+    | (2, 2) => c3
+    | (3, 3) => c4
+    | _      => C0
+    end.
+
 Lemma WF_diag2: forall (c1 c2 : C), WF_Matrix (diag2 c1 c2).
 Proof.
   unfold WF_Matrix.
@@ -95,6 +105,42 @@ Proof.
     destruct y' as [|y''].
     contradict H.
     lia. reflexivity. reflexivity.
+  }
+Qed.
+
+Lemma WF_diag4: forall (c1 c2 c3 c4 : C), WF_Matrix (diag4 c1 c2 c3 c4).
+Proof.
+  unfold WF_Matrix.
+  intros.
+  destruct H.
+  {
+    unfold diag4.
+    destruct x.
+    - lia.
+    - destruct x.
+      + lia.
+      + destruct x.
+        * lia.
+        * destruct x.
+          lia. reflexivity.
+  }
+  {
+    unfold diag4.
+    destruct y.
+    - lia.
+    - destruct y.
+      + lia.
+      + destruct y.
+        * lia.
+        * destruct y.
+          -- lia.
+          -- destruct x.
+             ++ reflexivity.
+             ++ destruct x.
+                ** reflexivity.
+                ** destruct x.
+                   --- reflexivity.
+                   --- destruct x; reflexivity.
   }
 Qed.
 
@@ -1146,6 +1192,12 @@ Proof.
   apply WF_diag2.
 Qed.
 
+Lemma id4_diag4: I 4 = diag4 C1 C1 C1 C1.
+Proof.
+  lma'.
+  apply WF_diag4.
+Qed.
+
 Lemma diag2_eigenpairs: forall (c1 c2 : C),
   Eigenpair (diag2 c1 c2) (∣0⟩, c1) /\ Eigenpair (diag2 c1 c2) (∣1⟩, c2).
 Proof.
@@ -1167,8 +1219,55 @@ Proof.
   }
 Qed.
 
+Lemma diag4_eigenpairs: forall (c1 c2 c3 c4 : C),
+  Eigenpair (diag4 c1 c2 c3 c4) (∣0⟩ ⊗ ∣0⟩, c1) /\ Eigenpair (diag4 c1 c2 c3 c4) (∣0⟩ ⊗ ∣1⟩, c2) /\
+  Eigenpair (diag4 c1 c2 c3 c4) (∣1⟩ ⊗ ∣0⟩, c3) /\ Eigenpair (diag4 c1 c2 c3 c4) (∣1⟩ ⊗ ∣1⟩, c4).
+Proof.
+  intros.
+  split; unfold Eigenpair; simpl.
+  {
+    lma'.
+    solve_WF_matrix.
+    apply WF_diag4.
+    unfold Mmult, scale, kron, diag4, qubit0; simpl.
+    lca.
+  }
+  split.
+  {
+    lma'.
+    solve_WF_matrix.
+    apply WF_diag4.
+    unfold Mmult, scale, kron, diag4, qubit1; simpl.
+    lca.
+  }
+  split.
+  {
+    lma'.
+    solve_WF_matrix.
+    apply WF_diag4.
+    unfold Mmult, scale, kron, diag4, qubit0; simpl.
+    lca.
+  }
+  {
+    lma'.
+    solve_WF_matrix.
+    apply WF_diag4.
+    unfold Mmult, scale, kron, diag4, qubit1; simpl.
+    lca.
+  }
+Qed.
+
 Lemma id2_eigenpairs: Eigenpair (I 2) (∣0⟩, C1) /\ Eigenpair (I 2) (∣1⟩, C1).
 Proof.
   rewrite id2_diag2.
   apply diag2_eigenpairs.
+Qed.
+
+Lemma id4_eigenpairs: Eigenpair (I 4) (∣0⟩ ⊗ ∣0⟩, C1) /\
+  Eigenpair (I 4) (∣0⟩ ⊗ ∣1⟩, C1) /\
+  Eigenpair (I 4) (∣1⟩ ⊗ ∣0⟩, C1) /\
+  Eigenpair (I 4) (∣1⟩ ⊗ ∣1⟩, C1).
+Proof.
+  rewrite id4_diag4.
+  apply diag4_eigenpairs.
 Qed.

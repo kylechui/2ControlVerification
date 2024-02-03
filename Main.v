@@ -52,12 +52,12 @@ Proof.
       assert (help1 : a * p = C1).
       {
         pose proof (
-          a5_left v1 v3 a p
+          a5_left
           P Q
-          WF_v1 WF_v3
           Unitary_P Unitary_Q
-          epair1
-          epair3
+          a p v1 v3
+          WF_v1 WF_v3
+          epair1 epair3
         ) as H.
         unfold Eigenpair in epair5, H; simpl in epair5, H.
         rewrite epair5 in H.
@@ -68,12 +68,12 @@ Proof.
       assert (help2 : a * q = C1).
       {
         pose proof (
-          a5_left v1 v4 a q
+          a5_left
           P Q
-          WF_v1 WF_v4
           Unitary_P Unitary_Q
-          epair1
-          epair4
+          a q v1 v4
+          WF_v1 WF_v4
+          epair1 epair4
         ) as H.
         unfold Eigenpair in epair6, H; simpl in epair6, H.
         rewrite epair6 in H.
@@ -84,12 +84,12 @@ Proof.
       assert (help3 : b * p = u0).
       {
         pose proof (
-          a5_left v2 v3 b p
+          a5_left
           P Q
-          WF_v2 WF_v3
           Unitary_P Unitary_Q
-          epair2
-          epair3
+          b p v2 v3
+          WF_v2 WF_v3
+          epair2 epair3
         ) as H.
         unfold Eigenpair in epair7, H; simpl in epair7, H.
         rewrite epair7 in H.
@@ -100,12 +100,12 @@ Proof.
       assert (help4 : b * q = u1).
       {
         pose proof (
-          a5_left v2 v4 b q
+          a5_left
           P Q
-          WF_v2 WF_v4
           Unitary_P Unitary_Q
-          epair2
-          epair4
+          b q v2 v4
+          WF_v2 WF_v4
+          epair2 epair4
         ) as H.
         unfold Eigenpair in epair8, H; simpl in epair8, H.
         rewrite epair8 in H.
@@ -125,12 +125,12 @@ Proof.
       assert (help1 : a * p = C1).
       {
         pose proof (
-          a5_left v1 v3 a p
+          a5_left
           P Q
-          WF_v1 WF_v3
           Unitary_P Unitary_Q
-          epair1
-          epair3
+          a p v1 v3
+          WF_v1 WF_v3
+          epair1 epair3
         ) as H.
         unfold Eigenpair in epair5, H; simpl in epair5, H.
         rewrite epair5 in H.
@@ -141,12 +141,12 @@ Proof.
       assert (help2 : a * q = u1).
       {
         pose proof (
-          a5_left v1 v4 a q
+          a5_left
           P Q
-          WF_v1 WF_v4
           Unitary_P Unitary_Q
-          epair1
-          epair4
+          a q v1 v4
+          WF_v1 WF_v4
+          epair1 epair4
         ) as H.
         unfold Eigenpair in epair6, H; simpl in epair6, H.
         rewrite epair6 in H.
@@ -157,12 +157,12 @@ Proof.
       assert (help3 : b * p = u0).
       {
         pose proof (
-          a5_left v2 v3 b p
+          a5_left
           P Q
-          WF_v2 WF_v3
           Unitary_P Unitary_Q
-          epair2
-          epair3
+          b p v2 v3
+          WF_v2 WF_v3
+          epair2 epair3
         ) as H.
         unfold Eigenpair in epair7, H; simpl in epair7, H.
         rewrite epair7 in H.
@@ -173,12 +173,12 @@ Proof.
       assert (help4 : b * q = C1).
       {
         pose proof (
-          a5_left v2 v4 b q
+          a5_left
           P Q
-          WF_v2 WF_v4
           Unitary_P Unitary_Q
-          epair2
-          epair4
+          b q v2 v4
+          WF_v2 WF_v4
+          epair2 epair4
         ) as H.
         unfold Eigenpair in epair8, H; simpl in epair8, H.
         rewrite epair8 in H.
@@ -443,7 +443,7 @@ Proof.
   }
 Qed.
 
-Lemma m4_1 : forall (u0 u1 : C),
+(* Lemma m4_1 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
     (exists (U V : Square 4) (P0 P1 Q0 Q1: Square 2),
       WF_Unitary U /\ WF_Unitary V /\ WF_Unitary P0 /\ WF_Unitary P1 /\ WF_Unitary Q0 /\ WF_Unitary Q1 /\
@@ -474,7 +474,6 @@ Proof.
       (* This line removes a lot of subgoals created by the following Msimpl *)
       assert (WF_my_diag2 : WF_Matrix (diag2 1 u1)). apply WF_diag2.
       Msimpl.
-
       lma'.
       do 2 apply WF_control; apply WF_diag2.
       {
@@ -539,7 +538,7 @@ Proof.
         Csimpl.
         reflexivity.
       }
-Qed.
+Admitted. *)
 
 Lemma m4_2 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
@@ -547,9 +546,12 @@ Lemma m4_2 : forall (u0 u1 : C),
     WF_Unitary Q ->
     let beta : Vector 2 := Q × ∣0⟩ in
     let beta_perp := Q × ∣1⟩ in
-    (exists (P0 P1 : Square 2),
-      WF_Unitary P0 /\
-      WF_Unitary P1 /\
+    (exists (P0 P1 : Square 2) (a b p q : C) (v1 v2 v3 v4 : Vector 2),
+      WF_Unitary P0 /\ WF_Unitary P1 /\
+      WF_Matrix v1 /\ WF_Matrix v2 /\ WF_Matrix v3 /\ WF_Matrix v4 /\
+      v1 <> Zero /\ v2 <> Zero /\ v3 <> Zero /\ v4 <> Zero /\
+      Eigenpair P0 (v1, a) /\ Eigenpair P0 (v2, b) /\
+      Eigenpair P1 (v3, p) /\ Eigenpair P1 (v4, q) /\
       I 2 ⊗ I 2 ⊗ (beta × beta†) .+ P0 ⊗ P1 ⊗ (beta_perp × beta_perp†) = ccu (diag2 u0 u1))
     <-> u0 = 1 /\ u1 = 1.
 Proof.
@@ -572,6 +574,11 @@ Proof.
   pose (b := beta 1%nat 0%nat).
   split.
   - intros.
+    destruct H2 as [P0 [P1 [c1 [c2 [c3 [c4 [v1 [v2 [v3 [v4 H2]]]]]]]]]].
+    destruct H2 as [Unitary_P0 [Unitary_P1 H2]].
+    destruct H2 as [WF_v1 [WF_v2 [WF_v3 [WF_v4 H2]]]].
+    destruct H2 as [v1_nonzero [v2_nonzero [v3_nonzero [v4_nonzero H2]]]].
+    destruct H2 as [epair1 [epair2 [epair3 [epair4 H2]]]].
     destruct (Ceq_dec a C0) as [a_zero | a_nonzero].
     + assert (unit_b : b^* * b = 1).
       {
@@ -619,7 +626,44 @@ Proof.
       }
       rewrite beta_mult_1_1 in H2.
       rewrite beta_perp_mult_0_0 in H2.
-      admit. (* TODO: Eigenvalues! *)
+      assert (step1 : I 2 ⊗ I 2 = diag4 1 1 1 u1).
+      {
+        admit.
+      }
+      assert (step2 : P0 ⊗ P1 = diag4 1 1 1 u0).
+      {
+        admit.
+      }
+      assert (u1_is_1 : u1 = C1).
+      {
+        apply (f_equal (fun f => f 3%nat 3%nat)) in step1.
+        unfold kron, diag4, I in step1; simpl in step1.
+        rewrite <- step1.
+        lca.
+      }
+      assert (u0_is_1 : u0 = C1).
+      {
+        pose proof step2 as H13.
+        pose proof step2 as H14.
+        pose proof step2 as H15.
+        pose proof step2 as H16.
+        apply f_equal with (f := fun f => f 0%nat 0%nat) in H13.
+        unfold kron, diag4 in H13; simpl in H13.
+        apply f_equal with (f := fun f => f 1%nat 1%nat) in H14.
+        unfold kron, diag4 in H14; simpl in H14.
+        apply f_equal with (f := fun f => f 2%nat 2%nat) in H15.
+        unfold kron, diag4 in H15; simpl in H15.
+        apply f_equal with (f := fun f => f 3%nat 3%nat) in H16.
+        unfold kron, diag4 in H16; simpl in H16.
+        rewrite <- Cmult_1_l at 1.
+        rewrite <- Cmult_1_l.
+        rewrite <- H13 at 1.
+        rewrite <- H14 at 1.
+        rewrite <- H15 at 1.
+        rewrite <- H16 at 1.
+        lca.
+      }
+      split; auto.
     + destruct (Ceq_dec b C0) as [b_zero | b_nonzero].
       * assert (unit_a : a^* * a = 1).
         {
