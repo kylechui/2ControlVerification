@@ -262,6 +262,43 @@ reflexivity.
 all: assumption.
 Qed.
 
+Lemma RtoC_conj (x: R): (RtoC x)^* = RtoC x.
+Proof. intros. unfold RtoC, Cconj. apply c_proj_eq. simpl. reflexivity. simpl. lra. Qed.
+
+Lemma RtoC_pow2 (x : R): RtoC (x ^ 2) = (RtoC x) ^ 2.
+Proof. intros. unfold RtoC, pow, Cpow, Cmult. apply c_proj_eq. all: simpl. all: lra. Qed. 
+
+Lemma Rfrac_product: forall (a b c d: R), 
+b <> 0 -> d <> 0 -> (a/b * (c/d) = (a*c)/(b*d))%R.
+Proof.
+intros.
+unfold Rdiv.
+rewrite Rinv_mult_distr. 2,3: assumption.
+lra.
+Qed.
+
+Lemma Cfrac_product: forall (a b c d: C), 
+b <> 0 -> d <> 0 -> (a/b) * (c/d) = (a*c)/(b*d).
+Proof.
+intros.
+unfold Cdiv.
+rewrite Cinv_mult_distr. 2,3: assumption.
+lca.
+Qed.
+
+Lemma g0_sqn0: forall (x : R), 
+0 < x -> sqrt x <> 0.
+Proof.
+unfold not.
+intros.
+assert (0 <> x). apply Rlt_not_eq. assumption.
+apply H1.
+symmetry.
+apply sqrt_eq_0.
+apply Rlt_le.
+all: assumption.
+Qed. 
+
 Lemma a21: forall (U : Square 4), 
 WF_Unitary U -> exists (psi : Vector 2), 
 WF_Qubit psi /\ TensorProd (U × (∣0⟩ ⊗ psi)).
@@ -283,10 +320,75 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣0⟩ ⊗ ∣0⟩)))).
     set (a := (a00 * a11 - a01 * a10)%C).
     set (b := (a00 * b11 + a11 * b00 - a01 * b10 - a10 * b01)%C).
     set (c := (b00 * b11 - b01 * b10)%C).
-    admit.
-    (* set (quad := sqrt (b * b - 4 * a * c)%C).
+    set (quad := Complex_sqrt (b * b - 4 * a * c)%C).
     set (p0 := (/ (2 * a)%C * (-b + quad))%C).
-    set (c0 := 1 / √ ((Cmod p0)^2 + 1)). *)
+    set (c0 := 1 / √ ((Cmod p0)^2 + 1)%R).
+    set (psi0 := c0 * p0 .* ∣0⟩ .+ c0 .* ∣1⟩).
+    exists psi0.
+    split. 
+    {
+        unfold WF_Qubit.
+        split. exists (1%nat). trivial.
+        split. solve_WF_matrix.
+        rewrite vector2_inner_prod_decomp.
+        unfold psi0.
+        repeat rewrite Mplus_access.
+        repeat rewrite <- Mscale_access.
+        simpl.
+        repeat rewrite Cmult_0_r.
+        repeat rewrite Cmult_1_r.
+        repeat rewrite Cplus_0_l, Cplus_0_r.
+        rewrite Cconj_mult_distr.
+        rewrite <- Cmult_assoc.
+        rewrite Cmult_comm with (x := p0^*).
+        rewrite <- Cmult_assoc. rewrite Cmult_assoc at 1.
+        rewrite <- Cmult_1_r with (x:= c0 ^* * c0) at 2.
+        rewrite <- Cmult_plus_distr_l with (x:= c0 ^* * c0).
+        assert (div_g0: 0 < Cmod p0 ^ 2 + 1). 
+        {
+            rewrite <- Rplus_0_l with (r:= 0).
+            apply Rplus_le_lt_compat. 2: lra.
+            apply Rsqr_ge_0.
+        }
+        assert (expansion: c0^* * c0 = C1 / (Cmod p0 ^ 2 + 1)).
+        {
+            unfold c0.
+            repeat rewrite <- RtoC_div.
+            rewrite RtoC_conj.
+            rewrite <- RtoC_mult.
+            rewrite Rfrac_product with (a:= 1) .
+            rewrite sqrt_sqrt.
+            rewrite Rmult_1_l.
+            rewrite RtoC_div.
+            rewrite RtoC_plus.
+            rewrite RtoC_pow2.
+            reflexivity.
+            3,4,5: apply g0_sqn0.
+            apply Rgt_not_eq.
+            apply Rlt_gt.
+            2: apply Rlt_le.
+            all: apply div_g0.
+        }
+        rewrite expansion.
+        rewrite Cmult_comm with (x:= p0).
+        rewrite <- Cmod_sqr.
+        unfold Cdiv.
+        rewrite Cmult_1_l.
+        apply Cinv_l.
+        unfold not.
+        intro.
+        apply complex_split in H0.
+        destruct H0.
+        apply eq_sym in H0.
+        revert H0.
+        rewrite <- RtoC_pow2.
+        rewrite <- RtoC_plus.
+        unfold RtoC.
+        simpl.
+        apply Rlt_not_eq.
+        replace ((Cmod p0 * (Cmod p0 * 1))%R) with ((Cmod p0 ^ 2)%R) by lra.
+        assumption.
+    }
 }
 Admitted.
 
@@ -1429,10 +1531,6 @@ specialize (H x). apply H in x_qubit.
 rewrite x_qubit.
 reflexivity.
 Qed.
-
-
-Lemma RtoC_conj (x: R): (RtoC x)^* = RtoC x.
-Proof. intros. unfold RtoC, Cconj. apply c_proj_eq. simpl. reflexivity. simpl. lra. Qed.
 
 Lemma lin_indep_scale_invariant {n}: forall (a b : C) (u v: Vector n), 
 a <> 0 -> b <> 0 -> (linearly_independent_2vec u v <-> linearly_independent_2vec (a .* u) (b .* v)).
