@@ -10,28 +10,32 @@ Require Import QuantumLib.Matrix.
 
 Lemma m3_2 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
-  (exists (P Q : Square 2) (a b p q : C) (v1 v2 v3 v4 : Vector 2),
+  (exists (P Q : Square 2),
     WF_Unitary P /\ WF_Unitary Q /\
-    WF_Matrix v1 /\ WF_Matrix v2 /\ WF_Matrix v3 /\ WF_Matrix v4 /\
-    v1 <> Zero /\ v2 <> Zero /\ v3 <> Zero /\ v4 <> Zero /\
-    Eigenpair P (v1, a) /\ Eigenpair P (v2, b) /\
-    Eigenpair Q (v3, p) /\ Eigenpair Q (v4, q) /\
-      (Eigenpair (P ⊗ Q) (v1 ⊗ v3, C1) /\
-      Eigenpair (P ⊗ Q) (v1 ⊗ v4, C1) /\
-      Eigenpair (P ⊗ Q) (v2 ⊗ v3, u0) /\
-      Eigenpair (P ⊗ Q) (v2 ⊗ v4, u1) \/
-      Eigenpair (P ⊗ Q) (v1 ⊗ v3, C1) /\
-      Eigenpair (P ⊗ Q) (v1 ⊗ v4, u1) /\
-      Eigenpair (P ⊗ Q) (v2 ⊗ v3, u0) /\
-      Eigenpair (P ⊗ Q) (v2 ⊗ v4, C1)))
+    (exists (a b p q : C) (v1 v2 v3 v4 : Vector 2),
+      WF_Matrix v1 /\ WF_Matrix v2 /\ WF_Matrix v3 /\ WF_Matrix v4 /\
+      v1 <> Zero /\ v2 <> Zero /\ v3 <> Zero /\ v4 <> Zero /\
+      Eigenpair P (v1, a) /\ Eigenpair P (v2, b) /\
+      Eigenpair Q (v3, p) /\ Eigenpair Q (v4, q) /\
+        (Eigenpair (P ⊗ Q) (v1 ⊗ v3, C1) /\
+        Eigenpair (P ⊗ Q) (v1 ⊗ v4, C1) /\
+        Eigenpair (P ⊗ Q) (v2 ⊗ v3, u0) /\
+        Eigenpair (P ⊗ Q) (v2 ⊗ v4, u1) \/
+        Eigenpair (P ⊗ Q) (v1 ⊗ v3, C1) /\
+        Eigenpair (P ⊗ Q) (v1 ⊗ v4, u1) /\
+        Eigenpair (P ⊗ Q) (v2 ⊗ v3, u0) /\
+        Eigenpair (P ⊗ Q) (v2 ⊗ v4, C1))))
   <-> u0 = u1 \/ u0 * u1 = C1.
 Proof.
   intros u0 u1 unit_u0 unit_u1.
   split.
   {
     intro.
-    destruct H as [P [Q [a [b [p [q [v1 [v2 [v3 [v4 H]]]]]]]]]].
-    destruct H as [Unitary_P [Unitary_Q [wf_v1 [wf_v2 [wf_v3 [wf_v4 H]]]]]].
+    destruct H as [P [Q [Unitary_P [Unitary_Q H]]]].
+    destruct H as [a [b [p [q [v1 [v2 [v3 [v4 H]]]]]]]].
+    destruct H as [WF_v1 [WF_v2 [WF_v3 [WF_v4 H]]]].
+    destruct H as [v1_nonzero [v2_nonzero [v3_nonzero [v4_nonzero H]]]].
+    destruct H as [epair1 [epair2 [epair3 [epair4 H]]]].
     assert (WF_P : WF_Matrix P).
     {
       destruct Unitary_P.
@@ -42,8 +46,6 @@ Proof.
       destruct Unitary_Q.
       assumption.
     }
-    destruct H as [v1_nonzero [v2_nonzero [v3_nonzero [v4_nonzero H]]]].
-    destruct H as [epair1 [epair2 [epair3 [epair4 H]]]].
     destruct H.
     {
       destruct H as [epair5 [epair6 [epair7 epair8]]].
@@ -52,7 +54,7 @@ Proof.
         pose proof (
           a5_left v1 v3 a p
           P Q
-          wf_v1 wf_v3
+          WF_v1 WF_v3
           Unitary_P Unitary_Q
           epair1
           epair3
@@ -68,7 +70,7 @@ Proof.
         pose proof (
           a5_left v1 v4 a q
           P Q
-          wf_v1 wf_v4
+          WF_v1 WF_v4
           Unitary_P Unitary_Q
           epair1
           epair4
@@ -84,7 +86,7 @@ Proof.
         pose proof (
           a5_left v2 v3 b p
           P Q
-          wf_v2 wf_v3
+          WF_v2 WF_v3
           Unitary_P Unitary_Q
           epair2
           epair3
@@ -100,7 +102,7 @@ Proof.
         pose proof (
           a5_left v2 v4 b q
           P Q
-          wf_v2 wf_v4
+          WF_v2 WF_v4
           Unitary_P Unitary_Q
           epair2
           epair4
@@ -125,7 +127,7 @@ Proof.
         pose proof (
           a5_left v1 v3 a p
           P Q
-          wf_v1 wf_v3
+          WF_v1 WF_v3
           Unitary_P Unitary_Q
           epair1
           epair3
@@ -141,7 +143,7 @@ Proof.
         pose proof (
           a5_left v1 v4 a q
           P Q
-          wf_v1 wf_v4
+          WF_v1 WF_v4
           Unitary_P Unitary_Q
           epair1
           epair4
@@ -157,7 +159,7 @@ Proof.
         pose proof (
           a5_left v2 v3 b p
           P Q
-          wf_v2 wf_v3
+          WF_v2 WF_v3
           Unitary_P Unitary_Q
           epair2
           epair3
@@ -173,7 +175,7 @@ Proof.
         pose proof (
           a5_left v2 v4 b q
           P Q
-          wf_v2 wf_v4
+          WF_v2 WF_v4
           Unitary_P Unitary_Q
           epair2
           epair4
@@ -197,8 +199,6 @@ Proof.
     destruct H.
     {
       exists (diag2 1 u1), (I 2).
-      exists C1, u1, C1, C1.
-      exists ∣0⟩, ∣1⟩, ∣0⟩, ∣1⟩.
       split.
       {
         unfold WF_Unitary.
@@ -207,8 +207,12 @@ Proof.
           apply WF_diag2.
         }
         {
-          solve_matrix.
-          unfold diag2; simpl.
+          lma'.
+          solve_WF_matrix.
+          apply WF_diag2.
+          apply WF_diag2.
+          unfold diag2, I, adjoint, Mmult; simpl.
+          Csimpl.
           rewrite <- Cmod_sqr.
           rewrite unit_u1.
           lca.
@@ -218,6 +222,8 @@ Proof.
       {
         apply id_unitary.
       }
+      exists C1, u1, C1, C1.
+      exists ∣0⟩, ∣1⟩, ∣0⟩, ∣1⟩.
       split.
       {
         apply WF_qubit0.
@@ -269,41 +275,43 @@ Proof.
       left.
       split.
       {
-        lma'.
+        unfold Eigenpair.
+        lma'; simpl.
         solve_WF_matrix.
         apply WF_diag2.
         solve_WF_matrix.
       }
       split.
       {
-        lma'.
+        unfold Eigenpair.
+        lma'; simpl.
         solve_WF_matrix.
         apply WF_diag2.
         solve_WF_matrix.
       }
       split.
       {
-        lma'.
-        solve_WF_matrix.
-        apply WF_diag2.
-        solve_WF_matrix.
         rewrite H.
-        unfold scale, Mmult, kron, diag2, I, qubit0, qubit1; simpl.
+        unfold Eigenpair.
+        lma'; simpl.
+        solve_WF_matrix.
+        apply WF_diag2.
+        solve_WF_matrix.
+        unfold scale, Mmult, kron, diag2, I; simpl.
         lca.
       }
       {
-        lma'.
+        unfold Eigenpair.
+        lma'; simpl.
         solve_WF_matrix.
         apply WF_diag2.
         solve_WF_matrix.
-        unfold scale, Mmult, kron, diag2, I, qubit0, qubit1; simpl.
+        unfold scale, Mmult, kron, diag2, I; simpl.
         lca.
       }
     }
     {
       exists (diag2 1 u0), (diag2 1 u1).
-      exists C1, u0, C1, u1.
-      exists ∣0⟩, ∣1⟩, ∣0⟩, ∣1⟩.
       split.
       {
         unfold WF_Unitary.
@@ -312,8 +320,12 @@ Proof.
           apply WF_diag2.
         }
         {
-          solve_matrix.
-          unfold diag2; simpl.
+          lma'.
+          solve_WF_matrix.
+          apply WF_diag2.
+          apply WF_diag2.
+          unfold diag2, I, adjoint, Mmult; simpl.
+          Csimpl.
           rewrite <- Cmod_sqr.
           rewrite unit_u0.
           lca.
@@ -327,13 +339,19 @@ Proof.
           apply WF_diag2.
         }
         {
-          solve_matrix.
-          unfold diag2; simpl.
+          lma'.
+          solve_WF_matrix.
+          apply WF_diag2.
+          apply WF_diag2.
+          unfold diag2, I, adjoint, Mmult; simpl.
+          Csimpl.
           rewrite <- Cmod_sqr.
           rewrite unit_u1.
           lca.
         }
       }
+      exists C1, u0, C1, u1.
+      exists ∣0⟩, ∣1⟩, ∣0⟩, ∣1⟩.
       split.
       {
         apply WF_qubit0.
