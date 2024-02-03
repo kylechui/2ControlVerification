@@ -443,7 +443,7 @@ Proof.
   }
 Qed.
 
-(* Lemma m4_1 : forall (u0 u1 : C),
+Lemma m4_1 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
     (exists (U V : Square 4) (P0 P1 Q0 Q1: Square 2),
       WF_Unitary U /\ WF_Unitary V /\ WF_Unitary P0 /\ WF_Unitary P1 /\ WF_Unitary Q0 /\ WF_Unitary Q1 /\
@@ -538,7 +538,7 @@ Proof.
         Csimpl.
         reflexivity.
       }
-Admitted. *)
+Admitted.
 
 Lemma m4_2 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
@@ -626,41 +626,37 @@ Proof.
       }
       rewrite beta_mult_1_1 in H2.
       rewrite beta_perp_mult_0_0 in H2.
-      assert (step1 : I 2 ⊗ I 2 = diag4 1 1 1 u1).
-      {
-        admit.
-      }
-      assert (step2 : P0 ⊗ P1 = diag4 1 1 1 u0).
-      {
-        admit.
-      }
       assert (u1_is_1 : u1 = C1).
       {
-        apply (f_equal (fun f => f 3%nat 3%nat)) in step1.
-        unfold kron, diag4, I in step1; simpl in step1.
-        rewrite <- step1.
-        lca.
+        apply f_equal with (f := fun f => f 7%nat 7%nat) in H2.
+        unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H2; simpl in H2.
+        revert H2; Csimpl; intro H2.
+        auto.
       }
       assert (u0_is_1 : u0 = C1).
       {
-        pose proof step2 as H13.
-        pose proof step2 as H14.
-        pose proof step2 as H15.
-        pose proof step2 as H16.
-        apply f_equal with (f := fun f => f 0%nat 0%nat) in H13.
-        unfold kron, diag4 in H13; simpl in H13.
-        apply f_equal with (f := fun f => f 1%nat 1%nat) in H14.
-        unfold kron, diag4 in H14; simpl in H14.
-        apply f_equal with (f := fun f => f 2%nat 2%nat) in H15.
-        unfold kron, diag4 in H15; simpl in H15.
-        apply f_equal with (f := fun f => f 3%nat 3%nat) in H16.
-        unfold kron, diag4 in H16; simpl in H16.
+        pose proof H2 as H3.
+        pose proof H2 as H4.
+        pose proof H2 as H5.
+        pose proof H2 as H6.
+        apply f_equal with (f := fun f => f 0%nat 0%nat) in H3.
+        unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H3; simpl in H3.
+        revert H3; Csimpl; intro H3.
+        apply f_equal with (f := fun f => f 2%nat 2%nat) in H4.
+        unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H4; simpl in H4.
+        revert H4; Csimpl; intro H4.
+        apply f_equal with (f := fun f => f 4%nat 4%nat) in H5.
+        unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H5; simpl in H5.
+        revert H5; Csimpl; intro H5.
+        apply f_equal with (f := fun f => f 6%nat 6%nat) in H6.
+        unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H6; simpl in H6.
+        revert H6; Csimpl; intro H6.
         rewrite <- Cmult_1_l at 1.
         rewrite <- Cmult_1_l.
-        rewrite <- H13 at 1.
-        rewrite <- H14 at 1.
-        rewrite <- H15 at 1.
-        rewrite <- H16 at 1.
+        rewrite <- H3 at 1.
+        rewrite <- H4 at 1.
+        rewrite <- H5 at 1.
+        rewrite <- H6 at 1.
         lca.
       }
       split; auto.
@@ -710,41 +706,37 @@ Proof.
         }
         rewrite beta_mult_0_0 in H2.
         rewrite beta_perp_mult_1_1 in H2.
-        assert (step1 : I 2 ⊗ I 2 = diag4 1 1 1 u0).
-        {
-          admit.
-        }
-        assert (step2 : P0 ⊗ P1 = diag4 1 1 1 u1).
-        {
-          admit.
-        }
         assert (u0_is_1 : u0 = C1).
         {
-          apply (f_equal (fun f => f 3%nat 3%nat)) in step1.
-          unfold kron, diag4, I in step1; simpl in step1.
-          rewrite <- step1.
-          lca.
+          apply f_equal with (f := fun f => f 6%nat 6%nat) in H2.
+          unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H2; simpl in H2.
+          revert H2; Csimpl; intro H2.
+          auto.
         }
         assert (u1_is_1 : u1 = C1).
         {
-          pose proof step2 as H13.
-          pose proof step2 as H14.
-          pose proof step2 as H15.
-          pose proof step2 as H16.
-          apply f_equal with (f := fun f => f 0%nat 0%nat) in H13.
-          unfold kron, diag4 in H13; simpl in H13.
-          apply f_equal with (f := fun f => f 1%nat 1%nat) in H14.
-          unfold kron, diag4 in H14; simpl in H14.
-          apply f_equal with (f := fun f => f 2%nat 2%nat) in H15.
-          unfold kron, diag4 in H15; simpl in H15.
-          apply f_equal with (f := fun f => f 3%nat 3%nat) in H16.
-          unfold kron, diag4 in H16; simpl in H16.
+          pose proof H2 as H3.
+          pose proof H2 as H4.
+          pose proof H2 as H5.
+          pose proof H2 as H6.
+          apply f_equal with (f := fun f => f 1%nat 1%nat) in H3.
+          unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H3; simpl in H3.
+          revert H3; Csimpl; intro H3.
+          apply f_equal with (f := fun f => f 3%nat 3%nat) in H4.
+          unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H4; simpl in H4.
+          revert H4; Csimpl; intro H4.
+          apply f_equal with (f := fun f => f 5%nat 5%nat) in H5.
+          unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H5; simpl in H5.
+          revert H5; Csimpl; intro H5.
+          apply f_equal with (f := fun f => f 7%nat 7%nat) in H6.
+          unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H6; simpl in H6.
+          revert H6; Csimpl; intro H6.
           rewrite <- Cmult_1_l at 1.
           rewrite <- Cmult_1_l.
-          rewrite <- H13 at 1.
-          rewrite <- H14 at 1.
-          rewrite <- H15 at 1.
-          rewrite <- H16 at 1.
+          rewrite <- H3 at 1.
+          rewrite <- H4 at 1.
+          rewrite <- H5 at 1.
+          rewrite <- H6 at 1.
           lca.
         }
         split; assumption.
