@@ -201,18 +201,6 @@ Proof.
     exact H.
 Qed.
 
-Lemma rtoc_neq_decomp: forall (r: R), 
-(r <> 0)%R -> RtoC r <> C0.
-Proof.
-intros. 
-unfold RtoC.
-intro.
-apply complex_split in H0.
-destruct H0 as [H0 _].
-apply H.
-trivial.
-Qed.
-
 (* If b = 0, then the value is real, in which case we should be using sqrt *)
 (* Could do casework here, but I think it might make `lca` fail *)
 Definition Complex_sqrt (x : C) : C :=
@@ -406,7 +394,7 @@ intro H.
 apply (f_equal (fun f => /C2 * f)) in H.
 rewrite Cmult_0_r in H.
 rewrite Cmult_assoc in H.
-rewrite Cinv_l in H. 2: apply rtoc_neq_decomp. 2: lra.
+rewrite Cinv_l in H. 2: apply RtoC_neq. 2: lra.
 rewrite Cmult_1_l in H.
 assumption.
 Qed.
@@ -449,7 +437,7 @@ Qed.
 
 Lemma four_neq_0: RtoC 4 <> 0.
 Proof.
-apply rtoc_neq_decomp.
+apply RtoC_neq.
 lra.
 Qed.
 
@@ -697,4 +685,91 @@ split.
     apply Cmult_0_r.
     assumption.
 }
+Qed.
+
+Lemma RtoC_conj (x: R): (RtoC x)^* = RtoC x.
+Proof. intros. unfold RtoC, Cconj. apply c_proj_eq. simpl. reflexivity. simpl. lra. Qed.
+
+Lemma Rfrac_product: forall (a b c d: R), 
+b <> 0 -> d <> 0 -> (a/b * (c/d) = (a*c)/(b*d))%R.
+Proof.
+intros.
+unfold Rdiv.
+rewrite Rinv_mult_distr. 2,3: assumption.
+lra.
+Qed.
+
+Lemma Cfrac_product: forall (a b c d: C), 
+b <> 0 -> d <> 0 -> (a/b) * (c/d) = (a*c)/(b*d).
+Proof.
+intros.
+unfold Cdiv.
+rewrite Cinv_mult_distr. 2,3: assumption.
+lca.
+Qed.
+
+Lemma g0_sqn0: forall (x : R), 
+0 < x -> sqrt x <> 0.
+Proof.
+unfold not.
+intros.
+assert (0 <> x). apply Rlt_not_eq. assumption.
+apply H1.
+symmetry.
+apply sqrt_eq_0.
+apply Rlt_le.
+all: assumption.
+Qed. 
+
+Lemma quadratic_formula: forall (a b c x: C), 
+a <>0 -> x = / (C2 * a) * (- b + Complex_sqrt (b * b - 4 * a * c)) ->
+x^2 * a + x * b + c = 0.
+Proof.
+intros a b c x an0 xdef.
+rewrite xdef.
+set (denom := C2 * a).
+set (sqrt_term := b * b - 4 * a * c).
+unfold Cpow.
+rewrite Cmult_1_r.
+replace (/ denom * (- b + Complex_sqrt sqrt_term) * (/ denom * (- b + Complex_sqrt sqrt_term)) * a) with 
+((/ denom * / denom * a) * ((- b + Complex_sqrt sqrt_term) * (- b + Complex_sqrt sqrt_term))) by lca.
+replace ((- b + Complex_sqrt sqrt_term) * (- b + Complex_sqrt sqrt_term)) with 
+(b * b + - (2*b * Complex_sqrt sqrt_term) + Complex_sqrt sqrt_term * Complex_sqrt sqrt_term) by lca.
+rewrite Complex_sqrt_sqrt.
+unfold denom.
+assert (const_n0: forall (c: C), c <> 0 -> c * a <> 0). 
+{
+    intros.
+    unfold not. intro. apply H.
+    apply Cmult_cancel_r with (a:= a).
+    assumption. rewrite Cmult_0_l. assumption.
+}
+rewrite <- Cinv_mult_distr.
+replace ((C2 * a * (C2 * a))) with ((4 * a) * a) by lca.
+rewrite Cinv_mult_distr.
+replace (/ (4 * a) * / a * a) with (/ (4 * a) * (/ a * a)) by lca.
+rewrite Cinv_l.
+rewrite Cmult_1_r.
+replace (/ (C2 * a) * (- b + Complex_sqrt sqrt_term) * b) with 
+(/ (C2 * a) * (- (b*b) + b* Complex_sqrt sqrt_term)) by lca.
+replace (/ (C2 * a) * (- (b * b) + b * Complex_sqrt sqrt_term)) with 
+(/ (C2 * a) * C1 * (- (b * b) + b * Complex_sqrt sqrt_term)) by lca.
+rewrite <- Cinv_l with (r:= C2).
+replace (/ (C2 * a) * (/ C2 * C2) * (- (b * b) + b * Complex_sqrt sqrt_term)) with
+((/ (C2 * a) * / C2) * ((- C2 * (b * b) + C2 * b * Complex_sqrt sqrt_term))) by lca.
+rewrite <- Cinv_mult_distr.
+replace (C2 * a * C2) with (4 * a) by lca.
+rewrite <- Cmult_plus_distr_l.
+replace (b * b + - (C2 * b * Complex_sqrt sqrt_term) + sqrt_term +
+(- C2 * (b * b) + C2 * b * Complex_sqrt sqrt_term)) with 
+(sqrt_term - (b * b)) by lca.
+unfold sqrt_term.
+replace (b * b - 4 * a * c - b * b) with (- 4 * a * c) by lca.
+replace (/ (4 * a) * (-4 * a * c)) with (/ (4 * a) * (4 * a) * -c) by lca.
+rewrite Cinv_l.
+lca.
+1,2,6,8,9: apply const_n0.
+8,9: assumption.
+all: apply RtoC_neq.
+all: lra.
 Qed.

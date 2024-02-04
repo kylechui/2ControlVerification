@@ -475,7 +475,7 @@ rewrite Mplus_opp_0_l in U_g. 2: solve_WF_matrix.
 rewrite Mplus_0_l in U_g. rewrite Mplus_0_r in U_g.
 apply (f_equal (fun f => /√ r .* f)) in U_g.
 rewrite Mscale_assoc in U_g.
-rewrite Cinv_l in U_g. 2: apply rtoc_neq_decomp. 2: assumption.
+rewrite Cinv_l in U_g. 2: apply RtoC_neq. 2: assumption.
 rewrite Mscale_1_l in U_g.
 rewrite <- Mscale_kron_dist_r in U_g.
 apply (f_equal (fun f => f .+ ∣0⟩ ⊗ phi)) in U_g_p.
@@ -484,7 +484,7 @@ rewrite Mplus_opp_0_l in U_g_p. 2: solve_WF_matrix.
 rewrite Mplus_0_l in U_g_p. rewrite Mplus_0_r in U_g_p.
 apply (f_equal (fun f => /√ (1 - r) .* f)) in U_g_p.
 rewrite Mscale_assoc in U_g_p.
-rewrite Cinv_l in U_g_p. 2: apply rtoc_neq_decomp. 2: assumption.
+rewrite Cinv_l in U_g_p. 2: apply RtoC_neq. 2: assumption.
 rewrite Mscale_1_l in U_g_p.
 rewrite <- Mscale_kron_dist_r in U_g_p.
 apply a17 with (beta := gamma) (beta_p := gamma_p).
