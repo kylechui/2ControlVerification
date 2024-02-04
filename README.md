@@ -14,6 +14,7 @@ QubitHelpers - Helper lemmas for unit vectors.
 SwapHelpers - Helper lemmas for properties of swaps.
 SwapProperty - Particular swap property that takes a long time to compile.
 PartialTraceDefinitions - Adding the functions for tracing out qubits, and properties of the function.
+TraceoutHelpers - Contains helper lemmas for tracing out qubits.
 
 Main Proof:
 Appendix 1: SquareMatrices
