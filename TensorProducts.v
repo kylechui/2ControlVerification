@@ -354,7 +354,7 @@ Lemma a21: forall (U : Square 4),
 WF_Unitary U -> exists (psi : Vector 2), 
 WF_Qubit psi /\ TensorProd (U × (∣0⟩ ⊗ psi)).
 Proof. 
-intros U WF_U.
+intros U U_unitary.
 destruct (Classical_Prop.classic (TensorProd (U × (∣0⟩ ⊗ ∣0⟩)))).
 {
     exists ∣0⟩. split. apply qubit0_qubit. assumption.
@@ -376,6 +376,12 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣0⟩ ⊗ ∣0⟩)))).
     set (c0 := 1 / √ ((Cmod p0)^2 + 1)%R).
     set (psi0 := c0 * p0 .* ∣0⟩ .+ c0 .* ∣1⟩).
     exists psi0.
+    assert (div_g0: 0 < Cmod p0 ^ 2 + 1). 
+    {
+        rewrite <- Rplus_0_l with (r:= 0).
+        apply Rplus_le_lt_compat. 2: lra.
+        apply Rsqr_ge_0.
+    }
     split. 
     {
         unfold WF_Qubit.
@@ -395,12 +401,6 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣0⟩ ⊗ ∣0⟩)))).
         rewrite <- Cmult_assoc. rewrite Cmult_assoc at 1.
         rewrite <- Cmult_1_r with (x:= c0 ^* * c0) at 2.
         rewrite <- Cmult_plus_distr_l with (x:= c0 ^* * c0).
-        assert (div_g0: 0 < Cmod p0 ^ 2 + 1). 
-        {
-            rewrite <- Rplus_0_l with (r:= 0).
-            apply Rplus_le_lt_compat. 2: lra.
-            apply Rsqr_ge_0.
-        }
         assert (expansion: c0^* * c0 = C1 / (Cmod p0 ^ 2 + 1)).
         {
             unfold c0.
@@ -432,7 +432,7 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣0⟩ ⊗ ∣0⟩)))).
         destruct H0.
         apply eq_sym in H0.
         revert H0.
-        rewrite <- RtoC_pow.
+        rewrite RtoC_pow.
         rewrite <- RtoC_plus.
         unfold RtoC.
         simpl.
@@ -440,9 +440,80 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣0⟩ ⊗ ∣0⟩)))).
         replace ((Cmod p0 * (Cmod p0 * 1))%R) with ((Cmod p0 ^ 2)%R) by lra.
         assumption.
     }
-    admit.
+    apply a20. solve_WF_matrix. apply U_unitary.
+    assert (psi0_def: psi0 = c0 * p0 .* ∣0⟩ .+ c0 .* ∣1⟩). unfold psi0. reflexivity.
+    assert (prod_decomp: U × (∣0⟩ ⊗ psi0) = U × (∣0⟩ ⊗ psi0)). reflexivity.
+    rewrite psi0_def in prod_decomp at 2.
+    rewrite kron_plus_distr_l in prod_decomp.
+    repeat rewrite Mscale_kron_dist_r in prod_decomp.
+    rewrite Mmult_plus_distr_l in prod_decomp.
+    repeat rewrite Mscale_mult_dist_r in prod_decomp.
+    assert (def0: (U × (∣0⟩ ⊗ psi0)) 0%nat 0%nat = c0 * p0 * a00 + c0 * b00).
+    {
+        rewrite prod_decomp.
+        rewrite Mplus_access.
+        repeat rewrite <- Mscale_access.
+        unfold a00, b00.
+        reflexivity.
+    }
+    assert (def1: (U × (∣0⟩ ⊗ psi0)) 1%nat 0%nat = c0 * p0 * a01 + c0 * b01).
+    {
+        rewrite prod_decomp.
+        rewrite Mplus_access.
+        repeat rewrite <- Mscale_access.
+        unfold a01, b01.
+        reflexivity.
+    }
+    assert (def2: (U × (∣0⟩ ⊗ psi0)) 2%nat 0%nat = c0 * p0 * a10 + c0 * b10).
+    {
+        rewrite prod_decomp.
+        rewrite Mplus_access.
+        repeat rewrite <- Mscale_access.
+        unfold a10, b10.
+        reflexivity.
+    }
+    assert (def3: (U × (∣0⟩ ⊗ psi0)) 3%nat 0%nat = c0 * p0 * a11 + c0 * b11).
+    {
+        rewrite prod_decomp.
+        rewrite Mplus_access.
+        repeat rewrite <- Mscale_access.
+        unfold a11, b11.
+        reflexivity.
+    }
+    rewrite def0, def1, def2, def3.
+    repeat rewrite <- Cmult_assoc.
+    repeat rewrite <- Cmult_plus_distr_l.
+    repeat rewrite <- Cmult_assoc.
+    rewrite Cmult_comm with (x := (p0 * a00 + b00)).
+    rewrite Cmult_comm with (x := (p0 * a01 + b01)).
+    rewrite <- Cmult_assoc.
+    rewrite Cmult_assoc with (y := c0).
+    rewrite <- Cmult_assoc with (y := (p0 * a10 + b10)).
+    rewrite Cmult_assoc with (y := c0).
+    apply Cmult_simplify. reflexivity.
+    rewrite <- Cplus_0_l with (x := (p0 * a11 + b11) * (p0 * a00 + b00)).
+    rewrite <- Cplus_0_r with (x := (p0 * a10 + b10) * (p0 * a01 + b01)).
+    rewrite <- Cplus_opp_r with (x := (p0 * a10 + b10) * (p0 * a01 + b01)) at 1.
+    rewrite <- Cplus_assoc.
+    apply Cplus_simplify. reflexivity.
+    assert (replace_helper: forall (p0 a10 b10 a01 b01 a11 b11 a00 b00: C), 
+    - ((p0 * a10 + b10) * (p0 * a01 + b01)) + (p0 * a11 + b11) * (p0 * a00 + b00) = 
+    p0 ^ 2 * (a00 * a11 - a01 * a10) + p0 * (a00 * b11 + a11 * b00 - a01 * b10 - a10 * b01) + 
+    (b00 * b11 - b01 * b10)). intros. lca.
+    rewrite replace_helper.
+    fold a b c.
+    apply quadratic_formula. 2: unfold p0. 2: reflexivity.
+    (* follows from U00 not a tensor prod *)
+    unfold a. unfold not. intro.
+    apply H.
+    rewrite a20. 2: solve_WF_matrix. 2: apply U_unitary.
+    fold a00 a11 a01 a10.
+    apply (f_equal (fun f => f + a01 * a10)) in H0.
+    rewrite Cplus_0_l in H0.
+    rewrite <- H0.
+    lca.
 }
-Admitted.
+Qed.
 
 Lemma a22: forall (U: Square 4) (a b g psi : Vector 2) (phi : Vector 4), 
 WF_Unitary U -> WF_Qubit a -> WF_Qubit b -> WF_Qubit g -> WF_Qubit psi -> WF_Qubit phi -> 
