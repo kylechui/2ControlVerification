@@ -328,14 +328,25 @@ Proof.
     reflexivity.
 Qed.
 
-Lemma scale_cancel_r: forall {m n} (c1 c2 : C) (A : Matrix m n),
-  WF_Matrix A -> A <> Zero -> c1 .* A = c2 .* A -> c1 = c2.
+Lemma Mscale_cancel_l: forall {m n} (c : C) (A B : Matrix m n),
+  c <> C0 -> c .* A = c .* B -> A = B.
 Proof.
   intros.
-  rewrite nonzero_def in H0.
-  destruct H0 as [i [j a_nonzero]].
-  apply (f_equal (fun f => f i j)) in H1.
-  unfold scale in H1.
+  prep_matrix_equality.
+  apply Cmult_cancel_l with (a := c); auto.
+  apply (f_equal (fun f => f x y)) in H0.
+  unfold scale in H0.
+  exact H0.
+Qed.
+
+Lemma Mscale_cancel_r: forall {m n} (c1 c2 : C) (A : Matrix m n),
+  A <> Zero -> c1 .* A = c2 .* A -> c1 = c2.
+Proof.
+  intros.
+  rewrite nonzero_def in H.
+  destruct H as [i [j a_nonzero]].
+  apply (f_equal (fun f => f i j)) in H0.
+  unfold scale in H0.
   apply Cmult_cancel_r with (a := A i j); auto.
 Qed.
 
@@ -1156,22 +1167,6 @@ rewrite Cmult_comm.
 reflexivity.
 Qed.
 
-Lemma Mscale_0_cancel {m n}: forall (c: C) (A: Matrix m n), 
-A <> Zero -> Zero = c .* A -> c = 0.
-Proof.
-intros.
-rewrite nonzero_def in H.
-destruct H as [x0 [y0 nonzero_point]].
-assert ((c .* A) x0 y0 = 0). rewrite <- H0. trivial.
-rewrite <- Mscale_access in H.
-apply (f_equal (fun f => f * /(A x0 y0))) in H.
-rewrite Cmult_0_l in H.
-rewrite <- Cmult_assoc in H.
-rewrite Cinv_r in H.
-rewrite Cmult_1_r in H.
-all: assumption.
-Qed.
-
 Lemma id2_diag2: I 2 = diag2 C1 C1.
 Proof.
   lma'.
@@ -1335,18 +1330,6 @@ all: intro.
 all: apply H.
 all: apply lin_indep_comm_2vec.
 all: assumption.
-Qed.
-
-Lemma Mscale_0_cancel_r {n}: forall (a : C) (v : Vector n), 
-a <> 0 -> a .* v = Zero -> v = Zero.
-Proof.
-intros.
-apply (f_equal (fun f => /a .* f)) in H0.
-rewrite Mscale_0_r in H0.
-rewrite Mscale_assoc in H0.
-rewrite Cinv_l in H0. 2: assumption.
-rewrite Mscale_1_l in H0.
-assumption.
 Qed.
 
 Lemma scale_eq_implies_0l_or_ldep {n}:

@@ -61,7 +61,7 @@ Proof.
         ) as H.
         unfold Eigenpair in epair5, H; simpl in epair5, H.
         rewrite epair5 in H.
-        apply @scale_cancel_r with (A := v1 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
+        apply @Mscale_cancel_r with (A := v1 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
         solve_WF_matrix.
         apply nonzero_kron; auto.
       }
@@ -77,7 +77,7 @@ Proof.
         ) as H.
         unfold Eigenpair in epair6, H; simpl in epair6, H.
         rewrite epair6 in H.
-        apply @scale_cancel_r with (A := v1 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
+        apply @Mscale_cancel_r with (A := v1 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
         solve_WF_matrix.
         apply nonzero_kron; auto.
       }
@@ -93,7 +93,7 @@ Proof.
         ) as H.
         unfold Eigenpair in epair7, H; simpl in epair7, H.
         rewrite epair7 in H.
-        apply @scale_cancel_r with (A := v2 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
+        apply @Mscale_cancel_r with (A := v2 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
         solve_WF_matrix.
         apply nonzero_kron; auto.
       }
@@ -109,7 +109,7 @@ Proof.
         ) as H.
         unfold Eigenpair in epair8, H; simpl in epair8, H.
         rewrite epair8 in H.
-        apply @scale_cancel_r with (A := v2 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
+        apply @Mscale_cancel_r with (A := v2 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
         solve_WF_matrix.
         apply nonzero_kron; auto.
       }
@@ -134,7 +134,7 @@ Proof.
         ) as H.
         unfold Eigenpair in epair5, H; simpl in epair5, H.
         rewrite epair5 in H.
-        apply @scale_cancel_r with (A := v1 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
+        apply @Mscale_cancel_r with (A := v1 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
         solve_WF_matrix.
         apply nonzero_kron; auto.
       }
@@ -150,7 +150,7 @@ Proof.
         ) as H.
         unfold Eigenpair in epair6, H; simpl in epair6, H.
         rewrite epair6 in H.
-        apply @scale_cancel_r with (A := v1 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
+        apply @Mscale_cancel_r with (A := v1 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
         solve_WF_matrix.
         apply nonzero_kron; auto.
       }
@@ -166,7 +166,7 @@ Proof.
         ) as H.
         unfold Eigenpair in epair7, H; simpl in epair7, H.
         rewrite epair7 in H.
-        apply @scale_cancel_r with (A := v2 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
+        apply @Mscale_cancel_r with (A := v2 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
         solve_WF_matrix.
         apply nonzero_kron; auto.
       }
@@ -182,7 +182,7 @@ Proof.
         ) as H.
         unfold Eigenpair in epair8, H; simpl in epair8, H.
         rewrite epair8 in H.
-        apply @scale_cancel_r with (A := v2 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
+        apply @Mscale_cancel_r with (A := v2 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
         solve_WF_matrix.
         apply nonzero_kron; auto.
       }
