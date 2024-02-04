@@ -68,6 +68,16 @@ Definition diag2 (c1 c2 : C) : Square 2 :=
     | _      => C0
     end.
 
+Definition diag4 (c1 c2 c3 c4 : C) : Square 4 :=
+  fun x y =>
+    match (x,y) with
+    | (0, 0) => c1
+    | (1, 1) => c2
+    | (2, 2) => c3
+    | (3, 3) => c4
+    | _      => C0
+    end.
+
 Lemma WF_diag2: forall (c1 c2 : C), WF_Matrix (diag2 c1 c2).
 Proof.
   unfold WF_Matrix.
@@ -95,6 +105,42 @@ Proof.
     destruct y' as [|y''].
     contradict H.
     lia. reflexivity. reflexivity.
+  }
+Qed.
+
+Lemma WF_diag4: forall (c1 c2 c3 c4 : C), WF_Matrix (diag4 c1 c2 c3 c4).
+Proof.
+  unfold WF_Matrix.
+  intros.
+  destruct H.
+  {
+    unfold diag4.
+    destruct x.
+    - lia.
+    - destruct x.
+      + lia.
+      + destruct x.
+        * lia.
+        * destruct x.
+          lia. reflexivity.
+  }
+  {
+    unfold diag4.
+    destruct y.
+    - lia.
+    - destruct y.
+      + lia.
+      + destruct y.
+        * lia.
+        * destruct y.
+          -- lia.
+          -- destruct x.
+             ++ reflexivity.
+             ++ destruct x.
+                ** reflexivity.
+                ** destruct x.
+                   --- reflexivity.
+                   --- destruct x; reflexivity.
   }
 Qed.
 
@@ -282,14 +328,25 @@ Proof.
     reflexivity.
 Qed.
 
-Lemma scale_cancel_r: forall {m n} (c1 c2 : C) (A : Matrix m n),
-  WF_Matrix A -> A <> Zero -> c1 .* A = c2 .* A -> c1 = c2.
+Lemma Mscale_cancel_l: forall {m n} (c : C) (A B : Matrix m n),
+  c <> C0 -> c .* A = c .* B -> A = B.
 Proof.
   intros.
-  rewrite nonzero_def in H0.
-  destruct H0 as [i [j a_nonzero]].
-  apply (f_equal (fun f => f i j)) in H1.
-  unfold scale in H1.
+  prep_matrix_equality.
+  apply Cmult_cancel_l with (a := c); auto.
+  apply (f_equal (fun f => f x y)) in H0.
+  unfold scale in H0.
+  exact H0.
+Qed.
+
+Lemma Mscale_cancel_r: forall {m n} (c1 c2 : C) (A : Matrix m n),
+  A <> Zero -> c1 .* A = c2 .* A -> c1 = c2.
+Proof.
+  intros.
+  rewrite nonzero_def in H.
+  destruct H as [i [j a_nonzero]].
+  apply (f_equal (fun f => f i j)) in H0.
+  unfold scale in H0.
   apply Cmult_cancel_r with (a := A i j); auto.
 Qed.
 
@@ -1024,21 +1081,6 @@ lma'.
 all: solve_WF_matrix.
 Qed.
 
-Lemma Mscale_eq_0_implies_0 {m n}: forall (A : Matrix m n) (c : C), 
-WF_Matrix A -> A <> Zero -> c .* A = Zero -> c = 0.
-Proof.
-intros.
-rewrite nonzero_def in H0.
-destruct H0 as [x [y Aij_neq_0]].
-rewrite zero_def in H1.
-specialize (H1 x y).
-apply Cmult_integral in H1.
-destruct H1.
-assumption.
-contradict H0.
-assumption.
-Qed.
-
 Lemma I_neq_zero: forall (n: nat), (n > 0)%nat -> I n <> Zero.
 Proof.
 intros.
@@ -1073,9 +1115,10 @@ split.
     rewrite H1, H3 in H4.
     rewrite Mscale_0_r in H4.
     rewrite Mplus_0_r in H4.
-    apply (@Mscale_eq_0_implies_0 1 1) with (A:= I 1). 1: solve_WF_matrix.
+    apply @Mscale_cancel_r with (A := I 1) (m := 1%nat) (n := 1%nat).
     apply I_neq_zero. lia.
-    assumption.
+    rewrite H4.
+    rewrite Mscale_0_l; reflexivity.
 }
 {
     apply (f_equal (fun f => (b) † × f)) in H4.
@@ -1087,9 +1130,10 @@ split.
     rewrite H2, H3 in H4.
     rewrite Mscale_0_r in H4.
     rewrite Mplus_0_l in H4.
-    apply (@Mscale_eq_0_implies_0 1 1) with (A:= I 1). 1: solve_WF_matrix.
+    apply @Mscale_cancel_r with (A := I 1) (m := 1%nat) (n := 1%nat).
     apply I_neq_zero. lia.
-    assumption.
+    rewrite H4.
+    rewrite Mscale_0_l; reflexivity.
 }
 Qed.
 
@@ -1110,26 +1154,16 @@ rewrite Cmult_comm.
 reflexivity.
 Qed.
 
-Lemma Mscale_0_cancel {m n}: forall (c: C) (A: Matrix m n), 
-A <> Zero -> Zero = c .* A -> c = 0.
-Proof.
-intros.
-rewrite nonzero_def in H.
-destruct H as [x0 [y0 nonzero_point]].
-assert ((c .* A) x0 y0 = 0). rewrite <- H0. trivial.
-rewrite <- Mscale_access in H.
-apply (f_equal (fun f => f * /(A x0 y0))) in H.
-rewrite Cmult_0_l in H.
-rewrite <- Cmult_assoc in H.
-rewrite Cinv_r in H.
-rewrite Cmult_1_r in H.
-all: assumption.
-Qed.
-
 Lemma id2_diag2: I 2 = diag2 C1 C1.
 Proof.
   lma'.
   apply WF_diag2.
+Qed.
+
+Lemma id4_diag4: I 4 = diag4 C1 C1 C1 C1.
+Proof.
+  lma'.
+  apply WF_diag4.
 Qed.
 
 Lemma diag2_eigenpairs: forall (c1 c2 : C),
@@ -1153,10 +1187,57 @@ Proof.
   }
 Qed.
 
+Lemma diag4_eigenpairs: forall (c1 c2 c3 c4 : C),
+  Eigenpair (diag4 c1 c2 c3 c4) (∣0⟩ ⊗ ∣0⟩, c1) /\ Eigenpair (diag4 c1 c2 c3 c4) (∣0⟩ ⊗ ∣1⟩, c2) /\
+  Eigenpair (diag4 c1 c2 c3 c4) (∣1⟩ ⊗ ∣0⟩, c3) /\ Eigenpair (diag4 c1 c2 c3 c4) (∣1⟩ ⊗ ∣1⟩, c4).
+Proof.
+  intros.
+  split; unfold Eigenpair; simpl.
+  {
+    lma'.
+    solve_WF_matrix.
+    apply WF_diag4.
+    unfold Mmult, scale, kron, diag4, qubit0; simpl.
+    lca.
+  }
+  split.
+  {
+    lma'.
+    solve_WF_matrix.
+    apply WF_diag4.
+    unfold Mmult, scale, kron, diag4, qubit1; simpl.
+    lca.
+  }
+  split.
+  {
+    lma'.
+    solve_WF_matrix.
+    apply WF_diag4.
+    unfold Mmult, scale, kron, diag4, qubit0; simpl.
+    lca.
+  }
+  {
+    lma'.
+    solve_WF_matrix.
+    apply WF_diag4.
+    unfold Mmult, scale, kron, diag4, qubit1; simpl.
+    lca.
+  }
+Qed.
+
 Lemma id2_eigenpairs: Eigenpair (I 2) (∣0⟩, C1) /\ Eigenpair (I 2) (∣1⟩, C1).
 Proof.
   rewrite id2_diag2.
   apply diag2_eigenpairs.
+Qed.
+
+Lemma id4_eigenpairs: Eigenpair (I 4) (∣0⟩ ⊗ ∣0⟩, C1) /\
+  Eigenpair (I 4) (∣0⟩ ⊗ ∣1⟩, C1) /\
+  Eigenpair (I 4) (∣1⟩ ⊗ ∣0⟩, C1) /\
+  Eigenpair (I 4) (∣1⟩ ⊗ ∣1⟩, C1).
+Proof.
+  rewrite id4_diag4.
+  apply diag4_eigenpairs.
 Qed.
 
 Lemma exists_orthogonal_vector: forall (a: Vector 2), 
@@ -1236,18 +1317,6 @@ all: intro.
 all: apply H.
 all: apply lin_indep_comm_2vec.
 all: assumption.
-Qed.
-
-Lemma Mscale_0_cancel_r {n}: forall (a : C) (v : Vector n), 
-a <> 0 -> a .* v = Zero -> v = Zero.
-Proof.
-intros.
-apply (f_equal (fun f => /a .* f)) in H0.
-rewrite Mscale_0_r in H0.
-rewrite Mscale_assoc in H0.
-rewrite Cinv_l in H0. 2: assumption.
-rewrite Mscale_1_l in H0.
-assumption.
 Qed.
 
 Lemma scale_eq_implies_0l_or_ldep {n}:

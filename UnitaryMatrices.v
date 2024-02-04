@@ -46,9 +46,12 @@ Proof.
     reflexivity.
 Qed.
 
-Lemma a5_left: forall {n} (psi phi: Vector n) (a p: C) (P Q: Square n),
-    WF_Matrix psi -> WF_Matrix phi -> WF_Unitary P -> WF_Unitary Q ->
-    Eigenpair P (psi, a) -> Eigenpair Q (phi, p) -> Eigenpair (P ⊗ Q) (psi ⊗ phi, a * p).
+Lemma a5_left: forall {n} (P Q: Square n),
+  WF_Unitary P -> WF_Unitary Q ->
+  forall (a p: C) (psi phi: Vector n),
+    WF_Matrix psi -> WF_Matrix phi ->
+    Eigenpair P (psi, a) -> Eigenpair Q (phi, p) ->
+    Eigenpair (P ⊗ Q) (psi ⊗ phi, a * p).
 Proof.
 intros.
 unfold Eigenpair in *; simpl in *.

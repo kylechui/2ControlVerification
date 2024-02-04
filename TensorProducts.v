@@ -493,8 +493,9 @@ rewrite Mscale_0_r in outer_prod_equiv.
 rewrite Mplus_0_l in outer_prod_equiv.
 rewrite Mscale_mult_dist_l in outer_prod_equiv.
 rewrite bp_inner_I in outer_prod_equiv.
-apply Mscale_0_cancel in outer_prod_equiv. 2: apply I_neq_zero. 2: lia.
-apply trace_outer_zero_vec2 in outer_prod_equiv. 2: assumption.
+rewrite <- Mscale_0_l with (A := I 1) in outer_prod_equiv.
+apply Mscale_cancel_r in outer_prod_equiv. 2: apply I_neq_zero. 2: lia.
+symmetry in outer_prod_equiv. apply trace_outer_zero_vec2 in outer_prod_equiv. 2: assumption.
 (* replace this in phi to finish proof *)
 rewrite outer_prod_equiv in phi_decomp.
 rewrite kron_0_r in phi_decomp.
@@ -668,7 +669,8 @@ destruct casework as [blindep|alindep].
                 1,2: solve_WF_matrix.
                 all: assumption.
             }
-            apply Mscale_0_cancel_r in contr.
+            rewrite <- Mscale_0_r with (c := / √ 2) in contr.
+            apply Mscale_cancel_l in contr.
             apply C1_neq_C0.
             rewrite <- b0_unit.
             apply inner_product_zero_iff_zero in contr. 2: assumption.

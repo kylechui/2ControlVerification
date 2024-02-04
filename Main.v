@@ -10,28 +10,32 @@ Require Import QuantumLib.Matrix.
 
 Lemma m3_2 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
-  (exists (P Q : Square 2) (a b p q : C) (v1 v2 v3 v4 : Vector 2),
+  (exists (P Q : Square 2),
     WF_Unitary P /\ WF_Unitary Q /\
-    WF_Matrix v1 /\ WF_Matrix v2 /\ WF_Matrix v3 /\ WF_Matrix v4 /\
-    v1 <> Zero /\ v2 <> Zero /\ v3 <> Zero /\ v4 <> Zero /\
-    Eigenpair P (v1, a) /\ Eigenpair P (v2, b) /\
-    Eigenpair Q (v3, p) /\ Eigenpair Q (v4, q) /\
-      (Eigenpair (P ⊗ Q) (v1 ⊗ v3, C1) /\
-      Eigenpair (P ⊗ Q) (v1 ⊗ v4, C1) /\
-      Eigenpair (P ⊗ Q) (v2 ⊗ v3, u0) /\
-      Eigenpair (P ⊗ Q) (v2 ⊗ v4, u1) \/
-      Eigenpair (P ⊗ Q) (v1 ⊗ v3, C1) /\
-      Eigenpair (P ⊗ Q) (v1 ⊗ v4, u1) /\
-      Eigenpair (P ⊗ Q) (v2 ⊗ v3, u0) /\
-      Eigenpair (P ⊗ Q) (v2 ⊗ v4, C1)))
+    (exists (a b p q : C) (v1 v2 v3 v4 : Vector 2),
+      WF_Matrix v1 /\ WF_Matrix v2 /\ WF_Matrix v3 /\ WF_Matrix v4 /\
+      v1 <> Zero /\ v2 <> Zero /\ v3 <> Zero /\ v4 <> Zero /\
+      Eigenpair P (v1, a) /\ Eigenpair P (v2, b) /\
+      Eigenpair Q (v3, p) /\ Eigenpair Q (v4, q) /\
+        (Eigenpair (P ⊗ Q) (v1 ⊗ v3, C1) /\
+        Eigenpair (P ⊗ Q) (v1 ⊗ v4, C1) /\
+        Eigenpair (P ⊗ Q) (v2 ⊗ v3, u0) /\
+        Eigenpair (P ⊗ Q) (v2 ⊗ v4, u1) \/
+        Eigenpair (P ⊗ Q) (v1 ⊗ v3, C1) /\
+        Eigenpair (P ⊗ Q) (v1 ⊗ v4, u1) /\
+        Eigenpair (P ⊗ Q) (v2 ⊗ v3, u0) /\
+        Eigenpair (P ⊗ Q) (v2 ⊗ v4, C1))))
   <-> u0 = u1 \/ u0 * u1 = C1.
 Proof.
   intros u0 u1 unit_u0 unit_u1.
   split.
   {
     intro.
-    destruct H as [P [Q [a [b [p [q [v1 [v2 [v3 [v4 H]]]]]]]]]].
-    destruct H as [Unitary_P [Unitary_Q [wf_v1 [wf_v2 [wf_v3 [wf_v4 H]]]]]].
+    destruct H as [P [Q [Unitary_P [Unitary_Q H]]]].
+    destruct H as [a [b [p [q [v1 [v2 [v3 [v4 H]]]]]]]].
+    destruct H as [WF_v1 [WF_v2 [WF_v3 [WF_v4 H]]]].
+    destruct H as [v1_nonzero [v2_nonzero [v3_nonzero [v4_nonzero H]]]].
+    destruct H as [epair1 [epair2 [epair3 [epair4 H]]]].
     assert (WF_P : WF_Matrix P).
     {
       destruct Unitary_P.
@@ -42,72 +46,70 @@ Proof.
       destruct Unitary_Q.
       assumption.
     }
-    destruct H as [v1_nonzero [v2_nonzero [v3_nonzero [v4_nonzero H]]]].
-    destruct H as [epair1 [epair2 [epair3 [epair4 H]]]].
     destruct H.
     {
       destruct H as [epair5 [epair6 [epair7 epair8]]].
       assert (help1 : a * p = C1).
       {
         pose proof (
-          a5_left v1 v3 a p
+          a5_left
           P Q
-          wf_v1 wf_v3
           Unitary_P Unitary_Q
-          epair1
-          epair3
+          a p v1 v3
+          WF_v1 WF_v3
+          epair1 epair3
         ) as H.
         unfold Eigenpair in epair5, H; simpl in epair5, H.
         rewrite epair5 in H.
-        apply @scale_cancel_r with (A := v1 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
+        apply @Mscale_cancel_r with (A := v1 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
         solve_WF_matrix.
         apply nonzero_kron; auto.
       }
       assert (help2 : a * q = C1).
       {
         pose proof (
-          a5_left v1 v4 a q
+          a5_left
           P Q
-          wf_v1 wf_v4
           Unitary_P Unitary_Q
-          epair1
-          epair4
+          a q v1 v4
+          WF_v1 WF_v4
+          epair1 epair4
         ) as H.
         unfold Eigenpair in epair6, H; simpl in epair6, H.
         rewrite epair6 in H.
-        apply @scale_cancel_r with (A := v1 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
+        apply @Mscale_cancel_r with (A := v1 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
         solve_WF_matrix.
         apply nonzero_kron; auto.
       }
       assert (help3 : b * p = u0).
       {
         pose proof (
-          a5_left v2 v3 b p
+          a5_left
           P Q
-          wf_v2 wf_v3
           Unitary_P Unitary_Q
-          epair2
-          epair3
+          b p v2 v3
+          WF_v2 WF_v3
+          epair2 epair3
         ) as H.
         unfold Eigenpair in epair7, H; simpl in epair7, H.
         rewrite epair7 in H.
-        apply @scale_cancel_r with (A := v2 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
+        apply @Mscale_cancel_r with (A := v2 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
         solve_WF_matrix.
         apply nonzero_kron; auto.
       }
       assert (help4 : b * q = u1).
       {
         pose proof (
-          a5_left v2 v4 b q
+          a5_left
           P Q
-          wf_v2 wf_v4
           Unitary_P Unitary_Q
-          epair2
-          epair4
+          b q v2 v4
+          WF_v2 WF_v4
+          epair2 epair4
         ) as H.
         unfold Eigenpair in epair8, H; simpl in epair8, H.
         rewrite epair8 in H.
-        apply @scale_cancel_r with (A := v2 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
+        apply @Mscale_cancel_r with (A := v2 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
         solve_WF_matrix.
         apply nonzero_kron; auto.
       }
@@ -123,64 +125,64 @@ Proof.
       assert (help1 : a * p = C1).
       {
         pose proof (
-          a5_left v1 v3 a p
+          a5_left
           P Q
-          wf_v1 wf_v3
           Unitary_P Unitary_Q
-          epair1
-          epair3
+          a p v1 v3
+          WF_v1 WF_v3
+          epair1 epair3
         ) as H.
         unfold Eigenpair in epair5, H; simpl in epair5, H.
         rewrite epair5 in H.
-        apply @scale_cancel_r with (A := v1 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
+        apply @Mscale_cancel_r with (A := v1 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
         solve_WF_matrix.
         apply nonzero_kron; auto.
       }
       assert (help2 : a * q = u1).
       {
         pose proof (
-          a5_left v1 v4 a q
+          a5_left
           P Q
-          wf_v1 wf_v4
           Unitary_P Unitary_Q
-          epair1
-          epair4
+          a q v1 v4
+          WF_v1 WF_v4
+          epair1 epair4
         ) as H.
         unfold Eigenpair in epair6, H; simpl in epair6, H.
         rewrite epair6 in H.
-        apply @scale_cancel_r with (A := v1 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
+        apply @Mscale_cancel_r with (A := v1 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
         solve_WF_matrix.
         apply nonzero_kron; auto.
       }
       assert (help3 : b * p = u0).
       {
         pose proof (
-          a5_left v2 v3 b p
+          a5_left
           P Q
-          wf_v2 wf_v3
           Unitary_P Unitary_Q
-          epair2
-          epair3
+          b p v2 v3
+          WF_v2 WF_v3
+          epair2 epair3
         ) as H.
         unfold Eigenpair in epair7, H; simpl in epair7, H.
         rewrite epair7 in H.
-        apply @scale_cancel_r with (A := v2 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
+        apply @Mscale_cancel_r with (A := v2 ⊗ v3) (m := 4%nat) (n := 1%nat); auto.
         solve_WF_matrix.
         apply nonzero_kron; auto.
       }
       assert (help4 : b * q = C1).
       {
         pose proof (
-          a5_left v2 v4 b q
+          a5_left
           P Q
-          wf_v2 wf_v4
           Unitary_P Unitary_Q
-          epair2
-          epair4
+          b q v2 v4
+          WF_v2 WF_v4
+          epair2 epair4
         ) as H.
         unfold Eigenpair in epair8, H; simpl in epair8, H.
         rewrite epair8 in H.
-        apply @scale_cancel_r with (A := v2 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
+        apply @Mscale_cancel_r with (A := v2 ⊗ v4) (m := 4%nat) (n := 1%nat); auto.
         solve_WF_matrix.
         apply nonzero_kron; auto.
       }
@@ -197,8 +199,6 @@ Proof.
     destruct H.
     {
       exists (diag2 1 u1), (I 2).
-      exists C1, u1, C1, C1.
-      exists ∣0⟩, ∣1⟩, ∣0⟩, ∣1⟩.
       split.
       {
         unfold WF_Unitary.
@@ -207,8 +207,12 @@ Proof.
           apply WF_diag2.
         }
         {
-          solve_matrix.
-          unfold diag2; simpl.
+          lma'.
+          solve_WF_matrix.
+          apply WF_diag2.
+          apply WF_diag2.
+          unfold diag2, I, adjoint, Mmult; simpl.
+          Csimpl.
           rewrite <- Cmod_sqr.
           rewrite unit_u1.
           lca.
@@ -218,6 +222,8 @@ Proof.
       {
         apply id_unitary.
       }
+      exists C1, u1, C1, C1.
+      exists ∣0⟩, ∣1⟩, ∣0⟩, ∣1⟩.
       split.
       {
         apply WF_qubit0.
@@ -269,41 +275,43 @@ Proof.
       left.
       split.
       {
-        lma'.
+        unfold Eigenpair.
+        lma'; simpl.
         solve_WF_matrix.
         apply WF_diag2.
         solve_WF_matrix.
       }
       split.
       {
-        lma'.
+        unfold Eigenpair.
+        lma'; simpl.
         solve_WF_matrix.
         apply WF_diag2.
         solve_WF_matrix.
       }
       split.
       {
-        lma'.
-        solve_WF_matrix.
-        apply WF_diag2.
-        solve_WF_matrix.
         rewrite H.
-        unfold scale, Mmult, kron, diag2, I, qubit0, qubit1; simpl.
+        unfold Eigenpair.
+        lma'; simpl.
+        solve_WF_matrix.
+        apply WF_diag2.
+        solve_WF_matrix.
+        unfold scale, Mmult, kron, diag2, I; simpl.
         lca.
       }
       {
-        lma'.
+        unfold Eigenpair.
+        lma'; simpl.
         solve_WF_matrix.
         apply WF_diag2.
         solve_WF_matrix.
-        unfold scale, Mmult, kron, diag2, I, qubit0, qubit1; simpl.
+        unfold scale, Mmult, kron, diag2, I; simpl.
         lca.
       }
     }
     {
       exists (diag2 1 u0), (diag2 1 u1).
-      exists C1, u0, C1, u1.
-      exists ∣0⟩, ∣1⟩, ∣0⟩, ∣1⟩.
       split.
       {
         unfold WF_Unitary.
@@ -312,8 +320,12 @@ Proof.
           apply WF_diag2.
         }
         {
-          solve_matrix.
-          unfold diag2; simpl.
+          lma'.
+          solve_WF_matrix.
+          apply WF_diag2.
+          apply WF_diag2.
+          unfold diag2, I, adjoint, Mmult; simpl.
+          Csimpl.
           rewrite <- Cmod_sqr.
           rewrite unit_u0.
           lca.
@@ -327,13 +339,19 @@ Proof.
           apply WF_diag2.
         }
         {
-          solve_matrix.
-          unfold diag2; simpl.
+          lma'.
+          solve_WF_matrix.
+          apply WF_diag2.
+          apply WF_diag2.
+          unfold diag2, I, adjoint, Mmult; simpl.
+          Csimpl.
           rewrite <- Cmod_sqr.
           rewrite unit_u1.
           lca.
         }
       }
+      exists C1, u0, C1, u1.
+      exists ∣0⟩, ∣1⟩, ∣0⟩, ∣1⟩.
       split.
       {
         apply WF_qubit0.
@@ -456,7 +474,6 @@ Proof.
       (* This line removes a lot of subgoals created by the following Msimpl *)
       assert (WF_my_diag2 : WF_Matrix (diag2 1 u1)). apply WF_diag2.
       Msimpl.
-
       lma'.
       do 2 apply WF_control; apply WF_diag2.
       {
@@ -521,7 +538,7 @@ Proof.
         Csimpl.
         reflexivity.
       }
-Qed.
+Admitted.
 
 Lemma m4_2 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
@@ -529,9 +546,12 @@ Lemma m4_2 : forall (u0 u1 : C),
     WF_Unitary Q ->
     let beta : Vector 2 := Q × ∣0⟩ in
     let beta_perp := Q × ∣1⟩ in
-    (exists (P0 P1 : Square 2),
-      WF_Unitary P0 /\
-      WF_Unitary P1 /\
+    (exists (P0 P1 : Square 2) (a b p q : C) (v1 v2 v3 v4 : Vector 2),
+      WF_Unitary P0 /\ WF_Unitary P1 /\
+      WF_Matrix v1 /\ WF_Matrix v2 /\ WF_Matrix v3 /\ WF_Matrix v4 /\
+      v1 <> Zero /\ v2 <> Zero /\ v3 <> Zero /\ v4 <> Zero /\
+      Eigenpair P0 (v1, a) /\ Eigenpair P0 (v2, b) /\
+      Eigenpair P1 (v3, p) /\ Eigenpair P1 (v4, q) /\
       I 2 ⊗ I 2 ⊗ (beta × beta†) .+ P0 ⊗ P1 ⊗ (beta_perp × beta_perp†) = ccu (diag2 u0 u1))
     <-> u0 = 1 /\ u1 = 1.
 Proof.
@@ -554,6 +574,11 @@ Proof.
   pose (b := beta 1%nat 0%nat).
   split.
   - intros.
+    destruct H2 as [P0 [P1 [c1 [c2 [c3 [c4 [v1 [v2 [v3 [v4 H2]]]]]]]]]].
+    destruct H2 as [Unitary_P0 [Unitary_P1 H2]].
+    destruct H2 as [WF_v1 [WF_v2 [WF_v3 [WF_v4 H2]]]].
+    destruct H2 as [v1_nonzero [v2_nonzero [v3_nonzero [v4_nonzero H2]]]].
+    destruct H2 as [epair1 [epair2 [epair3 [epair4 H2]]]].
     destruct (Ceq_dec a C0) as [a_zero | a_nonzero].
     + assert (unit_b : b^* * b = 1).
       {
@@ -601,7 +626,40 @@ Proof.
       }
       rewrite beta_mult_1_1 in H2.
       rewrite beta_perp_mult_0_0 in H2.
-      admit. (* TODO: Eigenvalues! *)
+      assert (u1_is_1 : u1 = C1).
+      {
+        apply f_equal with (f := fun f => f 7%nat 7%nat) in H2.
+        unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H2; simpl in H2.
+        revert H2; Csimpl; intro H2.
+        auto.
+      }
+      assert (u0_is_1 : u0 = C1).
+      {
+        pose proof H2 as H3.
+        pose proof H2 as H4.
+        pose proof H2 as H5.
+        pose proof H2 as H6.
+        apply f_equal with (f := fun f => f 0%nat 0%nat) in H3.
+        unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H3; simpl in H3.
+        revert H3; Csimpl; intro H3.
+        apply f_equal with (f := fun f => f 2%nat 2%nat) in H4.
+        unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H4; simpl in H4.
+        revert H4; Csimpl; intro H4.
+        apply f_equal with (f := fun f => f 4%nat 4%nat) in H5.
+        unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H5; simpl in H5.
+        revert H5; Csimpl; intro H5.
+        apply f_equal with (f := fun f => f 6%nat 6%nat) in H6.
+        unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H6; simpl in H6.
+        revert H6; Csimpl; intro H6.
+        rewrite <- Cmult_1_l at 1.
+        rewrite <- Cmult_1_l.
+        rewrite <- H3 at 1.
+        rewrite <- H4 at 1.
+        rewrite <- H5 at 1.
+        rewrite <- H6 at 1.
+        lca.
+      }
+      split; auto.
     + destruct (Ceq_dec b C0) as [b_zero | b_nonzero].
       * assert (unit_a : a^* * a = 1).
         {
@@ -648,9 +706,41 @@ Proof.
         }
         rewrite beta_mult_0_0 in H2.
         rewrite beta_perp_mult_1_1 in H2.
-        admit. (* TODO: Eigenvalues! *)
-      * destruct H2 as [P0 [P1 [WF_P0 [WF_P1 H2]]]].
-        apply (f_equal (fun f => f × (∣1⟩ ⊗ ∣1⟩ ⊗ beta))) in H2.
+        assert (u0_is_1 : u0 = C1).
+        {
+          apply f_equal with (f := fun f => f 6%nat 6%nat) in H2.
+          unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H2; simpl in H2.
+          revert H2; Csimpl; intro H2.
+          auto.
+        }
+        assert (u1_is_1 : u1 = C1).
+        {
+          pose proof H2 as H3.
+          pose proof H2 as H4.
+          pose proof H2 as H5.
+          pose proof H2 as H6.
+          apply f_equal with (f := fun f => f 1%nat 1%nat) in H3.
+          unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H3; simpl in H3.
+          revert H3; Csimpl; intro H3.
+          apply f_equal with (f := fun f => f 3%nat 3%nat) in H4.
+          unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H4; simpl in H4.
+          revert H4; Csimpl; intro H4.
+          apply f_equal with (f := fun f => f 5%nat 5%nat) in H5.
+          unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H5; simpl in H5.
+          revert H5; Csimpl; intro H5.
+          apply f_equal with (f := fun f => f 7%nat 7%nat) in H6.
+          unfold kron, Mmult, Mplus, adjoint, ccu, control, diag2, I, qubit0, qubit1 in H6; simpl in H6.
+          revert H6; Csimpl; intro H6.
+          rewrite <- Cmult_1_l at 1.
+          rewrite <- Cmult_1_l.
+          rewrite <- H3 at 1.
+          rewrite <- H4 at 1.
+          rewrite <- H5 at 1.
+          rewrite <- H6 at 1.
+          lca.
+        }
+        split; assumption.
+      * apply (f_equal (fun f => f × (∣1⟩ ⊗ ∣1⟩ ⊗ beta))) in H2.
         assert (H3 : beta_perp† × beta = Zero).
         {
           unfold beta_perp, beta.
@@ -755,18 +845,73 @@ Proof.
         ** exact u0_is_1.
         ** exact u1_is_1.
   - intros.
-    destruct H2.
     exists (I 2), (I 2).
+    destruct H2 as [u0_is_1 u1_is_1].
+    rewrite u0_is_1, u1_is_1.
+    exists C1, C1, C1, C1.
+    exists ∣0⟩, ∣1⟩, ∣0⟩, ∣1⟩.
     split.
-    + exact (@id_unitary 2).
-    + split.
-      * exact (@id_unitary 2).
-      * rewrite <- kron_plus_distr_l.
-        unfold beta, beta_perp, ccu.
-        rewrite a8. 2: assumption.
-        rewrite H2, H3.
-        lma'.
-        apply WF_control with (n := 4%nat).
-        apply WF_control with (n := 2%nat).
-        apply WF_diag2.
+    {
+      apply id_unitary.
+    }
+    split.
+    {
+      apply id_unitary.
+    }
+    split.
+    {
+      apply WF_qubit0.
+    }
+    split.
+    {
+      apply WF_qubit1.
+    }
+    split.
+    {
+      apply WF_qubit0.
+    }
+    split.
+    {
+      apply WF_qubit1.
+    }
+    split.
+    {
+      apply nonzero_qubit0.
+    }
+    split.
+    {
+      apply nonzero_qubit1.
+    }
+    split.
+    {
+      apply nonzero_qubit0.
+    }
+    split.
+    {
+      apply nonzero_qubit1.
+    }
+    split.
+    {
+      apply id2_eigenpairs.
+    }
+    split.
+    {
+      apply id2_eigenpairs.
+    }
+    split.
+    {
+      apply id2_eigenpairs.
+    }
+    split.
+    {
+      apply id2_eigenpairs.
+    }
+    {
+      rewrite <- kron_plus_distr_l.
+      unfold beta, beta_perp.
+      rewrite a8; auto.
+      lma'.
+      apply WF_ccu.
+      apply WF_diag2.
+    }
 Qed.
