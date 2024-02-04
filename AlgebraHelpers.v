@@ -201,18 +201,6 @@ Proof.
     exact H.
 Qed.
 
-Lemma rtoc_neq_decomp: forall (r: R), 
-(r <> 0)%R -> RtoC r <> C0.
-Proof.
-intros. 
-unfold RtoC.
-intro.
-apply complex_split in H0.
-destruct H0 as [H0 _].
-apply H.
-trivial.
-Qed.
-
 (* If b = 0, then the value is real, in which case we should be using sqrt *)
 (* Could do casework here, but I think it might make `lca` fail *)
 Definition Complex_sqrt (x : C) : C :=
@@ -406,7 +394,7 @@ intro H.
 apply (f_equal (fun f => /C2 * f)) in H.
 rewrite Cmult_0_r in H.
 rewrite Cmult_assoc in H.
-rewrite Cinv_l in H. 2: apply rtoc_neq_decomp. 2: lra.
+rewrite Cinv_l in H. 2: apply RtoC_neq. 2: lra.
 rewrite Cmult_1_l in H.
 assumption.
 Qed.
@@ -449,7 +437,7 @@ Qed.
 
 Lemma four_neq_0: RtoC 4 <> 0.
 Proof.
-apply rtoc_neq_decomp.
+apply RtoC_neq.
 lra.
 Qed.
 
