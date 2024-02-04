@@ -9,6 +9,7 @@ SwapProperty.v
 QubitHelpers.v
 ExplicitDecompositions.v
 EigenvalueHelpers.v
+TraceoutHelpers.v
 
 # Appendix of proof
 SquareMatrices.v

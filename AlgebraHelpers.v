@@ -410,3 +410,291 @@ rewrite Cinv_l in H. 2: apply rtoc_neq_decomp. 2: lra.
 rewrite Cmult_1_l in H.
 assumption.
 Qed.
+
+Lemma Cconj_half_distr: forall (a : C), 
+(a / C2)^* = (a^*)/C2.
+Proof.
+intros.
+lca.
+Qed.
+
+Lemma Cmult_minus_distr_l: forall  (x y z : C),
+ x * (y - z) = x * y - x * z.
+Proof. intros. lca. Qed.
+
+Lemma Cmult_minus_distr_r: forall (x y z: C), 
+(x - y) * z = x*z - y*z.
+Proof. intros. lca. Qed.
+
+Lemma half_half_mult: forall (a b: C), 
+(a / C2) * (b / C2) = (a * b)/ (C2 * C2).
+Proof. 
+intros.
+lca.
+Qed.
+
+Lemma half_mult_r: forall (a b: C), 
+(a) * (b / C2) = (a * b)/ (C2).
+Proof. 
+intros.
+lca.
+Qed.
+
+Lemma half_mult_l: forall (a b: C), 
+(a / C2) * (b) = (a * b)/ (C2).
+Proof. 
+intros.
+lca.
+Qed.
+
+Lemma four_neq_0: RtoC 4 <> 0.
+Proof.
+apply rtoc_neq_decomp.
+lra.
+Qed.
+
+Lemma quarter_mult_4_r: forall (a : C), 
+(a / (C2 * C2)) * RtoC 4 = a.
+Proof. intros. lca. Qed.
+
+Lemma half_mult_4_r: forall (a : C), 
+(a / C2) * RtoC 4 = a * C2.
+Proof. intros. lca. Qed.
+
+Lemma add_conj: forall (a: C), 
+a + a^* = RtoC ((2 * fst a)%R).
+Proof. intros. lca. Qed.
+
+Lemma sub_conj: forall (a: C), 
+a - a^* = (0, (2 * snd a)%R).
+Proof. intros. lca. Qed.
+
+Lemma Rle_lower_bound: forall (a b c d: R), 
+a <= b + d -> b <= c -> a <= c + d.
+Proof.
+intros.
+apply Rle_trans with (r2 := (b + d)%R).
+assumption.
+apply Rplus_le_compat_r.
+assumption.
+Qed.
+
+Lemma Rabs_plus_le: forall (x : R), 
+(0 <= Rabs x + x)%R.
+Proof. 
+intros.
+unfold Rabs.
+destruct (Rcase_abs x).
+rewrite Rplus_opp_l.
+apply Rle_refl.
+replace (0%R) with ((2 * 0)%R) by lra.
+replace ((x + x)%R) with ((2 * x)%R) by lra.
+apply Rmult_le_compat_l. lra.
+apply Rge_le. assumption.
+Qed.
+
+Lemma Rabs_minus_le: forall (x : R), 
+(0 <= Rabs x + -x)%R.
+Proof. 
+intros.
+unfold Rabs.
+destruct (Rcase_abs x).
+replace (0%R) with ((-(2) * 0)%R) by lra.
+replace ((-x + - x)%R) with ((-(2) * x)%R) by lra.
+apply Rmult_le_compat_neg_l. lra.
+apply Rlt_le. assumption.
+rewrite Rplus_opp_r.
+apply Rle_refl.
+Qed.
+
+Lemma Rsqr_ge_0: forall (r: R), (0 <= (r)^2)%R.
+Proof.
+intros.
+rewrite <- Rsqr_pow2.
+destruct (Req_dec r 0).
+rewrite H. unfold Rsqr. lra.
+apply Rlt_le.
+apply Rsqr_pos_lt.
+assumption.
+Qed.
+
+Lemma sum_squares_pos: forall (a b : R), 
+(0 <= a^2 + b^2)%R.
+Proof.
+intros.
+rewrite <- Rplus_0_l with (r:= 0%R).
+apply Rplus_le_compat.
+all: apply Rsqr_ge_0.
+Qed.
+
+
+Lemma Complex_sqrt_adj_mult: forall (x: C), 
+let norm := Cmod x in
+(Complex_sqrt x)^* * (Complex_sqrt x) = 
+  (norm, 0).
+Proof.
+intros.
+unfold Complex_sqrt.
+destruct (Req_EM_T (snd x) 0).
+{
+  destruct (Rlt_dec (fst x) 0).
+  {
+    unfold Cconj, Cmult.
+    simpl.
+    repeat rewrite Rmult_0_l.
+    rewrite Rmult_0_r.
+    apply c_proj_eq.
+    {
+      simpl.
+      unfold Rminus.
+      rewrite Rplus_0_l.
+      rewrite Ropp_mult_distr_l.
+      rewrite Ropp_involutive.
+      rewrite sqrt_sqrt.
+      unfold norm, Cmod.
+      rewrite e.
+      replace ((fst x ^ 2 + 0 ^ 2)%R) with ((fst x ^ 2)%R) by lra.
+      symmetry.
+      rewrite <- Rsqr_pow2.
+      rewrite Rsqr_neg.
+      apply sqrt_Rsqr.
+      1,2: rewrite <- Rmult_0_r with (r := (-(1))%R).
+      1,2: rewrite <- Rmult_1_l with (r := fst x).
+      1,2: rewrite Ropp_mult_distr_l.
+      1,2: apply Rmult_le_compat_neg_l.
+      1,3: lra.
+      1,2: apply Rlt_le.
+      1,2: apply r.
+    }
+    {
+      simpl.
+      lra.
+    }
+  }
+  {
+    unfold Cconj, Cmult.
+    simpl.
+    rewrite Ropp_0.
+    repeat rewrite Rmult_0_l.
+    rewrite Rmult_0_r.
+    repeat rewrite Rplus_0_r.
+    rewrite Rminus_0_r.
+    apply c_proj_eq.
+    {
+      simpl.
+      apply Rnot_lt_le in n.
+      rewrite sqrt_sqrt.
+      unfold norm, Cmod.
+      rewrite e.
+      replace ((fst x ^ 2 + 0 ^ 2)%R) with ((fst x ^ 2)%R) by lra.
+      rewrite <- Rsqr_pow2.
+      symmetry.
+      apply sqrt_Rsqr.
+      all: assumption.
+    }
+    {
+      simpl. reflexivity.
+    }
+  }
+}
+{
+  unfold Cconj, Cmult.
+  simpl.
+  apply c_proj_eq.
+  {
+    simpl.
+    rewrite sqrt_sqrt.
+    rewrite <- Ropp_mult_distr_l.
+    unfold Rminus.
+    rewrite Ropp_involutive.
+    replace ((Rabs (snd x) / snd x * √ ((Cmod x + - fst x) / 2) *
+    (Rabs (snd x) / snd x * √ ((Cmod x + - fst x) / 2)))%R) with 
+    (((√ ((Cmod x + - fst x) / 2)* √ ((Cmod x + - fst x) / 2)) *
+    (Rabs (snd x) / snd x  * (Rabs (snd x) / snd x)))%R) by lra.
+    rewrite sqrt_sqrt.
+    replace ((Rabs (snd x) / snd x * (Rabs (snd x) / snd x))%R) with
+    (((Rabs (snd x) * Rabs (snd x)) *  ((/ snd x) * (/ snd x)))%R) by lra.
+    replace ((Rabs (snd x) * Rabs (snd x))%R) with ((Rsqr (Rabs (snd x)))%R). 2: unfold Rsqr. 2: reflexivity.
+    rewrite <- Rsqr_abs with (x:= snd x).
+    unfold Rsqr.
+    rewrite Rmult_assoc.
+    rewrite <- Rmult_assoc with (r2 := (/ snd x)%R).
+    rewrite Rinv_r.
+    rewrite Rmult_1_l.
+    rewrite Rinv_r.
+    2,3: assumption.
+    rewrite Rmult_1_r.
+    unfold Rdiv.
+    rewrite <- Rmult_plus_distr_r.
+    replace (((Cmod x + fst x + (Cmod x + - fst x)) * / 2)%R) with (Cmod x) by lra.
+    fold norm. reflexivity.
+    all: rewrite <- Rmult_0_l with (r:= (/2)%R).
+    all: unfold Rdiv.
+    all: apply Rmult_le_compat_r.
+    1,3: lra.
+    all: unfold Cmod.
+    all: apply Rle_lower_bound with (b := √ (fst x ^ 2)).
+    1,3: rewrite <- Rsqr_pow2.
+    1,2: rewrite sqrt_Rsqr_abs.
+    apply Rabs_minus_le.
+    apply Rabs_plus_le.
+    all: apply sqrt_le_1.
+    1,4: apply Rsqr_ge_0.
+    1,3: apply sum_squares_pos.
+    all: rewrite <- Rplus_0_r with (r:= (fst x ^ 2)%R) at 1.
+    all: apply Rplus_le_compat.
+    2,4: apply Rsqr_ge_0.
+    all: apply Rle_refl.
+  }
+  {
+    simpl.
+    lra.
+  }
+}
+Qed.
+
+Lemma conj_n0_iff_n0: forall (a : C), 
+a <> 0 <-> a^* <> 0.
+Proof.
+split.
+{
+    intros.
+    unfold not. 
+    intro. 
+    apply H.
+    apply Cconj_simplify.
+    rewrite Cconj_0.
+    assumption.
+}
+{
+    intros.
+    unfold not. 
+    intro. 
+    apply H.
+    rewrite H0.
+    apply Cconj_0.
+}
+Qed.
+
+Lemma Cmult_neq_0_implies_n0_arg: forall (a b c : C),
+c = a * b -> c <> 0 -> a <> 0 /\ b <> 0.
+Proof.
+intros.
+split.
+{
+    destruct (Ceq_dec a 0).
+    contradict H0.
+    rewrite H. 
+    rewrite e.
+    apply Cmult_0_l.
+    assumption.
+}
+{
+    destruct (Ceq_dec b 0).
+    contradict H0.
+    rewrite H. 
+    rewrite e.
+    apply Cmult_0_r.
+    assumption.
+}
+Qed.
