@@ -2,7 +2,24 @@
 A proof verification of "Optimal Implementation of Quantum Gates with Two Controls".
 
 All work is derivative of YT Jeongs original work on this verification.
+The fundamental linear algebra and quantum concepts are taken from Robert Rand's QuantumLib library (https://github.com/inQWIRE/QuantumLib).
 
-vqc - contains the linear algebra definitions from Robert Rand's Library.
-definitions - contains all supplementary linear algebra concepts for the proof
-    Permutation.v - Coq proofs of list permutations, added an assumption called Permutation_length_4. Taken directly from https://github.com/coq/coq/blob/master/theories/Sorting/Permutation.v
+Helper Files: 
+AlgebraHelpers - Helper lemmas having to do with real and complex numbers. 
+EigenvalueHelpers - Helper lemmas having to do with eigenvalues, with hermitian and PSD matrices.
+ExplicitDecompositions - Helper lemmas for expanding fixed size calculations.
+GateHelpers - Helper lemmas for dealing with quantum gates. 
+MatrixHelpers - Helper lemmas for matrix calculations. 
+QubitHelpers - Helper lemmas for unit vectors.
+SwapHelpers - Helper lemmas for properties of swaps.
+SwapProperty - Particular swap property that takes a long time to compile.
+PartialTraceDefinitions - Adding the functions for tracing out qubits, and properties of the function.
+
+Main Proof:
+Appendix 1: SquareMatrices
+Appendix 2: UnitaryMatrices
+Appendix 3: Swaps
+Appendix 4: Vectors
+Appendix 5: ControlledUnitaries
+Appendix 6: TensorProducts
+Main: Lemma 3.2, 4.2
