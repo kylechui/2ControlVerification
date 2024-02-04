@@ -1081,21 +1081,6 @@ lma'.
 all: solve_WF_matrix.
 Qed.
 
-Lemma Mscale_eq_0_implies_0 {m n}: forall (A : Matrix m n) (c : C), 
-WF_Matrix A -> A <> Zero -> c .* A = Zero -> c = 0.
-Proof.
-intros.
-rewrite nonzero_def in H0.
-destruct H0 as [x [y Aij_neq_0]].
-rewrite zero_def in H1.
-specialize (H1 x y).
-apply Cmult_integral in H1.
-destruct H1.
-assumption.
-contradict H0.
-assumption.
-Qed.
-
 Lemma I_neq_zero: forall (n: nat), (n > 0)%nat -> I n <> Zero.
 Proof.
 intros.
@@ -1130,9 +1115,10 @@ split.
     rewrite H1, H3 in H4.
     rewrite Mscale_0_r in H4.
     rewrite Mplus_0_r in H4.
-    apply (@Mscale_eq_0_implies_0 1 1) with (A:= I 1). 1: solve_WF_matrix.
+    apply @Mscale_cancel_r with (A := I 1) (m := 1%nat) (n := 1%nat).
     apply I_neq_zero. lia.
-    assumption.
+    rewrite H4.
+    rewrite Mscale_0_l; reflexivity.
 }
 {
     apply (f_equal (fun f => (b) † × f)) in H4.
@@ -1144,9 +1130,10 @@ split.
     rewrite H2, H3 in H4.
     rewrite Mscale_0_r in H4.
     rewrite Mplus_0_l in H4.
-    apply (@Mscale_eq_0_implies_0 1 1) with (A:= I 1). 1: solve_WF_matrix.
+    apply @Mscale_cancel_r with (A := I 1) (m := 1%nat) (n := 1%nat).
     apply I_neq_zero. lia.
-    assumption.
+    rewrite H4.
+    rewrite Mscale_0_l; reflexivity.
 }
 Qed.
 
