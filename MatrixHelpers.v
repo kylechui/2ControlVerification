@@ -500,22 +500,8 @@ Lemma implication_decomp: forall (P Q: Prop),
 (P -> Q) <-> ((not P) \/ Q).
 Proof.
 split.
-{
-  intros.
-  destruct (Coq.Logic.Classical_Prop.classic P).
-  apply H in H0.
-  right.
-  assumption.
-  left.
-  assumption.
-}
-{
-  intros.
-  destruct H.
-  contradict H.
-  assumption.
-  assumption. 
-}
+apply Coq.Logic.Classical_Prop.imply_to_or.
+apply Coq.Logic.Classical_Prop.or_to_imply.
 Qed.
 
 Lemma Mscale_access {m n}: forall (a : C) (B : Matrix m n) (i j : nat), 
@@ -1171,4 +1157,240 @@ Lemma id2_eigenpairs: Eigenpair (I 2) (∣0⟩, C1) /\ Eigenpair (I 2) (∣1⟩,
 Proof.
   rewrite id2_diag2.
   apply diag2_eigenpairs.
+Qed.
+
+Lemma exists_orthogonal_vector: forall (a: Vector 2), 
+WF_Matrix a -> exists (b: Vector 2), (WF_Matrix b /\ (b = Zero <-> a = Zero) /\ ⟨ a , b ⟩ = C0).
+Proof.
+intros.
+set (b := (fun x y =>
+    match (x,y) with
+    | (0,0) => -((a 1%nat 0%nat)^*)
+    | (1,0) => (a 0%nat 0%nat)^*
+    | _ => C0
+    end) : (Vector 2)).
+assert (WF_b: WF_Matrix b). 
+{
+    unfold WF_Matrix.
+    intros.
+    unfold b. 
+    destruct H0.
+    destruct x as [|x']. contradict H. lia.
+    destruct x' as [|x'']. contradict H. lia. reflexivity.
+    destruct x as [|x']. destruct y as [|y']. contradict H. lia. reflexivity.
+    destruct x' as [|x'']. destruct y as [|y']. contradict H. lia.
+    reflexivity. reflexivity.
+}
+exists b.
+split. assumption.
+split. split.
+{
+    intro.
+    lma'.
+    replace (a 0%nat 0%nat) with ((b 1%nat 0%nat)^*). rewrite H0. lca.
+    unfold b. apply Cconj_involutive.
+    replace (a 1%nat 0%nat) with (-(b 0%nat 0%nat)^*). rewrite H0. lca.
+    unfold b. lca.
+}
+{
+    intro.
+    lma'.
+    unfold b. rewrite H0. lca.
+    unfold b. rewrite H0. lca.
+}
+lca.
+Qed.
+
+Lemma unitary_preserves_inner_prod {n}: forall (U: Square n) (a b: Vector n), WF_Unitary U -> WF_Matrix b ->
+⟨ a , b ⟩ = ⟨ U × a , U × b ⟩.
+Proof.
+intros.
+destruct H as [WF_U u_inv].
+unfold inner_product.
+rewrite Mmult_adjoint.
+rewrite Mmult_assoc.
+rewrite <- Mmult_assoc with (B := U).
+rewrite u_inv. rewrite Mmult_1_l. 2: assumption.
+reflexivity.
+Qed.
+
+Lemma kron_11_r_is_scale {m n}: forall (A : Matrix m n) (B : Vector 1),
+A ⊗ B = (B 0%nat 0%nat) .* A.
+Proof.
+intros.
+prep_matrix_equality.
+unfold kron, scale.
+do 2 rewrite Coq.Arith.PeanoNat.Nat.div_1_r.
+simpl.
+apply Cmult_comm.
+Qed.
+
+Lemma lin_dep_comm_2vec {n}: forall (v1 v2 : Vector n), 
+linearly_dependent_2vec v1 v2 <-> linearly_dependent_2vec v2 v1.
+Proof. 
+split.
+all: intro.
+all: unfold linearly_dependent_2vec in *.
+all: unfold not in *.
+all: intro.
+all: apply H.
+all: apply lin_indep_comm_2vec.
+all: assumption.
+Qed.
+
+Lemma Mscale_0_cancel_r {n}: forall (a : C) (v : Vector n), 
+a <> 0 -> a .* v = Zero -> v = Zero.
+Proof.
+intros.
+apply (f_equal (fun f => /a .* f)) in H0.
+rewrite Mscale_0_r in H0.
+rewrite Mscale_assoc in H0.
+rewrite Cinv_l in H0. 2: assumption.
+rewrite Mscale_1_l in H0.
+assumption.
+Qed.
+
+Lemma scale_eq_implies_0l_or_ldep {n}:
+forall (a b: C) (u v: Vector n), 
+WF_Matrix u -> WF_Matrix v -> 
+a .* u = b .* v -> (a = 0 /\ b = 0) \/ linearly_dependent_2vec u v.
+Proof.
+intros.
+destruct (Ceq_dec a C0).
+destruct (Ceq_dec b C0).
+{
+    left. split. all: assumption. 
+}
+all: right.
+2: rewrite lin_dep_comm_2vec.
+all: rewrite lin_dep_def_alt. 2,3,5,6: assumption.
+all: right.
+apply (f_equal (fun f => /b .* f)) in H1.
+2: apply (f_equal (fun f => /a .* f)) in H1.
+all: repeat rewrite Mscale_assoc in H1.
+all: rewrite Cinv_l in H1. 2,4: assumption.
+all: rewrite Mscale_1_l in H1.
+exists (/ b * a). assumption.
+exists (/a * b). symmetry. assumption.
+Qed.
+
+Lemma cross_prod_equal_implies_scaled_vec: forall (a c: Vector 2),
+WF_Matrix a -> WF_Matrix c ->
+a 0%nat 0%nat <> 0 -> a 1%nat 0%nat <> 0 ->
+(a 0%nat 0%nat) * (c 1%nat 0%nat) = (a 1%nat 0%nat) * (c 0%nat 0%nat) -> 
+exists (b: C), b .* a = c.
+Proof. 
+intros a c WF_a WF_c a0n0 a1n0 cross.
+exists ((c 0%nat 0%nat) * /(a 0%nat 0%nat)).
+lma'.
+{
+    rewrite <- Mscale_access.
+    rewrite <- Cmult_assoc.
+    rewrite Cinv_l. 2: assumption.
+    apply Cmult_1_r.
+}
+{
+    assert (c 0%nat 0%nat * / a 0%nat 0%nat = c 1%nat 0%nat * / a 1%nat 0%nat).
+    {
+        apply (f_equal (fun f => / a 1%nat 0%nat * / a 0%nat 0%nat * f)) in cross.
+        replace (/ a 1%nat 0%nat * / a 0%nat 0%nat *
+        (a 0%nat 0%nat * c 1%nat 0%nat)) with ((a 0%nat 0%nat * / a 0%nat 0%nat) * c 1%nat 0%nat * / a 1%nat 0%nat) in cross by lca.
+        rewrite Cinv_r in cross. 2: assumption. 
+        rewrite Cmult_1_l in cross.
+        replace (/ a 1%nat 0%nat * / a 0%nat 0%nat *
+        (a 1%nat 0%nat * c 0%nat 0%nat)) with ((a 1%nat 0%nat * / a 1%nat 0%nat) * c 0%nat 0%nat * / a 0%nat 0%nat) in cross by lca.
+        rewrite Cinv_r in cross. 2: assumption. 
+        rewrite Cmult_1_l in cross.
+        rewrite cross. reflexivity. 
+    }
+    rewrite H.
+    rewrite <- Mscale_access.
+    rewrite <- Cmult_assoc. 
+    rewrite Cinv_l. 2: assumption.
+    apply Cmult_1_r.
+}
+Qed.
+
+Lemma unitary_n0_tensor_yields_n0_components: forall (U: Square 4) (a: Vector 4) (b c: Vector 2), 
+WF_Unitary U -> WF_Matrix a -> WF_Matrix b -> WF_Matrix c -> 
+U × a = b ⊗ c -> a <> Zero -> b <> Zero /\ c <> Zero.
+Proof.
+intros U a b c U_unitary WF_a WF_b WF_c tens an0.
+rewrite <- inner_product_zero_iff_zero in an0. 2: assumption.
+rewrite unitary_preserves_inner_prod with (U := U) in an0. 2,3: assumption.
+rewrite tens in an0.
+assert (kip_help: ⟨ b ⊗ c, b ⊗ c ⟩ = ⟨ b, b ⟩ * ⟨ c, c ⟩). apply kron_inner_prod.
+rewrite kip_help in an0 at 1.
+split.
+{
+    unfold not.
+    intro. 
+    apply an0.
+    rewrite <- inner_product_zero_iff_zero in H. 2: assumption.
+    rewrite H.
+    apply Cmult_0_l.
+}
+{
+    unfold not.
+    intro. 
+    apply an0.
+    rewrite <- inner_product_zero_iff_zero in H. 2: assumption.
+    rewrite H.
+    apply Cmult_0_r.
+}
+Qed.
+
+Lemma inner_prod_is_norm_squared {n}: forall (a: Vector n), 
+norm a * norm a = ⟨ a, a ⟩.
+Proof.
+intros.
+unfold norm, RtoC.
+unfold Cmult.
+apply c_proj_eq.
+simpl.
+rewrite Rmult_0_l.
+rewrite Rminus_0_r.
+apply sqrt_sqrt.
+apply inner_product_ge_0.
+simpl.
+rewrite Rmult_0_l. rewrite Rmult_0_r.
+rewrite Rplus_0_l.
+symmetry.
+apply norm_real.
+Qed.
+
+Lemma lin_indep_scale_invariant {n}: forall (a b : C) (u v: Vector n), 
+a <> 0 -> b <> 0 -> (linearly_independent_2vec u v <-> linearly_independent_2vec (a .* u) (b .* v)).
+Proof.
+intros a b u v an0 bn0.
+split.
+{
+    intro linindep.
+    unfold linearly_independent_2vec in *.
+    intros c1 c2 zero.
+    repeat rewrite Mscale_assoc in zero.
+    apply linindep in zero.
+    destruct zero as [aprod bprod].
+    rewrite Cmult_comm in aprod, bprod.
+    apply Cmult_0_cancel_l in aprod, bprod.
+    split. all: assumption.
+}
+{
+    intro linindep.
+    unfold linearly_independent_2vec in *.
+    intros c1 c2 zero.
+    specialize (linindep (c1 * /a) (c2 * /b)).
+    repeat rewrite Mscale_assoc in linindep.
+    repeat rewrite <- Cmult_assoc in linindep.
+    rewrite Cinv_l in linindep.
+    rewrite Cinv_l in linindep. 2,3: assumption.
+    repeat rewrite Cmult_1_r in linindep.
+    apply linindep in zero.
+    destruct zero as [aprod bprod].
+    rewrite Cmult_comm in aprod, bprod.
+    apply Cmult_0_cancel_l in aprod, bprod.
+    split. 1,2: assumption.
+    all: apply nonzero_div_nonzero.
+    all: assumption.
+}
 Qed.

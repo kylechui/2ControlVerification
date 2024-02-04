@@ -652,3 +652,49 @@ destruct (Req_EM_T (snd x) 0).
   }
 }
 Qed.
+
+Lemma conj_n0_iff_n0: forall (a : C), 
+a <> 0 <-> a^* <> 0.
+Proof.
+split.
+{
+    intros.
+    unfold not. 
+    intro. 
+    apply H.
+    apply Cconj_simplify.
+    rewrite Cconj_0.
+    assumption.
+}
+{
+    intros.
+    unfold not. 
+    intro. 
+    apply H.
+    rewrite H0.
+    apply Cconj_0.
+}
+Qed.
+
+Lemma Cmult_neq_0_implies_n0_arg: forall (a b c : C),
+c = a * b -> c <> 0 -> a <> 0 /\ b <> 0.
+Proof.
+intros.
+split.
+{
+    destruct (Ceq_dec a 0).
+    contradict H0.
+    rewrite H. 
+    rewrite e.
+    apply Cmult_0_l.
+    assumption.
+}
+{
+    destruct (Ceq_dec b 0).
+    contradict H0.
+    rewrite H. 
+    rewrite e.
+    apply Cmult_0_r.
+    assumption.
+}
+Qed.
