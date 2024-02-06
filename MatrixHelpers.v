@@ -432,6 +432,61 @@ Proof.
   solve_WF_matrix.
 Qed.
 
+Lemma upper_left_block_entries {n}: forall (A : Square n) (i j: nat), 
+(i < n /\ j < n)%nat -> (∣0⟩⟨0∣ ⊗ A) i j = A (i mod n) (j mod n).
+Proof.
+intros.
+unfold kron.
+destruct H.
+rewrite Nat.div_small. 2: assumption.
+rewrite Nat.div_small. 2: assumption.
+lca.
+Qed.
+
+Lemma nat_tight_bound: forall (i j: nat), 
+(i <= j -> j < S i -> j = i)%nat.
+Proof.
+intros i j lb up.
+induction i.
+{
+  destruct j.
+  reflexivity.
+  inversion lb.
+}
+Admitted.
+
+
+Lemma upper_left_block_nonentries {n}: forall (A : Square n) (i j: nat), 
+WF_Matrix A -> n <> 0%nat -> (n <= i \/ n <= j)%nat -> (∣0⟩⟨0∣ ⊗ A) i j = 0.
+Proof.
+intros A i j WF_A nn0 ij_bound.
+destruct ij_bound.
+{
+  rewrite <- Nat.mul_1_r with (n:=n) in H.
+  apply Nat.div_le_lower_bound in H. 2: assumption.
+  assert (WF_Matrix (∣0⟩⟨0∣ ⊗ A)). solve_WF_matrix.
+  destruct (le_lt_dec (2*n)%nat i). rewrite H0. reflexivity. left. lia.
+  apply Nat.div_lt_upper_bound in l. 2: lia.
+  Search (_ <= _ -> _ < _ -> _ = _).
+}
+Admitted.
+
+Lemma block_equalities_general {n}: forall (U V: Square (n+n)) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square n), 
+WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 ->
+WF_Matrix Q00 -> WF_Matrix Q01 -> WF_Matrix Q10 -> WF_Matrix Q11 ->
+U = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 ->
+V = ∣0⟩⟨0∣ ⊗ Q00 .+ ∣0⟩⟨1∣ ⊗ Q01 .+ ∣1⟩⟨0∣ ⊗ Q10 .+ ∣1⟩⟨1∣ ⊗ Q11 ->
+U = V -> P00 = Q00 /\ P01 = Q01 /\ P10 = Q10 /\ P11 = Q11.
+Proof.
+intros U V P00 P01 P10 P11 Q00 Q01 Q10 Q11 WF_P00 WF_P01 WF_P10 WF_P11 WF_Q00 WF_Q01 WF_Q10 WF_Q11 u_def v_def u_eq_v.
+split.
+{
+  lma'.
+  destruct (le_lt_dec n i). rewrite WF_P00, WF_Q00. reflexivity. 1,2: left. 1,2: lia.
+  destruct (le_lt_dec n j). rewrite WF_P00, WF_Q00. reflexivity. 1,2: right. 1,2: lia.
+}
+Admitted.
+
 Lemma block_equalities: forall (U V: Square 4) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square 2),
   WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 ->
   WF_Matrix Q00 -> WF_Matrix Q01 -> WF_Matrix Q10 -> WF_Matrix Q11 ->
