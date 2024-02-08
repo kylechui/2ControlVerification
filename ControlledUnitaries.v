@@ -162,7 +162,7 @@ exists P00, P11.
 assert (U_adj_block_decomp: (U) † = ∣0⟩⟨0∣ ⊗ P00† .+ ∣0⟩⟨1∣ ⊗ P10† .+ ∣1⟩⟨0∣ ⊗ P01† .+ ∣1⟩⟨1∣ ⊗ P11†). 
 {
     rewrite U_block_decomp. lma'.
-    apply WF_adjoint. 1,2: apply WF_blockmatrix.
+    apply WF_adjoint. 1,2: apply (@WF_blockmatrix 2).
     5,6,7,8: apply WF_adjoint. all: assumption.
 }
 assert (U_adj_mult_1: (U) † × U = ∣0⟩⟨0∣ ⊗ (P00† × P00) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (P11† × P11)).
@@ -171,9 +171,9 @@ assert (U_adj_mult_1: (U) † × U = ∣0⟩⟨0∣ ⊗ (P00† × P00) .+ ∣0�
     rewrite P10_0 in U_block_decomp.
     rewrite P01_0 in U_adj_block_decomp. rewrite zero_adjoint_eq in U_adj_block_decomp. 
     rewrite P01_0 in U_block_decomp.
-    rewrite block_multiply with (U := (U) †) (V := U)
+    rewrite (@block_multiply 2) with (U := (U) †) (V := U)
     (P00 := P00†) (P01 := (Zero (m:= 2) (n:=2))) (P10 := (Zero (m:= 2) (n:=2))) (P11 := P11†)
-    (Q00 := P00) (Q01 := (Zero (m:= 2) (n:=2))) (Q10 := (Zero (m:= 2) (n:=2))) (Q11 := P11).
+    (Q00 := P00) (Q01 := (Zero (m:= 2) (n:=2))) (Q10 := (Zero (m:= 2) (n:=2))) (Q11 := P11) at 1.
     2,3,4,5,6,7,8,9: solve_WF_matrix.
     2,3: assumption.
     do 3 rewrite Mmult_0_l. do 2 rewrite Mmult_0_r.
@@ -182,7 +182,7 @@ assert (U_adj_mult_1: (U) † × U = ∣0⟩⟨0∣ ⊗ (P00† × P00) .+ ∣0�
 }
 assert (I_4_block_decomp: I 4 = ∣0⟩⟨0∣ ⊗ I 2 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ I 2). 
 {
-    lma'. apply WF_blockmatrix.
+    lma'. apply (@WF_blockmatrix 2).
     all: solve_WF_matrix.
 }
 assert (equal_blocks: (P00) † × P00 = I 2 /\ (Zero (m:= 2) (n:=2)) = (Zero (m:= 2) (n:=2)) 
@@ -199,7 +199,7 @@ split.
     rewrite U_block_decomp.
     rewrite P10_0, P01_0.
     lma'.
-    apply WF_blockmatrix.
+    apply (@WF_blockmatrix 2).
     all: solve_WF_matrix.   
 }
 split. 

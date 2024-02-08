@@ -410,7 +410,7 @@ Proof.
   solve_WF_matrix.
 Qed.
 
-Lemma WF_blockmatrix: forall (P00 P01 P10 P11: Square 2),
+Lemma WF_blockmatrix {n}: forall (P00 P01 P10 P11: Square n),
   WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 ->
   WF_Matrix (∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11).
 Proof.
@@ -418,7 +418,15 @@ Proof.
   solve_WF_matrix.
 Qed.
 
-Lemma block_multiply: forall (U V: Square 4) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square 2),
+Lemma isolate_inner_mult {a b c d e}: forall (A: Matrix a b) (B: Matrix b c) (C: Matrix c d) (D: Matrix d e), 
+(A × B) × (C × D) = A × (B × C) × D.
+Proof. 
+intros.
+repeat rewrite <- Mmult_assoc.
+reflexivity.
+Qed.
+
+Lemma block_multiply {n}: forall (U V: Square (2*n)%nat) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square n),
   WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 ->
   WF_Matrix Q00 -> WF_Matrix Q01 -> WF_Matrix Q10 -> WF_Matrix Q11 ->
   U = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 ->
@@ -427,9 +435,18 @@ Lemma block_multiply: forall (U V: Square 4) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: S
 Proof.
   intros.
   rewrite H7, H8.
+  repeat rewrite Mmult_plus_distr_l.
+  repeat rewrite Mmult_plus_distr_r.
+  repeat rewrite kron_mixed_product.
+  repeat rewrite isolate_inner_mult.
+  rewrite Mmult00, Mmult01, Mmult10, Mmult11.
+  repeat rewrite Mmult_0_r. repeat rewrite Mmult_0_l. repeat rewrite kron_0_l.
+  repeat rewrite Mplus_0_r. repeat rewrite Mplus_0_l.
+  repeat rewrite Mmult_1_r. 2,3: solve_WF_matrix.
   lma'.
   solve_WF_matrix.
-  solve_WF_matrix.
+  apply WF_blockmatrix.
+  all: solve_WF_matrix.
 Qed.
 
 Lemma nat_tight_bound: forall (i j: nat), 
@@ -1310,7 +1327,7 @@ assert (WF_P11: WF_Matrix P11).
     reflexivity.
 }
 split. assumption.
-lma'. apply WF_blockmatrix. 1,2,3,4: assumption.
+lma'. apply (@WF_blockmatrix 2). 1,2,3,4: assumption.
 all: unfold Mplus, kron, "∣0⟩⟨0∣", "∣0⟩⟨1∣", "∣1⟩⟨0∣", "∣1⟩⟨1∣", Mmult, adjoint.
 all: simpl.
 all: Csimpl.
