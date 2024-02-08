@@ -188,7 +188,8 @@ assert (I_4_block_decomp: I 4 = ∣0⟩⟨0∣ ⊗ I 2 .+ ∣0⟩⟨1∣ ⊗ Zer
 assert (equal_blocks: (P00) † × P00 = I 2 /\ (Zero (m:= 2) (n:=2)) = (Zero (m:= 2) (n:=2)) 
 /\ (Zero (m:= 2) (n:=2)) = (Zero (m:= 2) (n:=2)) /\ (P11) † × P11 = I 2).
 {
-    apply block_equalities with (U := (U) † × U) (V := I 4).
+    apply block_equalities_general with (U := (U) † × U) (V := I 4).
+    lia.
     1,2,3,4,5,6,7,8: solve_WF_matrix.
     1,2: assumption.
     apply U_unitary.
