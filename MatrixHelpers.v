@@ -548,6 +548,102 @@ destruct ij_bound.
 }
 Qed.
 
+Lemma upper_right_block_entries {n}: forall (A : Square n) (i j: nat), 
+WF_Matrix A -> n <> 0%nat -> (i < n /\ j >= n)%nat -> (∣0⟩⟨1∣ ⊗ A) i j = A i (j-n)%nat.
+Proof.
+intros A i j WF_A n0 H.
+destruct H.
+assert (WF_block: WF_Matrix (∣0⟩⟨1∣ ⊗ A)). solve_WF_matrix.
+destruct (le_lt_dec (n*2)%nat j). rewrite WF_block. rewrite WF_A. reflexivity. right. lia. right. lia.
+unfold kron.
+assert (n <= j)%nat. lia.
+rewrite <- Nat.mul_1_r with (n:=n) in H1.
+assert (jlb :  (n <= j)%nat). assumption.
+apply Nat.div_le_lower_bound in H1. 2: assumption.
+assert (jub : (j < n * 2)%nat). assumption.
+apply Nat.div_lt_upper_bound in l. 2: lia.
+assert (ind_val:= nat_tight_bound 1 (j/n)%nat H1 l).
+rewrite <- ind_val.
+rewrite Nat.div_small with (a:= i). 2: assumption.
+assert (sub_mod:= sub_mod_equiv j n jub jlb).
+rewrite sub_mod.
+assert (i mod n = i). apply Nat.mod_small. assumption.
+rewrite H2.
+lca.
+Qed.
+
+Lemma upper_right_block_nonentries {n}: forall (A : Square n) (i j: nat), 
+WF_Matrix A -> n <> 0%nat -> (n <= i \/ j < n)%nat -> (∣0⟩⟨1∣ ⊗ A) i j = 0.
+Proof.
+intros A i j WF_A nn0 ij_bound. 
+assert (WF_block: WF_Matrix (∣0⟩⟨1∣ ⊗ A)). solve_WF_matrix.
+destruct ij_bound.
+{
+  rewrite <- Nat.mul_1_r with (n:=n) in H.
+  apply Nat.div_le_lower_bound in H. 2: assumption.
+  destruct (le_lt_dec (n*2)%nat i). rewrite WF_block. reflexivity. left. lia.
+  apply Nat.div_lt_upper_bound in l. 2: lia.
+  assert (ind_val:= nat_tight_bound 1 (i/n)%nat H l).
+  unfold kron.
+  rewrite <- ind_val.
+  lca.
+}
+{
+  unfold kron.
+  rewrite Nat.div_small with (a:= j). 2: assumption.
+  lca.
+}
+Qed.
+
+Lemma lower_right_block_entries {n}: forall (A : Square n) (i j: nat), 
+WF_Matrix A -> n <> 0%nat -> (i >= n /\ j >= n)%nat -> (∣1⟩⟨1∣ ⊗ A) i j = A (i-n)%nat (j-n)%nat.
+Proof.
+intros A i j WF_A n0 H.
+destruct H.
+assert (WF_block: WF_Matrix (∣1⟩⟨1∣ ⊗ A)). solve_WF_matrix.
+destruct (le_lt_dec (n*2)%nat j). rewrite WF_block. rewrite WF_A. reflexivity. right. lia. right. lia.
+destruct (le_lt_dec (n*2)%nat i). rewrite WF_block. rewrite WF_A. reflexivity. left. lia. left. lia.
+unfold kron.
+assert (n <= j)%nat. lia.
+rewrite <- Nat.mul_1_r with (n:=n) in H1.
+assert (jlb :  (n <= j)%nat). assumption.
+apply Nat.div_le_lower_bound in H1. 2: assumption.
+assert (jub : (j < n * 2)%nat). assumption.
+apply Nat.div_lt_upper_bound in l. 2: lia.
+assert (ind_val:= nat_tight_bound 1 (j/n)%nat H1 l).
+rewrite <- ind_val.
+assert (n <= i)%nat. lia.
+rewrite <- Nat.mul_1_r with (n:=n) in H2.
+assert (ilb :  (n <= i)%nat). assumption.
+apply Nat.div_le_lower_bound in H2. 2: assumption.
+assert (iub : (i < n * 2)%nat). assumption.
+apply Nat.div_lt_upper_bound in l0. 2: lia.
+assert (ind_val_i:= nat_tight_bound 1 (i/n)%nat H2 l0).
+rewrite <- ind_val_i.
+assert (sub_mod:= sub_mod_equiv j n jub jlb).
+rewrite sub_mod.
+assert (sub_mod_i:= sub_mod_equiv i n iub ilb).
+rewrite sub_mod_i.
+lca.
+Qed.
+
+Lemma lower_right_block_nonentries {n}: forall (A : Square n) (i j: nat), 
+WF_Matrix A -> n <> 0%nat -> (i < n \/ j < n)%nat -> (∣1⟩⟨1∣ ⊗ A) i j = 0.
+Proof.
+intros A i j WF_A nn0 ij_bound. 
+destruct ij_bound.
+{
+  unfold kron.
+  rewrite Nat.div_small with (a:= i). 2: assumption.
+  lca.
+}
+{
+  unfold kron.
+  rewrite Nat.div_small with (a:= j). 2: assumption.
+  lca.
+}
+Qed.
+
 Lemma block_equalities_general {n}: forall (U V: Square (n+n)) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square n), 
 WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 ->
 WF_Matrix Q00 -> WF_Matrix Q01 -> WF_Matrix Q10 -> WF_Matrix Q11 ->
