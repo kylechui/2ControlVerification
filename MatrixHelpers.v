@@ -432,43 +432,126 @@ Proof.
   solve_WF_matrix.
 Qed.
 
+Lemma nat_tight_bound: forall (i j: nat), 
+(i <= j -> j < S i -> i = j)%nat.
+Proof.
+intros i j lb up.
+apply Nat.le_antisymm.
+assumption.
+apply le_S_n. apply up.
+Qed.
+
+Lemma sub_mod_equiv: forall (i j: nat), 
+(i < j * 2 -> j <= i -> (i mod j) = i - j)%nat.
+Proof.
+intros.
+assert ((i - j) = ((i - j) mod j))%nat.
+{
+  symmetry.
+  apply Nat.mod_small.
+  lia.
+}
+rewrite H1.
+symmetry.
+rewrite <- Nat.mul_1_l with (n := j) at 1.
+apply sub_mul_mod.
+rewrite Nat.mul_1_l.
+assumption.
+Qed.
+
+
 Lemma upper_left_block_entries {n}: forall (A : Square n) (i j: nat), 
-(i < n /\ j < n)%nat -> (∣0⟩⟨0∣ ⊗ A) i j = A (i mod n) (j mod n).
+(i < n /\ j < n)%nat -> (∣0⟩⟨0∣ ⊗ A) i j = A i j.
 Proof.
 intros.
 unfold kron.
 destruct H.
 rewrite Nat.div_small. 2: assumption.
 rewrite Nat.div_small. 2: assumption.
+rewrite Nat.mod_small. 2: assumption.
+rewrite Nat.mod_small. 2: assumption.
 lca.
 Qed.
-
-Lemma nat_tight_bound: forall (i j: nat), 
-(i <= j -> j < S i -> j = i)%nat.
-Proof.
-intros i j lb up.
-induction i.
-{
-  destruct j.
-  reflexivity.
-  inversion lb.
-}
-Admitted.
-
 
 Lemma upper_left_block_nonentries {n}: forall (A : Square n) (i j: nat), 
 WF_Matrix A -> n <> 0%nat -> (n <= i \/ n <= j)%nat -> (∣0⟩⟨0∣ ⊗ A) i j = 0.
 Proof.
 intros A i j WF_A nn0 ij_bound.
+assert (WF_block: WF_Matrix (∣0⟩⟨0∣ ⊗ A)). solve_WF_matrix.
 destruct ij_bound.
 {
   rewrite <- Nat.mul_1_r with (n:=n) in H.
   apply Nat.div_le_lower_bound in H. 2: assumption.
-  assert (WF_Matrix (∣0⟩⟨0∣ ⊗ A)). solve_WF_matrix.
-  destruct (le_lt_dec (2*n)%nat i). rewrite H0. reflexivity. left. lia.
+  destruct (le_lt_dec (n*2)%nat i). rewrite WF_block. reflexivity. left. lia.
   apply Nat.div_lt_upper_bound in l. 2: lia.
-  Search (_ <= _ -> _ < _ -> _ = _).
+  assert (ind_val:= nat_tight_bound 1 (i/n)%nat H l).
+  unfold kron.
+  rewrite <- ind_val.
+  lca.
 }
+{
+  rewrite <- Nat.mul_1_r with (n:=n) in H.
+  apply Nat.div_le_lower_bound in H. 2: assumption.
+  destruct (le_lt_dec (n*2)%nat j). rewrite WF_block. reflexivity. right. lia.
+  apply Nat.div_lt_upper_bound in l. 2: lia.
+  assert (ind_val:= nat_tight_bound 1 (j/n)%nat H l).
+  unfold kron.
+  rewrite <- ind_val.
+  lca.
+}
+Qed.
+
+Lemma lower_left_block_entries {n}: forall (A : Square n) (i j: nat), 
+WF_Matrix A -> n <> 0%nat -> (i >= n /\ j < n)%nat -> (∣1⟩⟨0∣ ⊗ A) i j = A (i-n)%nat j.
+Proof.
+intros A i j WF_A n0 H.
+destruct H.
+assert (WF_block: WF_Matrix (∣1⟩⟨0∣ ⊗ A)). solve_WF_matrix.
+destruct (le_lt_dec (n*2)%nat i). rewrite WF_block. rewrite WF_A. reflexivity. left. lia. left. lia.
+unfold kron.
+assert (n <= i)%nat. lia.
+rewrite <- Nat.mul_1_r with (n:=n) in H1.
+assert (ilb :  (n <= i)%nat). assumption.
+apply Nat.div_le_lower_bound in H1. 2: assumption.
+assert (iub : (i < n * 2)%nat). assumption.
+apply Nat.div_lt_upper_bound in l. 2: lia.
+assert (ind_val:= nat_tight_bound 1 (i/n)%nat H1 l).
+rewrite <- ind_val.
+rewrite Nat.div_small with (a:= j). 2: assumption.
+assert (sub_mod:= sub_mod_equiv i n iub ilb).
+rewrite sub_mod.
+assert (j mod n = j). apply Nat.mod_small. assumption.
+rewrite H2.
+lca.
+Qed.
+
+Lemma lower_left_block_nonentries {n}: forall (A : Square n) (i j: nat), 
+WF_Matrix A -> n <> 0%nat -> (n <= i \/ n <= j)%nat -> (∣1⟩⟨0∣ ⊗ A) i j = 0.
+Proof.
+(* intros A i j WF_A nn0 ij_bound.
+assert (WF_block: WF_Matrix (∣1⟩⟨0∣ ⊗ A)). solve_WF_matrix.
+destruct ij_bound.
+{
+  rewrite <- Nat.mul_1_r with (n:=n) in H.
+  apply Nat.div_le_lower_bound in H. 2: assumption.
+  destruct (le_lt_dec (n*2)%nat i). rewrite WF_block. reflexivity. left. lia.
+  apply Nat.div_lt_upper_bound in l. 2: lia.
+  assert (ind_val:= nat_tight_bound 1 (i/n)%nat H l).
+  unfold kron.
+  rewrite <- ind_val.
+  lca.
+}
+{
+  rewrite <- Nat.mul_1_r with (n:=n) in H.
+  apply Nat.div_le_lower_bound in H. 2: assumption.
+  destruct (le_lt_dec (n*2)%nat j). rewrite WF_block. reflexivity. right. lia.
+  apply Nat.div_lt_upper_bound in l. 2: lia.
+  assert (ind_val:= nat_tight_bound 1 (j/n)%nat H l).
+  unfold kron.
+  rewrite <- ind_val.
+  lca.
+}
+Qed. *)
 Admitted.
 
 Lemma block_equalities_general {n}: forall (U V: Square (n+n)) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square n), 
