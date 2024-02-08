@@ -526,19 +526,14 @@ lca.
 Qed.
 
 Lemma lower_left_block_nonentries {n}: forall (A : Square n) (i j: nat), 
-WF_Matrix A -> n <> 0%nat -> (n <= i \/ n <= j)%nat -> (∣1⟩⟨0∣ ⊗ A) i j = 0.
+WF_Matrix A -> n <> 0%nat -> (i < n \/ n <= j)%nat -> (∣1⟩⟨0∣ ⊗ A) i j = 0.
 Proof.
-(* intros A i j WF_A nn0 ij_bound.
+intros A i j WF_A nn0 ij_bound. 
 assert (WF_block: WF_Matrix (∣1⟩⟨0∣ ⊗ A)). solve_WF_matrix.
 destruct ij_bound.
 {
-  rewrite <- Nat.mul_1_r with (n:=n) in H.
-  apply Nat.div_le_lower_bound in H. 2: assumption.
-  destruct (le_lt_dec (n*2)%nat i). rewrite WF_block. reflexivity. left. lia.
-  apply Nat.div_lt_upper_bound in l. 2: lia.
-  assert (ind_val:= nat_tight_bound 1 (i/n)%nat H l).
   unfold kron.
-  rewrite <- ind_val.
+  rewrite Nat.div_small. 2: assumption.
   lca.
 }
 {
@@ -551,8 +546,7 @@ destruct ij_bound.
   rewrite <- ind_val.
   lca.
 }
-Qed. *)
-Admitted.
+Qed.
 
 Lemma block_equalities_general {n}: forall (U V: Square (n+n)) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square n), 
 WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 ->
