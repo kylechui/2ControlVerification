@@ -328,3 +328,97 @@ rewrite kron_mixed_product.
 rewrite Mmult_1_l. 2: solve_WF_matrix.
 reflexivity.
 Qed.
+
+Lemma a29: forall (V1 V2 V3 V4: Square 4) (U : Square 2), 
+WF_Unitary V1 -> WF_Unitary V2 -> WF_Unitary V3 -> WF_Unitary V4 ->
+WF_Unitary U -> (acgate V1) × (bcgate V2) × (acgate V3) × (bcgate V4) = ccu U -> 
+V2 × (∣0⟩ ⊗ ∣0⟩) = ∣0⟩ ⊗ ∣0⟩ -> (forall (x: Vector 2), WF_Qubit x -> 
+(bcgate V4)† × (acgate V3)† × (x ⊗ ∣0⟩ ⊗ ∣0⟩)  = (acgate V1) × (x ⊗ ∣0⟩ ⊗ ∣0⟩)).
+intros V1 V2 V3 V4 U V1_unitary V2_unitary V3_unitary V4_unitary U_unitary cc_prop v2_prop x x_qubit.
+assert (temp: WF_Unitary V1). assumption.
+destruct temp as [WF_V1 V1_inv].
+assert (temp: WF_Unitary V2). assumption.
+destruct temp as [WF_V2 V2_inv].
+assert (temp: WF_Unitary V3). assumption.
+destruct temp as [WF_V3 V3_inv].
+assert (temp: WF_Unitary V4). assumption.
+destruct temp as [WF_V4 V4_inv].
+assert (temp: WF_Unitary U). assumption.
+destruct temp as [WF_U U_inv].
+assert (temp: WF_Qubit x). assumption.
+destruct temp as [_ [WF_x x_unit]].
+assert (ccu_dag_exp: ccu (U†) = (acgate V4†) × (bcgate V3†) × (acgate V2†) × (bcgate V1†)).
+{
+    rewrite <- swapab_ccu. 2: solve_WF_matrix.
+    rewrite <- ccu_adjoint. 2: solve_WF_matrix.
+    rewrite <- cc_prop.
+    repeat rewrite Mmult_adjoint.
+    rewrite bcgate_adjoint. 2: solve_WF_matrix.
+    rewrite <- Mmult_1_r with (A := bcgate (V4) †). 2: apply WF_bcgate; solve_WF_matrix.
+    simpl. rewrite <- swapab_inverse.
+    repeat rewrite <- Mmult_assoc.
+    rewrite <- acgate_alt_def. 2: solve_WF_matrix.
+    repeat rewrite Mmult_assoc.
+    apply (f_equal (fun f => (acgate V4†) × f)).
+    rewrite acgate_adjoint. 2: solve_WF_matrix.
+    rewrite acgate_alt_def. 2: solve_WF_matrix.
+    repeat rewrite <- Mmult_assoc.
+    rewrite swapab_inverse at 1.
+    rewrite Mmult_1_l. 2: apply WF_bcgate; solve_WF_matrix.
+    repeat rewrite Mmult_assoc.
+    apply (f_equal (fun f => (bcgate V3†) × f)).
+    rewrite bcgate_adjoint. 2: solve_WF_matrix.
+    rewrite <- Mmult_1_r with (A := bcgate (V2) †). 2: apply WF_bcgate; solve_WF_matrix.
+    simpl. rewrite <- swapab_inverse.
+    repeat rewrite <- Mmult_assoc.
+    rewrite <- acgate_alt_def. 2: solve_WF_matrix.
+    repeat rewrite Mmult_assoc.
+    apply (f_equal (fun f => (acgate V2†) × f)).
+    rewrite acgate_adjoint. 2: solve_WF_matrix.
+    rewrite acgate_alt_def. 2: solve_WF_matrix.
+    repeat rewrite Mmult_assoc.
+    rewrite swapab_inverse at 1.
+    rewrite Mmult_1_r. 2: apply WF_bcgate; solve_WF_matrix.
+    repeat rewrite <- Mmult_assoc.
+    rewrite swapab_inverse at 1.
+    apply Mmult_1_l.
+    apply WF_bcgate. solve_WF_matrix.
+}
+assert (v2_dag_prop: V2† × (∣0⟩ ⊗ ∣0⟩) = ∣0⟩ ⊗ ∣0⟩).
+{
+    apply (f_equal (fun f => V2† × f)) in v2_prop.
+    rewrite <- Mmult_assoc in v2_prop.
+    rewrite V2_inv in v2_prop.
+    rewrite Mmult_1_l in v2_prop. 2: solve_WF_matrix.
+    symmetry.
+    apply v2_prop. 
+}
+assert (a28_partial:= @a28 (V4) † (V3) † (V2) † (V1) † (U) †).
+assert (a28_impl: forall x : Vector 2,
+WF_Qubit x ->
+acgate (V4) † × bcgate (V3) † × (∣0⟩ ⊗ x ⊗ ∣0⟩) =
+(bcgate (V1) †) † × (∣0⟩ ⊗ x ⊗ ∣0⟩)).
+{
+    apply a28_partial.
+    1,2,3,4,5: apply transpose_unitary; assumption.
+    symmetry. assumption.
+    assumption.
+}
+rewrite <- bcgate_adjoint with (U := V1) in a28_impl. 2: solve_WF_matrix.
+rewrite adjoint_involutive in a28_impl.
+rewrite bcgate_adjoint, acgate_adjoint. 2,3: solve_WF_matrix.
+rewrite <- Mmult_1_l with (A:= bcgate (V4) †). 2: apply WF_bcgate; solve_WF_matrix.
+simpl. rewrite <- swapab_inverse.
+rewrite acgate_alt_def. 2: solve_WF_matrix.
+repeat rewrite Mmult_assoc.
+rewrite <- Mmult_assoc with (A:= swapab) (B:= bcgate (V4) †).
+rewrite <- Mmult_assoc with (A:= swapab × bcgate (V4) †) (B:= swapab).
+rewrite <- acgate_alt_def. 2: solve_WF_matrix.
+rewrite swapab_3q. 2,3,4: solve_WF_matrix.
+rewrite <- Mmult_assoc with (A:= acgate (V4) †).
+rewrite a28_impl. 2: assumption.
+rewrite <- swapab_3q. 2,3,4: solve_WF_matrix.
+repeat rewrite <- Mmult_assoc.
+rewrite <- acgate_alt_def. 2: solve_WF_matrix.
+reflexivity.
+Qed.
