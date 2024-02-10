@@ -27,6 +27,12 @@ assert (temp: WF_Unitary V2). assumption.
 destruct temp as [WF_v2 v2_inv].
 assert (temp: WF_Unitary V3). assumption.
 destruct temp as [WF_v3 v3_inv].
+assert (temp: WF_Unitary V4). assumption.
+destruct temp as [WF_v4 v4_inv].
+assert (temp: WF_Unitary U0). assumption.
+destruct temp as [WF_u0 u0_inv].
+assert (temp: WF_Unitary U1). assumption.
+destruct temp as [WF_u1 u1_inv].
 assert (temp: WF_Unitary P0). assumption.
 destruct temp as [WF_p0 p0_inv].
 assert (temp: WF_Unitary P1). assumption.
@@ -158,4 +164,99 @@ do 2 rewrite Mplus_0_r in V3_way1.
 do 2 rewrite Mplus_assoc in V3_way1. rewrite Mplus_comm with (A:= ∣1⟩⟨1∣
 ⊗ ((V2) † × (I 2 ⊗ (P1) †) × U1 × (V4) †)) in V3_way1.
 repeat rewrite <- Mplus_assoc in V3_way1.
-Admitted.
+assert (v3_decomp:= block_decomp_4 V3 WF_v3).
+destruct v3_decomp as [Q00 [Q01 [Q10 [Q11 [WF_Q00 [WF_Q01 [WF_Q10 [WF_Q11 v3_decomp]]]]]]]].
+assert (V3_way2: acgate V3 = swapbc × abgate V3 × swapbc). unfold acgate. reflexivity.
+unfold abgate in V3_way2.
+rewrite v3_decomp in V3_way2 at 2.
+repeat rewrite kron_plus_distr_r in V3_way2.
+repeat rewrite Mmult_plus_distr_l in V3_way2.
+repeat rewrite Mmult_plus_distr_r in V3_way2.
+rewrite swapbc_3gate in V3_way2. 2,3,4: solve_WF_matrix.
+rewrite swapbc_3gate in V3_way2. 2,3,4: solve_WF_matrix.  
+rewrite swapbc_3gate in V3_way2. 2,3,4: solve_WF_matrix.  
+rewrite swapbc_3gate in V3_way2. 2,3,4: solve_WF_matrix.
+rewrite kron_assoc in V3_way2. 2,3,4: solve_WF_matrix.
+rewrite kron_assoc in V3_way2. 2,3,4: solve_WF_matrix.
+rewrite kron_assoc in V3_way2. 2,3,4: solve_WF_matrix.
+rewrite kron_assoc in V3_way2. 2,3,4: solve_WF_matrix.
+assert (block_eq := @block_equalities_general 4 (acgate V3) (acgate V3)
+((V2) † × (I 2 ⊗ (P0) †) × U0 × (V4) †) (@Zero 4 4) (@Zero 4 4) ((V2) † × (I 2 ⊗ (P1) †) × U1 × (V4) †)
+(I 2 ⊗ Q00) (I 2 ⊗ Q01) (I 2 ⊗ Q10) (I 2 ⊗ Q11)).
+assert (eq: (V2) † × (I 2 ⊗ (P0) †) × U0 × (V4) † = I 2 ⊗ Q00 /\
+Zero = I 2 ⊗ Q01 /\
+Zero = I 2 ⊗ Q10 /\
+(V2) † × (I 2 ⊗ (P1) †) × U1 × (V4) † = I 2 ⊗ Q11).
+{
+    apply block_eq.
+    lia.
+    2,3,5,6,7,8: solve_WF_matrix.
+    1,2: apply WF_mult. 2,4: solve_WF_matrix.
+    1,2: apply WF_mult. 2,4: solve_WF_matrix.
+    1,2: solve_WF_matrix.
+    apply V3_way1. apply V3_way2.
+    reflexivity.
+}
+destruct eq as [q00_val [q01_zero [q10_zero q11_val]]].
+assert (ztotens: (@Zero 4 4) = I 2 ⊗ (@Zero 2 2)). lma'.
+rewrite ztotens in q01_zero at 1.
+rewrite ztotens in q10_zero at 1.
+apply kron_cancel_l in q01_zero. 2,3: solve_WF_matrix. 2: apply I_neq_zero. 2: lia.
+apply kron_cancel_l in q10_zero. 2,3: solve_WF_matrix. 2: apply I_neq_zero. 2: lia.
+assert (block_unit: (V3) † × V3 = ∣0⟩⟨0∣ ⊗ I 2 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ I 2).
+{
+    rewrite v3_inv.
+    lma'.
+    solve_WF_matrix.
+}
+rewrite v3_decomp in block_unit.
+assert (trans_help: (∣0⟩⟨0∣ ⊗ Q00 .+ ∣0⟩⟨1∣ ⊗ Q01 .+ ∣1⟩⟨0∣ ⊗ Q10 .+ ∣1⟩⟨1∣ ⊗ Q11) † =
+(∣0⟩⟨0∣ ⊗ Q00† .+ ∣0⟩⟨1∣ ⊗ Q10† .+ ∣1⟩⟨0∣ ⊗ Q01† .+ ∣1⟩⟨1∣ ⊗ Q11†)).
+{
+    repeat rewrite Mplus_adjoint.
+    repeat rewrite kron_adjoint.
+    rewrite adjoint00, adjoint01, adjoint10, adjoint11.
+    lma'.
+    all: solve_WF_matrix.
+}
+rewrite trans_help in block_unit at 1. clear trans_help.
+rewrite block_multiply with (U:= (∣0⟩⟨0∣ ⊗ (Q00) † .+ ∣0⟩⟨1∣ ⊗ (Q10) † .+ ∣1⟩⟨0∣ ⊗ (Q01) † .+ ∣1⟩⟨1∣ ⊗ (Q11) †))
+(V:= (∣0⟩⟨0∣ ⊗ Q00 .+ ∣0⟩⟨1∣ ⊗ Q01 .+ ∣1⟩⟨0∣ ⊗ Q10 .+ ∣1⟩⟨1∣ ⊗ Q11)) (P00 := (Q00) †) (P01 := (Q10) †)
+(P10 := (Q01) †) (P11 := (Q11) †) (Q00 := Q00) (Q01 := Q01) (Q10 := Q10) (Q11 := Q11) in block_unit at 1.
+2,3,4,5,6,7,8,9: solve_WF_matrix.
+2,3: reflexivity.
+rewrite <- q01_zero, <- q10_zero in block_unit.
+rewrite zero_adjoint_eq in block_unit.
+repeat rewrite Mmult_0_r in block_unit.
+repeat rewrite Mmult_0_l in block_unit.
+repeat rewrite Mplus_0_r in block_unit.
+repeat rewrite Mplus_0_l in block_unit.
+assert (block_eq_2 := @block_equalities_general 2 (∣0⟩⟨0∣ ⊗ ((Q00) † × Q00) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero
+.+ ∣1⟩⟨1∣ ⊗ ((Q11) † × Q11)) (∣0⟩⟨0∣ ⊗ I 2 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ I 2)
+((Q00) † × Q00) (Zero) (Zero) ((Q11) † × Q11) (I 2) (Zero) (Zero) (I 2)).
+assert (unit_eq: (Q00) † × Q00 = I 2 /\
+(@Zero 2 2) = Zero /\ (@Zero 2 2) = Zero /\ (Q11) † × Q11 = I 2).
+{
+    apply block_eq_2.
+    lia.
+    1,2,3,4,5,6,7,8: solve_WF_matrix.
+    reflexivity. reflexivity.
+    apply block_unit.
+}
+destruct unit_eq as [Q00_unit [_ [_ Q11_unit]]].
+exists Q00,Q11.
+split.
+{
+    unfold WF_Unitary.
+    split. all: assumption.   
+}
+split.
+{
+    unfold WF_Unitary.
+    split. all: assumption.   
+}
+rewrite v3_decomp.
+rewrite <- q01_zero, <- q10_zero.
+Msimpl.
+reflexivity.
+Qed.
