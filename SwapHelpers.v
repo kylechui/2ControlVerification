@@ -103,6 +103,18 @@ Proof.
   lma'.
 Qed.
 
+Lemma swapab_3q : forall (a b c : Vector 2),
+WF_Matrix a -> WF_Matrix b -> WF_Matrix c ->
+    swapab × (a ⊗ b ⊗ c) = (b ⊗ a ⊗ c).
+Proof.
+intros.
+unfold swapab.
+rewrite kron_mixed_product.
+rewrite Mmult_1_l. 2: assumption.
+rewrite swap_2q. 2,3: assumption.
+reflexivity.
+Qed.
+
 Lemma swapab_3gate : forall (A B C : Square 2),
   WF_Matrix A -> WF_Matrix B -> WF_Matrix C ->
     swapab × (A ⊗ B ⊗ C) × swapab = (B ⊗ A ⊗ C).
