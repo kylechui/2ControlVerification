@@ -229,13 +229,6 @@ repeat rewrite H. lca. 1,2,3,4: lia.
 repeat rewrite H0. lca. all: lia.
 Qed.
 
-Lemma Madj_explicit_decomp {m n}: forall (i j : nat) (A : Matrix m n), 
-A† i j = (A j i)^*.
-Proof. 
-intros. 
-lca. 
-Qed.
-
 Lemma trace_explicit_decomp_square4: forall (A: Square 4), 
 trace A = A 0%nat 0%nat + A 1%nat 1%nat + A 2%nat 2%nat + A 3%nat 3%nat.
 Proof.

@@ -85,3 +85,37 @@ all: unfold control.
 all: simpl.
 all: lca.
 Qed.
+
+Lemma swapab_ccu: forall (U: Square 2), WF_Matrix U ->
+swapab × (ccu U) × swapab = ccu U.
+Proof.
+intros.
+apply mat_equiv_eq.
+apply WF_mult. apply WF_mult.
+1,3: apply WF_swapab.
+1,2: apply WF_ccu.
+1,2: assumption.
+by_cell.
+lca. lca. lca. lca. lca. lca. lca. lca.
+lca. lca. lca. lca. lca. lca. lca. lca.
+lca. lca. lca. lca. lca. lca. lca. lca.
+lca. lca. lca. lca. lca. lca. lca. lca.
+lca. lca. lca. lca. lca. lca. lca. lca.
+lca. lca. lca. lca. lca. lca. lca. lca.
+lca. lca. lca. lca. lca. lca. lca. lca.
+lca. lca. lca. lca. lca. lca. lca. lca.
+Qed.
+
+Lemma ccu_adjoint: forall (U: Square 2), WF_Matrix U ->
+(ccu U)† = ccu U†.
+Proof.
+intros.
+lma'.
+apply WF_adjoint. apply WF_ccu. assumption.
+apply WF_ccu. apply WF_adjoint. assumption.
+all: rewrite Madj_explicit_decomp.
+all: unfold ccu.
+all: unfold control.
+all: simpl.
+all: lca.
+Qed.
