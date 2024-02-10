@@ -23,4 +23,5 @@ Appendix 3: Swaps
 Appendix 4: Vectors
 Appendix 5: ControlledUnitaries
 Appendix 6: TensorProducts
+Appendix 7: OtherProperties
 Main: Lemma 3.2, 4.2

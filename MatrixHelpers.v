@@ -410,7 +410,7 @@ Proof.
   solve_WF_matrix.
 Qed.
 
-Lemma WF_blockmatrix: forall (P00 P01 P10 P11: Square 2),
+Lemma WF_blockmatrix {n}: forall (P00 P01 P10 P11: Square n),
   WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 ->
   WF_Matrix (∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11).
 Proof.
@@ -418,7 +418,15 @@ Proof.
   solve_WF_matrix.
 Qed.
 
-Lemma block_multiply: forall (U V: Square 4) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square 2),
+Lemma isolate_inner_mult {a b c d e}: forall (A: Matrix a b) (B: Matrix b c) (C: Matrix c d) (D: Matrix d e), 
+(A × B) × (C × D) = A × (B × C) × D.
+Proof. 
+intros.
+repeat rewrite <- Mmult_assoc.
+reflexivity.
+Qed.
+
+Lemma block_multiply {n}: forall (U V: Square (2*n)%nat) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square n),
   WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 ->
   WF_Matrix Q00 -> WF_Matrix Q01 -> WF_Matrix Q10 -> WF_Matrix Q11 ->
   U = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 ->
@@ -427,83 +435,411 @@ Lemma block_multiply: forall (U V: Square 4) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: S
 Proof.
   intros.
   rewrite H7, H8.
+  repeat rewrite Mmult_plus_distr_l.
+  repeat rewrite Mmult_plus_distr_r.
+  repeat rewrite kron_mixed_product.
+  repeat rewrite isolate_inner_mult.
+  rewrite Mmult00, Mmult01, Mmult10, Mmult11.
+  repeat rewrite Mmult_0_r. repeat rewrite Mmult_0_l. repeat rewrite kron_0_l.
+  repeat rewrite Mplus_0_r. repeat rewrite Mplus_0_l.
+  repeat rewrite Mmult_1_r. 2,3: solve_WF_matrix.
   lma'.
   solve_WF_matrix.
-  solve_WF_matrix.
+  apply WF_blockmatrix.
+  all: solve_WF_matrix.
 Qed.
 
-Lemma block_equalities: forall (U V: Square 4) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square 2),
-  WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 ->
-  WF_Matrix Q00 -> WF_Matrix Q01 -> WF_Matrix Q10 -> WF_Matrix Q11 ->
-  U = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 ->
-  V = ∣0⟩⟨0∣ ⊗ Q00 .+ ∣0⟩⟨1∣ ⊗ Q01 .+ ∣1⟩⟨0∣ ⊗ Q10 .+ ∣1⟩⟨1∣ ⊗ Q11 ->
-  U = V -> P00 = Q00 /\ P01 = Q01 /\ P10 = Q10 /\ P11 = Q11.
+Lemma nat_tight_bound: forall (i j: nat), 
+(i <= j -> j < S i -> i = j)%nat.
 Proof.
-  intros U V P00 P01 P10 P11 Q00 Q01 Q10 Q11 WF_P00 WF_P01 WF_P10 WF_P11 WF_Q00 WF_Q01 WF_Q10 WF_Q11
-  def_U def_V H.
-  split.
+intros i j lb up.
+apply Nat.le_antisymm.
+assumption.
+apply le_S_n. apply up.
+Qed.
+
+Lemma sub_mod_equiv: forall (i j: nat), 
+(i < j * 2 -> j <= i -> (i mod j) = i - j)%nat.
+Proof.
+intros.
+assert ((i - j) = ((i - j) mod j))%nat.
+{
+  symmetry.
+  apply Nat.mod_small.
+  lia.
+}
+rewrite H1.
+symmetry.
+rewrite <- Nat.mul_1_l with (n := j) at 1.
+apply sub_mul_mod.
+rewrite Nat.mul_1_l.
+assumption.
+Qed.
+
+
+Lemma upper_left_block_entries {n}: forall (A : Square n) (i j: nat), 
+(i < n /\ j < n)%nat -> (∣0⟩⟨0∣ ⊗ A) i j = A i j.
+Proof.
+intros.
+unfold kron.
+destruct H.
+rewrite Nat.div_small. 2: assumption.
+rewrite Nat.div_small. 2: assumption.
+rewrite Nat.mod_small. 2: assumption.
+rewrite Nat.mod_small. 2: assumption.
+lca.
+Qed.
+
+Lemma upper_left_block_nonentries {n}: forall (A : Square n) (i j: nat), 
+WF_Matrix A -> n <> 0%nat -> (n <= i \/ n <= j)%nat -> (∣0⟩⟨0∣ ⊗ A) i j = 0.
+Proof.
+intros A i j WF_A nn0 ij_bound.
+assert (WF_block: WF_Matrix (∣0⟩⟨0∣ ⊗ A)). solve_WF_matrix.
+destruct ij_bound.
+{
+  rewrite <- Nat.mul_1_r with (n:=n) in H.
+  apply Nat.div_le_lower_bound in H. 2: assumption.
+  destruct (le_lt_dec (n*2)%nat i). rewrite WF_block. reflexivity. left. lia.
+  apply Nat.div_lt_upper_bound in l. 2: lia.
+  assert (ind_val:= nat_tight_bound 1 (i/n)%nat H l).
+  unfold kron.
+  rewrite <- ind_val.
+  lca.
+}
+{
+  rewrite <- Nat.mul_1_r with (n:=n) in H.
+  apply Nat.div_le_lower_bound in H. 2: assumption.
+  destruct (le_lt_dec (n*2)%nat j). rewrite WF_block. reflexivity. right. lia.
+  apply Nat.div_lt_upper_bound in l. 2: lia.
+  assert (ind_val:= nat_tight_bound 1 (j/n)%nat H l).
+  unfold kron.
+  rewrite <- ind_val.
+  lca.
+}
+Qed.
+
+Lemma lower_left_block_entries {n}: forall (A : Square n) (i j: nat), 
+WF_Matrix A -> n <> 0%nat -> (i >= n /\ j < n)%nat -> (∣1⟩⟨0∣ ⊗ A) i j = A (i-n)%nat j.
+Proof.
+intros A i j WF_A n0 H.
+destruct H.
+assert (WF_block: WF_Matrix (∣1⟩⟨0∣ ⊗ A)). solve_WF_matrix.
+destruct (le_lt_dec (n*2)%nat i). rewrite WF_block. rewrite WF_A. reflexivity. left. lia. left. lia.
+unfold kron.
+assert (n <= i)%nat. lia.
+rewrite <- Nat.mul_1_r with (n:=n) in H1.
+assert (ilb :  (n <= i)%nat). assumption.
+apply Nat.div_le_lower_bound in H1. 2: assumption.
+assert (iub : (i < n * 2)%nat). assumption.
+apply Nat.div_lt_upper_bound in l. 2: lia.
+assert (ind_val:= nat_tight_bound 1 (i/n)%nat H1 l).
+rewrite <- ind_val.
+rewrite Nat.div_small with (a:= j). 2: assumption.
+assert (sub_mod:= sub_mod_equiv i n iub ilb).
+rewrite sub_mod.
+assert (j mod n = j). apply Nat.mod_small. assumption.
+rewrite H2.
+lca.
+Qed.
+
+Lemma lower_left_block_nonentries {n}: forall (A : Square n) (i j: nat), 
+WF_Matrix A -> n <> 0%nat -> (i < n \/ n <= j)%nat -> (∣1⟩⟨0∣ ⊗ A) i j = 0.
+Proof.
+intros A i j WF_A nn0 ij_bound. 
+assert (WF_block: WF_Matrix (∣1⟩⟨0∣ ⊗ A)). solve_WF_matrix.
+destruct ij_bound.
+{
+  unfold kron.
+  rewrite Nat.div_small. 2: assumption.
+  lca.
+}
+{
+  rewrite <- Nat.mul_1_r with (n:=n) in H.
+  apply Nat.div_le_lower_bound in H. 2: assumption.
+  destruct (le_lt_dec (n*2)%nat j). rewrite WF_block. reflexivity. right. lia.
+  apply Nat.div_lt_upper_bound in l. 2: lia.
+  assert (ind_val:= nat_tight_bound 1 (j/n)%nat H l).
+  unfold kron.
+  rewrite <- ind_val.
+  lca.
+}
+Qed.
+
+Lemma upper_right_block_entries {n}: forall (A : Square n) (i j: nat), 
+WF_Matrix A -> n <> 0%nat -> (i < n /\ j >= n)%nat -> (∣0⟩⟨1∣ ⊗ A) i j = A i (j-n)%nat.
+Proof.
+intros A i j WF_A n0 H.
+destruct H.
+assert (WF_block: WF_Matrix (∣0⟩⟨1∣ ⊗ A)). solve_WF_matrix.
+destruct (le_lt_dec (n*2)%nat j). rewrite WF_block. rewrite WF_A. reflexivity. right. lia. right. lia.
+unfold kron.
+assert (n <= j)%nat. lia.
+rewrite <- Nat.mul_1_r with (n:=n) in H1.
+assert (jlb :  (n <= j)%nat). assumption.
+apply Nat.div_le_lower_bound in H1. 2: assumption.
+assert (jub : (j < n * 2)%nat). assumption.
+apply Nat.div_lt_upper_bound in l. 2: lia.
+assert (ind_val:= nat_tight_bound 1 (j/n)%nat H1 l).
+rewrite <- ind_val.
+rewrite Nat.div_small with (a:= i). 2: assumption.
+assert (sub_mod:= sub_mod_equiv j n jub jlb).
+rewrite sub_mod.
+assert (i mod n = i). apply Nat.mod_small. assumption.
+rewrite H2.
+lca.
+Qed.
+
+Lemma upper_right_block_nonentries {n}: forall (A : Square n) (i j: nat), 
+WF_Matrix A -> n <> 0%nat -> (n <= i \/ j < n)%nat -> (∣0⟩⟨1∣ ⊗ A) i j = 0.
+Proof.
+intros A i j WF_A nn0 ij_bound. 
+assert (WF_block: WF_Matrix (∣0⟩⟨1∣ ⊗ A)). solve_WF_matrix.
+destruct ij_bound.
+{
+  rewrite <- Nat.mul_1_r with (n:=n) in H.
+  apply Nat.div_le_lower_bound in H. 2: assumption.
+  destruct (le_lt_dec (n*2)%nat i). rewrite WF_block. reflexivity. left. lia.
+  apply Nat.div_lt_upper_bound in l. 2: lia.
+  assert (ind_val:= nat_tight_bound 1 (i/n)%nat H l).
+  unfold kron.
+  rewrite <- ind_val.
+  lca.
+}
+{
+  unfold kron.
+  rewrite Nat.div_small with (a:= j). 2: assumption.
+  lca.
+}
+Qed.
+
+Lemma lower_right_block_entries {n}: forall (A : Square n) (i j: nat), 
+WF_Matrix A -> n <> 0%nat -> (i >= n /\ j >= n)%nat -> (∣1⟩⟨1∣ ⊗ A) i j = A (i-n)%nat (j-n)%nat.
+Proof.
+intros A i j WF_A n0 H.
+destruct H.
+assert (WF_block: WF_Matrix (∣1⟩⟨1∣ ⊗ A)). solve_WF_matrix.
+destruct (le_lt_dec (n*2)%nat j). rewrite WF_block. rewrite WF_A. reflexivity. right. lia. right. lia.
+destruct (le_lt_dec (n*2)%nat i). rewrite WF_block. rewrite WF_A. reflexivity. left. lia. left. lia.
+unfold kron.
+assert (n <= j)%nat. lia.
+rewrite <- Nat.mul_1_r with (n:=n) in H1.
+assert (jlb :  (n <= j)%nat). assumption.
+apply Nat.div_le_lower_bound in H1. 2: assumption.
+assert (jub : (j < n * 2)%nat). assumption.
+apply Nat.div_lt_upper_bound in l. 2: lia.
+assert (ind_val:= nat_tight_bound 1 (j/n)%nat H1 l).
+rewrite <- ind_val.
+assert (n <= i)%nat. lia.
+rewrite <- Nat.mul_1_r with (n:=n) in H2.
+assert (ilb :  (n <= i)%nat). assumption.
+apply Nat.div_le_lower_bound in H2. 2: assumption.
+assert (iub : (i < n * 2)%nat). assumption.
+apply Nat.div_lt_upper_bound in l0. 2: lia.
+assert (ind_val_i:= nat_tight_bound 1 (i/n)%nat H2 l0).
+rewrite <- ind_val_i.
+assert (sub_mod:= sub_mod_equiv j n jub jlb).
+rewrite sub_mod.
+assert (sub_mod_i:= sub_mod_equiv i n iub ilb).
+rewrite sub_mod_i.
+lca.
+Qed.
+
+Lemma lower_right_block_nonentries {n}: forall (A : Square n) (i j: nat), 
+WF_Matrix A -> n <> 0%nat -> (i < n \/ j < n)%nat -> (∣1⟩⟨1∣ ⊗ A) i j = 0.
+Proof.
+intros A i j WF_A nn0 ij_bound. 
+destruct ij_bound.
+{
+  unfold kron.
+  rewrite Nat.div_small with (a:= i). 2: assumption.
+  lca.
+}
+{
+  unfold kron.
+  rewrite Nat.div_small with (a:= j). 2: assumption.
+  lca.
+}
+Qed.
+
+Lemma Mplus_access {m n}: forall (A B : Matrix m n) (i j : nat), 
+(A .+ B) i j = (A i j) + (B i j).
+Proof.
+intros.
+lca.
+Qed.
+
+Lemma block_equalities_general {n}: forall (U V: Square (n+n)) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square n),
+n <> 0%nat ->  
+WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 ->
+WF_Matrix Q00 -> WF_Matrix Q01 -> WF_Matrix Q10 -> WF_Matrix Q11 ->
+U = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11 ->
+V = ∣0⟩⟨0∣ ⊗ Q00 .+ ∣0⟩⟨1∣ ⊗ Q01 .+ ∣1⟩⟨0∣ ⊗ Q10 .+ ∣1⟩⟨1∣ ⊗ Q11 ->
+U = V -> P00 = Q00 /\ P01 = Q01 /\ P10 = Q10 /\ P11 = Q11.
+Proof.
+intros U V P00 P01 P10 P11 Q00 Q01 Q10 Q11 nn0 WF_P00 WF_P01 WF_P10 WF_P11 WF_Q00 WF_Q01 WF_Q10 WF_Q11 u_def v_def u_eq_v.
+split.
+{
+  lma'.
+  destruct (le_lt_dec n i). rewrite WF_P00, WF_Q00. reflexivity. 1,2: left. 1,2: lia.
+  destruct (le_lt_dec n j). rewrite WF_P00, WF_Q00. reflexivity. 1,2: right. 1,2: lia.
+  assert (U i j = P00 i j).
   {
-    lma'.
-    assert (peq: P00 0%nat 0%nat = U 0%nat 0%nat). rewrite def_U. lca.
-    assert (qeq: Q00 0%nat 0%nat = V 0%nat 0%nat). rewrite def_V. lca.
-    rewrite peq. rewrite qeq. rewrite H. reflexivity.
-    assert (peq: P00 0%nat 1%nat = U 0%nat 1%nat). rewrite def_U. lca.
-    assert (qeq: Q00 0%nat 1%nat = V 0%nat 1%nat). rewrite def_V. lca.
-    rewrite peq. rewrite qeq. rewrite H. reflexivity.
-    assert (peq: P00 1%nat 0%nat = U 1%nat 0%nat). rewrite def_U. lca.
-    assert (qeq: Q00 1%nat 0%nat = V 1%nat 0%nat). rewrite def_V. lca.
-    rewrite peq. rewrite qeq. rewrite H. reflexivity.
-    assert (peq: P00 1%nat 1%nat = U 1%nat 1%nat). rewrite def_U. lca.
-    assert (qeq: Q00 1%nat 1%nat = V 1%nat 1%nat). rewrite def_V. lca.
-    rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    rewrite u_def.
+    repeat rewrite Mplus_access.
+    rewrite upper_left_block_entries.
+    rewrite upper_right_block_nonentries.
+    rewrite lower_left_block_nonentries.
+    rewrite lower_right_block_nonentries.
+    lca.
+    1,2,4,5,7,8: assumption.
+    left. assumption.
+    left. assumption.
+    right. assumption.
+    split. all: assumption.
   }
-  split.
+  assert (V i j = Q00 i j).
   {
-    lma'.
-    assert (peq: P01 0%nat 0%nat = U 0%nat 2%nat). rewrite def_U. lca.
-    assert (qeq: Q01 0%nat 0%nat = V 0%nat 2%nat). rewrite def_V. lca.
-    rewrite peq. rewrite qeq. rewrite H. reflexivity.
-    assert (peq: P01 0%nat 1%nat = U 0%nat 3%nat). rewrite def_U. lca.
-    assert (qeq: Q01 0%nat 1%nat = V 0%nat 3%nat). rewrite def_V. lca.
-    rewrite peq. rewrite qeq. rewrite H. reflexivity.
-    assert (peq: P01 1%nat 0%nat = U 1%nat 2%nat). rewrite def_U. lca.
-    assert (qeq: Q01 1%nat 0%nat = V 1%nat 2%nat). rewrite def_V. lca.
-    rewrite peq. rewrite qeq. rewrite H. reflexivity.
-    assert (peq: P01 1%nat 1%nat = U 1%nat 3%nat). rewrite def_U. lca.
-    assert (qeq: Q01 1%nat 1%nat = V 1%nat 3%nat). rewrite def_V. lca.
-    rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    rewrite v_def.
+    repeat rewrite Mplus_access.
+    rewrite upper_left_block_entries.
+    rewrite upper_right_block_nonentries.
+    rewrite lower_left_block_nonentries.
+    rewrite lower_right_block_nonentries.
+    lca.
+    1,2,4,5,7,8: assumption.
+    left. assumption.
+    left. assumption.
+    right. assumption.
+    split. all: assumption.
   }
-  split.
+  rewrite <- H, <- H0.
+  rewrite u_eq_v.
+  reflexivity.
+}
+split.
+{
+  lma'.
+  destruct (le_lt_dec n i). rewrite WF_P01, WF_Q01. reflexivity. 1,2: left. 1,2: lia.
+  destruct (le_lt_dec n j). rewrite WF_P01, WF_Q01. reflexivity. 1,2: right. 1,2: lia.
+  assert (U i (j + n)%nat = P01 i j).
   {
-    lma'.
-    assert (peq: P10 0%nat 0%nat = U 2%nat 0%nat). rewrite def_U. lca.
-    assert (qeq: Q10 0%nat 0%nat = V 2%nat 0%nat). rewrite def_V. lca.
-    rewrite peq. rewrite qeq. rewrite H. reflexivity.
-    assert (peq: P10 0%nat 1%nat = U 2%nat 1%nat). rewrite def_U. lca.
-    assert (qeq: Q10 0%nat 1%nat = V 2%nat 1%nat). rewrite def_V. lca.
-    rewrite peq. rewrite qeq. rewrite H. reflexivity.
-    assert (peq: P10 1%nat 0%nat = U 3%nat 0%nat). rewrite def_U. lca.
-    assert (qeq: Q10 1%nat 0%nat = V 3%nat 0%nat). rewrite def_V. lca.
-    rewrite peq. rewrite qeq. rewrite H. reflexivity.
-    assert (peq: P10 1%nat 1%nat = U 3%nat 1%nat). rewrite def_U. lca.
-    assert (qeq: Q10 1%nat 1%nat = V 3%nat 1%nat). rewrite def_V. lca.
-    rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    rewrite u_def.
+    repeat rewrite Mplus_access.
+    rewrite upper_left_block_nonentries.
+    rewrite upper_right_block_entries.
+    rewrite lower_left_block_nonentries.
+    rewrite lower_right_block_nonentries.
+    replace (j + n - n)%nat with j by lia.
+    lca.
+    1,2,4,5,7,8,10,11: assumption.
+    left. assumption.
+    left. assumption.
+    split. assumption. lia.
+    right. lia.
   }
+  assert (V i (j + n)%nat = Q01 i j).
   {
-    lma'.
-    assert (peq: P11 0%nat 0%nat = U 2%nat 2%nat). rewrite def_U. lca.
-    assert (qeq: Q11 0%nat 0%nat = V 2%nat 2%nat). rewrite def_V. lca.
-    rewrite peq. rewrite qeq. rewrite H. reflexivity.
-    assert (peq: P11 0%nat 1%nat = U 2%nat 3%nat). rewrite def_U. lca.
-    assert (qeq: Q11 0%nat 1%nat = V 2%nat 3%nat). rewrite def_V. lca.
-    rewrite peq. rewrite qeq. rewrite H. reflexivity.
-    assert (peq: P11 1%nat 0%nat = U 3%nat 2%nat). rewrite def_U. lca.
-    assert (qeq: Q11 1%nat 0%nat = V 3%nat 2%nat). rewrite def_V. lca.
-    rewrite peq. rewrite qeq. rewrite H. reflexivity.
-    assert (peq: P11 1%nat 1%nat = U 3%nat 3%nat). rewrite def_U. lca.
-    assert (qeq: Q11 1%nat 1%nat = V 3%nat 3%nat). rewrite def_V. lca.
-    rewrite peq. rewrite qeq. rewrite H. reflexivity.
+    rewrite v_def.
+    repeat rewrite Mplus_access.
+    rewrite upper_left_block_nonentries.
+    rewrite upper_right_block_entries.
+    rewrite lower_left_block_nonentries.
+    rewrite lower_right_block_nonentries.
+    replace (j + n - n)%nat with j by lia.
+    lca.
+    1,2,4,5,7,8,10,11: assumption.
+    left. assumption.
+    left. assumption.
+    split. assumption. lia.
+    right. lia.
   }
+  rewrite <- H, <- H0.
+  rewrite u_eq_v.
+  reflexivity.
+}
+split.
+{
+  lma'.
+  destruct (le_lt_dec n i). rewrite WF_P10, WF_Q10. reflexivity. 1,2: left. 1,2: lia.
+  destruct (le_lt_dec n j). rewrite WF_P10, WF_Q10. reflexivity. 1,2: right. 1,2: lia.
+  assert (U (i+n)%nat j = P10 i j).
+  {
+    rewrite u_def.
+    repeat rewrite Mplus_access.
+    rewrite upper_left_block_nonentries.
+    rewrite upper_right_block_nonentries.
+    rewrite lower_left_block_entries.
+    rewrite lower_right_block_nonentries.
+    replace (i + n - n)%nat with i by lia.
+    lca.
+    1,2,4,5,7,8,10,11: assumption.
+    right. assumption.
+    split. lia. assumption.
+    right. assumption.
+    left. lia.
+  }
+  assert (V (i+n)%nat j = Q10 i j).
+  {
+    rewrite v_def.
+    repeat rewrite Mplus_access.
+    rewrite upper_left_block_nonentries.
+    rewrite upper_right_block_nonentries.
+    rewrite lower_left_block_entries.
+    rewrite lower_right_block_nonentries.
+    replace (i + n - n)%nat with i by lia.
+    lca.
+    1,2,4,5,7,8,10,11: assumption.
+    right. assumption.
+    split. lia. assumption.
+    right. assumption.
+    left. lia.
+  }
+  rewrite <- H, <- H0.
+  rewrite u_eq_v.
+  reflexivity.
+}
+{
+  lma'.
+  destruct (le_lt_dec n i). rewrite WF_P11, WF_Q11. reflexivity. 1,2: left. 1,2: lia.
+  destruct (le_lt_dec n j). rewrite WF_P11, WF_Q11. reflexivity. 1,2: right. 1,2: lia.
+  assert (U (i+n)%nat (j+n)%nat = P11 i j).
+  {
+    rewrite u_def.
+    repeat rewrite Mplus_access.
+    rewrite upper_left_block_nonentries.
+    rewrite upper_right_block_nonentries.
+    rewrite lower_left_block_nonentries.
+    rewrite lower_right_block_entries.
+    replace (i + n - n)%nat with i by lia.
+    replace (j + n - n)%nat with j by lia.
+    lca.
+    1,2,4,5,7,8,10,11: assumption.
+    split. lia. lia.
+    right. lia.
+    left. lia.
+    left. lia.
+  }
+  assert (V (i+n)%nat (j+n)%nat = Q11 i j).
+  {
+    rewrite v_def.
+    repeat rewrite Mplus_access.
+    rewrite upper_left_block_nonentries.
+    rewrite upper_right_block_nonentries.
+    rewrite lower_left_block_nonentries.
+    rewrite lower_right_block_entries.
+    replace (i + n - n)%nat with i by lia.
+    replace (j + n - n)%nat with j by lia.
+    lca.
+    1,2,4,5,7,8,10,11: assumption.
+    split. lia. lia.
+    right. lia.
+    left. lia.
+    left. lia.
+  }
+  rewrite <- H, <- H0.
+  rewrite u_eq_v.
+  reflexivity.
+}
 Qed.
 
 Definition WF_Nonnegative {m n} (A : Matrix m n) :=
@@ -991,7 +1327,7 @@ assert (WF_P11: WF_Matrix P11).
     reflexivity.
 }
 split. assumption.
-lma'. apply WF_blockmatrix. 1,2,3,4: assumption.
+lma'. apply (@WF_blockmatrix 2). 1,2,3,4: assumption.
 all: unfold Mplus, kron, "∣0⟩⟨0∣", "∣0⟩⟨1∣", "∣1⟩⟨0∣", "∣1⟩⟨1∣", Mmult, adjoint.
 all: simpl.
 all: Csimpl.
@@ -1135,13 +1471,6 @@ split.
     rewrite H4.
     rewrite Mscale_0_l; reflexivity.
 }
-Qed.
-
-Lemma Mplus_access {m n}: forall (A B : Matrix m n) (i j : nat), 
-(A .+ B) i j = (A i j) + (B i j).
-Proof.
-intros.
-lca.
 Qed.
 
 Lemma Mopp_scale_distr_l {m n}: forall (A : Matrix m n) (c : C), 
