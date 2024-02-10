@@ -56,6 +56,15 @@ intros.
 apply control_unitary. apply control_unitary. apply H.
 Qed.
 
+Lemma bcgate_adjoint: forall (U : Square 4), WF_Matrix U -> 
+(bcgate U) † = bcgate (U†).
+Proof.
+intros.
+lma'.
+apply WF_adjoint. apply WF_bcgate. assumption.
+apply WF_bcgate. apply WF_adjoint. assumption.
+Qed. 
+
 Lemma ccu_sum_expansion : forall (U : Square 2),
 WF_Matrix U -> ccu U = ∣0⟩⟨0∣ ⊗ I 2 ⊗ I 2 .+ ∣1⟩⟨1∣ ⊗ (control U).
 Proof. 

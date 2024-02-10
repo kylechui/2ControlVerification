@@ -2,6 +2,7 @@ Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
 From Proof Require Import MatrixHelpers.
 From Proof Require Import SwapHelpers.
+From Proof Require Import QubitHelpers.
 From Proof Require Import GateHelpers.
 
 Lemma id_tens_equiv_block_diag {n}: forall (A : Square n),
@@ -258,5 +259,72 @@ split.
 rewrite v3_decomp.
 rewrite <- q01_zero, <- q10_zero.
 Msimpl.
+reflexivity.
+Qed.
+
+Lemma a28: forall (V1 V2 V3 V4: Square 4) (U : Square 2), 
+WF_Unitary V1 -> WF_Unitary V2 -> WF_Unitary V3 -> WF_Unitary V4 ->
+WF_Unitary U -> (acgate V1) × (bcgate V2) × (acgate V3) × (bcgate V4) = ccu U -> 
+V3 × (∣0⟩ ⊗ ∣0⟩) = ∣0⟩ ⊗ ∣0⟩ -> (forall (x: Vector 2), WF_Qubit x -> 
+(acgate V1) × (bcgate V2) × (∣0⟩ ⊗ x ⊗ ∣0⟩)  = (bcgate V4)† × (∣0⟩ ⊗ x ⊗ ∣0⟩)).
+Proof.
+intros V1 V2 V3 V4 U V1_unitary V2_unitary V3_unitary V4_unitary U_unitary cc_prop v3_prop x x_qubit.
+assert (temp: WF_Unitary V3). assumption. 
+destruct temp as [WF_v3 v3_inv].
+assert (temp: WF_Unitary V4). assumption. 
+destruct temp as [WF_v4 v4_inv].
+assert (temp: WF_Unitary U). assumption. 
+destruct temp as [WF_u u_inv].
+assert (temp: WF_Qubit x). assumption.
+destruct temp as [_ [WF_x x_unit]].
+assert (acv3_id: acgate V3 × (∣0⟩ ⊗ x ⊗ ∣0⟩) = ∣0⟩ ⊗ x ⊗ ∣0⟩).
+{
+    unfold acgate.
+    rewrite <- swapbc_3q at 1. 2,3,4: solve_WF_matrix.
+    repeat rewrite Mmult_assoc.
+    rewrite <- Mmult_assoc with (A:= swapbc) (B:= swapbc).
+    rewrite swapbc_inverse at 1.
+    rewrite Mmult_1_l. 2: solve_WF_matrix.
+    unfold abgate.
+    assert (kron_mix_help: (V3 ⊗ I 2 × (∣0⟩ ⊗ ∣0⟩ ⊗ x)) = (V3 × (∣0⟩ ⊗ ∣0⟩)) ⊗ (I 2 × x)). apply kron_mixed_product.
+    rewrite kron_mix_help at 1. clear kron_mix_help.
+    rewrite v3_prop. rewrite Mmult_1_l. 2: solve_WF_matrix.
+    rewrite swapbc_3q. 2,3,4: solve_WF_matrix.
+    reflexivity.
+}
+rewrite <- acv3_id at 1.
+rewrite <- Mmult_1_r with (A := acgate V3). 2: apply WF_acgate. 2: assumption.
+assert (temp: WF_Unitary (bcgate V4)†). apply transpose_unitary. apply bcgate_unitary. assumption.
+destruct temp as [WF_bcv4dag bcv4dag_inv].
+replace (2*2)%nat with 4%nat by lia.
+rewrite <- bcv4dag_inv.
+rewrite adjoint_involutive.
+repeat rewrite <- Mmult_assoc.
+rewrite cc_prop at 1.
+rewrite bcgate_adjoint at 1. 2: assumption.
+rewrite Mmult_assoc.
+unfold bcgate at 1.
+assert (assoc_help: (∣0⟩ ⊗ x ⊗ ∣0⟩) = (∣0⟩ ⊗ (x ⊗ ∣0⟩))). apply kron_assoc. 1,2,3: solve_WF_matrix.
+rewrite assoc_help at 1.
+rewrite kron_mixed_product at 1.
+rewrite Mmult_1_l. 2: solve_WF_matrix.
+rewrite ccu_sum_expansion.
+rewrite Mmult_plus_distr_r.
+rewrite kron_assoc. 2,3,4,5: solve_WF_matrix.
+assert (kron_mix_help: ∣0⟩⟨0∣ ⊗ (I 2 ⊗ I 2) × (∣0⟩ ⊗ ((V4) † × (x ⊗ ∣0⟩))) = 
+(∣0⟩⟨0∣ × ∣0⟩) ⊗ ((I 2 ⊗ I 2) × ((V4) † × (x ⊗ ∣0⟩)))). apply kron_mixed_product.
+rewrite kron_mix_help at 1. clear kron_mix_help.
+replace (I 2 ⊗ I 2) with (I 4) by lma'.
+rewrite Mmult_1_l. 2: solve_WF_matrix.
+rewrite Mmult_assoc. rewrite Mmult00. rewrite Mmult_1_r. 2: apply WF_qubit0.
+assert (kron_mix_help: ∣1⟩⟨1∣ ⊗ control U × (∣0⟩ ⊗ ((V4) † × (x ⊗ ∣0⟩))) = 
+(∣1⟩⟨1∣ × ∣0⟩) ⊗ (control U × ((V4) † × (x ⊗ ∣0⟩)))). apply kron_mixed_product.
+rewrite kron_mix_help at 1. clear kron_mix_help.
+rewrite Mmult_assoc. rewrite Mmult10. Msimpl.
+rewrite bcgate_adjoint. 2: assumption.
+unfold bcgate.
+rewrite kron_assoc. 2,3,4: solve_WF_matrix.
+rewrite kron_mixed_product.
+rewrite Mmult_1_l. 2: solve_WF_matrix.
 reflexivity.
 Qed.
