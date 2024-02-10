@@ -1792,3 +1792,10 @@ split.
     all: assumption.
 }
 Qed.
+
+Lemma Madj_explicit_decomp {m n}: forall (i j : nat) (A : Matrix m n), 
+A† i j = (A j i)^*.
+Proof. 
+intros. 
+lca. 
+Qed.

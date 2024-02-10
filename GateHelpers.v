@@ -1,6 +1,7 @@
 Require Import QuantumLib.Quantum.
 From Proof Require Import MatrixHelpers. 
 From Proof Require Import SwapHelpers.
+From Proof Require Import SwapProperty.
 
 Definition abgate (U : Square 4) := U ⊗ I 2.
 Definition bcgate (U : Square 4) := I 2 ⊗ U.
@@ -84,4 +85,68 @@ all: rewrite lower_right_block_entries.
 all: unfold control.
 all: simpl.
 all: lca.
+Qed.
+
+Lemma swapab_ccu: forall (U: Square 2), WF_Matrix U ->
+swapab × (ccu U) × swapab = ccu U.
+Proof.
+intros.
+apply mat_equiv_eq.
+apply WF_mult. apply WF_mult.
+1,3: apply WF_swapab.
+1,2: apply WF_ccu.
+1,2: assumption.
+by_cell.
+lca. lca. lca. lca. lca. lca. lca. lca.
+lca. lca. lca. lca. lca. lca. lca. lca.
+lca. lca. lca. lca. lca. lca. lca. lca.
+lca. lca. lca. lca. lca. lca. lca. lca.
+lca. lca. lca. lca. lca. lca. lca. lca.
+lca. lca. lca. lca. lca. lca. lca. lca.
+lca. lca. lca. lca. lca. lca. lca. lca.
+lca. lca. lca. lca. lca. lca. lca. lca.
+Qed.
+
+Lemma ccu_adjoint: forall (U: Square 2), WF_Matrix U ->
+(ccu U)† = ccu U†.
+Proof.
+intros.
+lma'.
+apply WF_adjoint. apply WF_ccu. assumption.
+apply WF_ccu. apply WF_adjoint. assumption.
+all: rewrite Madj_explicit_decomp.
+all: unfold ccu.
+all: unfold control.
+all: simpl.
+all: lca.
+Qed.
+
+Lemma abgate_adjoint: forall (U : Square 4), WF_Matrix U -> 
+(abgate U) † = abgate (U†).
+Proof.
+intros.
+lma'.
+apply WF_adjoint. apply WF_abgate. assumption.
+apply WF_abgate. apply WF_adjoint. assumption.
+Qed.
+
+Lemma acgate_adjoint: forall (U : Square 4), WF_Matrix U -> 
+(acgate U)† = acgate (U†).
+Proof.
+intros.
+unfold acgate.
+repeat rewrite Mmult_adjoint.
+rewrite <- swapbc_sa. rewrite swapbc_sa at 1. rewrite adjoint_involutive.
+rewrite abgate_adjoint. 2: solve_WF_matrix.
+symmetry.
+apply Mmult_assoc.
+Qed.
+
+Lemma acgate_alt_def: forall (U : Square 4), WF_Matrix U -> 
+acgate U = swapab × bcgate U × swapab.
+Proof.
+intros.
+unfold acgate, swapbc, abgate, swapab, bcgate.
+apply swap_helper.
+assumption.
 Qed.
