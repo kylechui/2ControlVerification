@@ -217,7 +217,7 @@ Qed.
 
 Lemma a18: forall (U : Square 4), 
 WF_Unitary U -> 
-(forall (beta: Vector 2), U × (beta ⊗ ∣0⟩) = beta ⊗ ∣0⟩) -> 
+(forall (beta: Vector 2), WF_Matrix beta -> U × (beta ⊗ ∣0⟩) = beta ⊗ ∣0⟩) -> 
 exists (P1 : Square 2), 
 U = I 2 ⊗ ∣0⟩⟨0∣ .+ P1 ⊗ ∣1⟩⟨1∣ /\ WF_Unitary P1.
 Proof.
@@ -230,6 +230,7 @@ assert (SUS_tens_eigenvec: forall (beta: Vector 2), WF_Matrix beta -> (swap × U
     rewrite tens_eigenvec.
     rewrite a10. 2: assumption. 2: apply WF_qubit0.
     reflexivity.
+    assumption.
 }
 assert (SUS_block_decomp: exists (P0 P1: Square 2), (swap × U × swap) = ∣0⟩⟨0∣ ⊗ P0 .+ ∣1⟩⟨1∣ ⊗ P1 /\
 WF_Unitary P0 /\ WF_Unitary P1).
@@ -288,7 +289,8 @@ assert (P0_I_same_transform: forall (w: Vector 2), WF_Matrix w -> P0 × w = w).
     apply WF_mult. apply P0_unitary. assumption.
     rewrite <- U_P0_tens_decomp.
     rewrite tens_eigenvec.
-    reflexivity. 
+    reflexivity.
+    assumption. 
 }
 assert (P0_I: P0 = I 2).
 {
