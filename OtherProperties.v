@@ -670,3 +670,85 @@ split. assumption.
 split. symmetry. assumption.
 assumption.
 Qed.
+
+Lemma a31: forall (V1 V2 V3 V4: Square 4), 
+WF_Unitary V1 -> WF_Unitary V2 -> WF_Unitary V3 -> WF_Unitary V4 ->
+(exists (psi: Vector 2), WF_Qubit psi /\
+ (forall (x: Vector 2), WF_Qubit x -> 
+ (exists (z: Vector 2), WF_Qubit z /\ V3† × (x ⊗ ∣0⟩) = z ⊗ psi))) -> 
+(exists (W1 W3 W4: Square 4) (P3 : Square 2), 
+WF_Unitary W1 /\ WF_Unitary W3 /\ WF_Unitary W4 /\ WF_Unitary P3 /\
+(acgate V1) × (bcgate V2) × (acgate V3) × (bcgate V4) = (acgate W1) × (bcgate V2) × (acgate W3) × (bcgate W4)
+/\ W3 = I 2 ⊗ ∣0⟩⟨0∣ .+ P3 ⊗ ∣1⟩⟨1∣).
+Proof.
+intros V1 V2 V3 V4 V1_unitary V2_unitary V3_unitary V4_unitary v2_prop.
+assert (temp: WF_Unitary V1). assumption.
+destruct temp as [WF_V1 V1_inv].
+assert (temp: WF_Unitary V2). assumption.
+destruct temp as [WF_V2 V2_inv].
+assert (temp: WF_Unitary V3). assumption.
+destruct temp as [WF_V3 V3_inv].
+assert (temp: WF_Unitary V4). assumption.
+destruct temp as [WF_V4 V4_inv].
+assert (a30_partial:= a30 V4† V3† V2† V1†).
+assert (el_exist:  exists (W4t W3t W1t : Square 4) (P3t : Square 2),
+WF_Unitary W4t /\
+WF_Unitary W3t /\
+WF_Unitary W1t /\
+WF_Unitary P3t /\
+acgate (V4) † × bcgate (V3) † × acgate (V2) † × bcgate (V1) † =
+acgate W4t × bcgate W3t × acgate (V2) † × bcgate W1t /\
+W3t = I 2 ⊗ ∣0⟩⟨0∣ .+ P3t ⊗ ∣1⟩⟨1∣).
+{
+    apply a30_partial.
+    1,2,3,4: apply transpose_unitary.
+    all: assumption.
+}
+destruct el_exist as [W4t [W3t [W1t [P3t [W4t_unitary [W3t_unitary [W1t_unitary [P3t_unitary [tprod t_form]]]]]]]]].
+assert (temp: WF_Unitary W3t). assumption.
+destruct temp as [WF_W3t W3t_inv].
+assert (temp: WF_Unitary W1t). assumption.
+destruct temp as [WF_W1t W1t_inv].
+assert (temp: WF_Unitary W4t). assumption.
+destruct temp as [WF_W4t W4t_inv].
+do 2 rewrite <- acgate_adjoint in tprod. 2,3,4: solve_WF_matrix.
+do 2 rewrite <- bcgate_adjoint in tprod. 2,3,4: solve_WF_matrix.
+repeat rewrite <- Mmult_adjoint in tprod.
+apply (f_equal (fun f => f †)) in tprod.
+rewrite adjoint_involutive in tprod.
+repeat rewrite Mmult_adjoint in tprod.
+rewrite adjoint_involutive in tprod.
+rewrite acgate_adjoint in tprod. 2: solve_WF_matrix.
+do 2 rewrite bcgate_adjoint in tprod. 2,3,4: solve_WF_matrix.
+repeat rewrite <- Mmult_assoc in tprod.
+apply (f_equal (fun f => swapab × f × swapab)) in tprod.
+rewrite acgate_alt_def in tprod. 2: solve_WF_matrix.
+repeat rewrite <- Mmult_assoc in tprod.
+do 2 rewrite <- acgate_alt_def in tprod. 2,3,4: solve_WF_matrix.
+rewrite acgate_alt_def with (U := V4) in tprod. 2: solve_WF_matrix.
+rewrite acgate_alt_def with (U := (W4t) †) in tprod. 2: solve_WF_matrix.
+repeat rewrite Mmult_assoc in tprod.
+rewrite <- Mmult_assoc with (A:= swapab) in tprod.
+rewrite <- Mmult_assoc with (A:= swapab × bcgate V3) in tprod.
+rewrite swapab_inverse in tprod at 1.
+rewrite Mmult_1_r in tprod. 2: apply WF_bcgate; solve_WF_matrix.
+rewrite swapab_inverse in tprod at 1.
+rewrite Mmult_1_r in tprod. 2: apply WF_bcgate; solve_WF_matrix.
+rewrite <- acgate_alt_def in tprod. 2: solve_WF_matrix.
+rewrite <- Mmult_assoc with (A := swapab) in tprod.
+rewrite <- Mmult_assoc with (A := swapab × bcgate (W3t) †) in tprod.
+rewrite <- acgate_alt_def in tprod. 2: solve_WF_matrix.
+repeat rewrite <- Mmult_assoc in tprod.
+exists (W1t) †, (W3t) †, (W4t) †, (P3t) †.
+split. apply transpose_unitary. assumption.
+split. apply transpose_unitary. assumption.
+split. apply transpose_unitary. assumption.
+split. apply transpose_unitary. assumption.
+split. assumption.
+rewrite t_form.
+rewrite Mplus_adjoint.
+repeat rewrite kron_adjoint.
+rewrite id_adjoint_eq.
+rewrite adjoint00, adjoint11.
+reflexivity.
+Qed.
