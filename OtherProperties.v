@@ -4,6 +4,7 @@ From Proof Require Import MatrixHelpers.
 From Proof Require Import SwapHelpers.
 From Proof Require Import QubitHelpers.
 From Proof Require Import GateHelpers.
+From Proof Require Import ControlledUnitaries.
 
 Lemma id_tens_equiv_block_diag {n}: forall (A : Square n),
 I 2 ⊗ A = ∣0⟩⟨0∣ ⊗ A .+ ∣1⟩⟨1∣ ⊗ A.
@@ -421,4 +422,251 @@ rewrite <- swapab_3q. 2,3,4: solve_WF_matrix.
 repeat rewrite <- Mmult_assoc.
 rewrite <- acgate_alt_def. 2: solve_WF_matrix.
 reflexivity.
+Qed.
+
+Lemma a30: forall (V1 V2 V3 V4: Square 4), 
+WF_Unitary V1 -> WF_Unitary V2 -> WF_Unitary V3 -> WF_Unitary V4 ->
+(exists (psi: Vector 2), WF_Qubit psi /\
+ (forall (x: Vector 2), WF_Qubit x -> 
+ (exists (z: Vector 2), WF_Qubit z /\ V2 × (x ⊗ ∣0⟩) = z ⊗ psi))) -> 
+(exists (W1 W2 W4: Square 4) (P2 : Square 2), 
+WF_Unitary W1 /\ WF_Unitary W2 /\ WF_Unitary W4 /\ WF_Unitary P2 /\
+(acgate V1) × (bcgate V2) × (acgate V3) × (bcgate V4) = (acgate W1) × (bcgate W2) × (acgate V3) × (bcgate W4)
+/\ W2 = I 2 ⊗ ∣0⟩⟨0∣ .+ P2 ⊗ ∣1⟩⟨1∣).
+intros V1 V2 V3 V4 V1_unitary V2_unitary V3_unitary V4_unitary v2_prop.
+assert (temp: WF_Unitary V2). assumption.
+destruct temp as [WF_V2 V2_inv].
+assert (temp: WF_Unitary V3). assumption.
+destruct temp as [WF_V3 V3_inv].
+assert (temp: WF_Unitary V4). assumption.
+destruct temp as [WF_V4 V4_inv].
+destruct v2_prop as [psi [psi_qubit v2_prop]].
+assert (temp: WF_Qubit psi). assumption.
+destruct temp as [_ [WF_psi psi_unit]].
+assert (orth_q := exists_orthogonal_qubit psi psi_qubit).
+destruct orth_q as [psip [psip_q psi_orth]].
+assert (temp: WF_Qubit psip). assumption.
+destruct temp as [_ [WF_psip psip_unit]].
+assert (w0_def:= v2_prop ∣0⟩ qubit0_qubit).
+destruct w0_def as [w0 [w0_qubit v2w0]].
+assert (temp: WF_Qubit w0). assumption.
+destruct temp as [_ [WF_w0 w0_unit]].
+assert (w1_def:= v2_prop ∣1⟩ qubit1_qubit).
+destruct w1_def as [w1 [w1_qubit v2w1]].
+assert (temp: WF_Qubit w1). assumption.
+destruct temp as [_ [WF_w1 w1_unit]].
+assert (w0w1_orth: ⟨ w0, w1 ⟩ = 0).
+{
+    rewrite <- Cmult_1_r with (x := ⟨ w0, w1 ⟩).
+    rewrite <- psi_unit.
+    rewrite <- kron_inner_prod.
+    rewrite <- v2w0. rewrite <- v2w1.
+    rewrite <- unitary_preserves_inner_prod. 2: assumption. 2: solve_WF_matrix.
+    lca.
+}
+set (P:= psi × ⟨0∣ .+ psip × ⟨1∣).
+assert (P_unitary: WF_Unitary P).
+{
+    apply orth_qubit_unitary.
+    all: assumption.
+}
+assert (temp: WF_Unitary P). assumption.
+destruct temp as [WF_P P_inv].
+assert (temp: WF_Unitary P †). apply transpose_unitary. assumption.
+destruct temp as [_ Pdag_inv].
+rewrite adjoint_involutive in Pdag_inv.
+set (Q:= w0 × ⟨0∣ .+ w1 × ⟨1∣).
+assert (Q_unitary: WF_Unitary Q).
+{
+    apply orth_qubit_unitary.
+    all: assumption.
+}
+assert (temp: WF_Unitary Q). assumption.
+destruct temp as [WF_Q Q_inv].
+assert (temp: WF_Unitary Q †). apply transpose_unitary. assumption.
+destruct temp as [_ Qdag_inv].
+rewrite adjoint_involutive in Qdag_inv.
+set (W1:= V1 × (I 2 ⊗ P)).
+assert (W1_unitary: WF_Unitary W1).
+{
+    apply Mmult_unitary.
+    assumption.
+    apply kron_unitary.
+    apply id_unitary.
+    assumption.   
+}
+set (W2:= (I 2 ⊗ P)† × V2 × (Q ⊗ I 2)†).
+assert (W2_unitary: WF_Unitary W2).
+{
+    apply Mmult_unitary.
+    apply Mmult_unitary.
+    apply transpose_unitary.
+    apply kron_unitary.
+    apply id_unitary.
+    assumption. assumption.
+    apply transpose_unitary.
+    apply kron_unitary.
+    assumption.
+    apply id_unitary.
+}
+assert (temp: WF_Unitary W2). assumption. 
+destruct temp as [WF_W2 W2_inv].
+set (W4:= (Q ⊗ I 2) × V4).
+assert (W4_unitary: WF_Unitary W4).
+{
+    apply Mmult_unitary.
+    apply (@kron_unitary 2 2).
+    assumption.
+    apply id_unitary.
+    assumption.
+}
+assert (temp: WF_Unitary W4). assumption. 
+destruct temp as [WF_W4 W4_inv].
+assert (W_mult_prop: acgate W1 × bcgate W2 × acgate V3 × bcgate W4 = acgate V1 × bcgate V2 × acgate V3 × bcgate V4).
+{
+    unfold acgate at 1.
+    unfold abgate at 1.
+    unfold W1.
+    rewrite <- Mmult_1_l with (A:= I 2) at 2. 2: solve_WF_matrix.
+    rewrite <- kron_mixed_product.
+    rewrite <- swapbc_3gate. 2,3,4: solve_WF_matrix.
+    repeat rewrite <- Mmult_assoc.
+    assert (fold_help: swapbc × (V1 ⊗ I 2) × swapbc = acgate V1). unfold acgate, abgate. reflexivity.
+    rewrite fold_help. clear fold_help.
+    repeat rewrite Mmult_assoc.
+    apply (f_equal (fun f => acgate V1 × f)).
+    rewrite <- Mmult_assoc with (A:= swapbc) (B:= swapbc).
+    rewrite swapbc_inverse at 1.
+    rewrite Mmult_1_l. 2: apply WF_mult. 2: apply WF_bcgate; solve_WF_matrix. 2: apply WF_mult.
+    2: apply WF_acgate; solve_WF_matrix. 2: apply WF_bcgate; solve_WF_matrix.
+    unfold bcgate at 1.
+    unfold W2.
+    rewrite Mmult_assoc with (A:= (I 2 ⊗ P) †).
+    rewrite <- Mmult_1_r with (A := I 2) at 3. 2: solve_WF_matrix.
+    rewrite <- kron_mixed_product.
+    rewrite kron_adjoint.
+    rewrite id_adjoint_eq.
+    repeat rewrite <- Mmult_assoc.
+    rewrite kron_assoc. 2,3,4: solve_WF_matrix.
+    assert (kron_mix_help: I 2 ⊗ (I 2 ⊗ P) × (I 2 ⊗ (I 2 ⊗ (P) †)) = 
+    (I 2 × I 2) ⊗ ((I 2 ⊗ P) × (I 2 ⊗ (P) †))). apply kron_mixed_product.
+    rewrite kron_mix_help at 1. clear kron_mix_help.
+    assert (kron_mix_help: (I 2 ⊗ P × (I 2 ⊗ (P) †)) = 
+    (I 2 × I 2) ⊗ (P × (P) †)). apply kron_mixed_product.
+    rewrite kron_mix_help. clear kron_mix_help.
+    rewrite Pdag_inv.
+    rewrite Mmult_1_l. 2: solve_WF_matrix.
+    rewrite id_kron. rewrite id_kron.
+    rewrite Mmult_1_l. 2: solve_WF_matrix.
+    rewrite <- Mmult_1_r with (A := I 2) at 1. 2: solve_WF_matrix.
+    rewrite <- kron_mixed_product.
+    assert (fold_help: I 2 ⊗ V2 = bcgate V2). unfold bcgate. reflexivity.
+    rewrite fold_help at 1. clear fold_help.
+    repeat rewrite Mmult_assoc.
+    apply (f_equal (fun f => bcgate V2 × f)).
+    rewrite kron_adjoint. rewrite id_adjoint_eq.
+    assert (kron_assoc_help: I 2 ⊗ ((Q) † ⊗ I 2) = I 2 ⊗ (Q) † ⊗ I 2). 
+    {
+        symmetry. apply kron_assoc. all: solve_WF_matrix.
+    }
+    rewrite kron_assoc_help at 1. clear kron_assoc_help.
+    rewrite <- swapbc_3gate. 2,3,4: solve_WF_matrix.
+    unfold acgate at 1.
+    repeat rewrite Mmult_assoc.
+    rewrite <- Mmult_assoc with (A:= swapbc) (B:= swapbc).
+    rewrite swapbc_inverse at 1.
+    rewrite Mmult_1_l. 2: apply WF_mult. 2: apply WF_abgate;solve_WF_matrix. 2: apply WF_mult. 2: solve_WF_matrix.
+    2: apply WF_bcgate; solve_WF_matrix.
+    rewrite <- Mmult_assoc with (A:= I 2 ⊗ I 2 ⊗ (Q) †).
+    unfold abgate.
+    rewrite id_kron.
+    assert (kron_mix_help: I (2 * 2) ⊗ (Q) † × (V3 ⊗ I 2) = (I (2 * 2) × V3) ⊗ ((Q) † × I 2)). apply kron_mixed_product.
+    rewrite kron_mix_help at 1. clear kron_mix_help. simpl.
+    rewrite Mmult_1_l. 2: solve_WF_matrix. 
+    rewrite Mmult_1_r. 2: solve_WF_matrix.
+    rewrite <- Mmult_1_r with (A := V3) at 1. 2: solve_WF_matrix.
+    rewrite <- Mmult_1_l with (A := (Q) †). 2: solve_WF_matrix.
+    rewrite <- kron_mixed_product.
+    replace (4%nat) with (2*2)%nat by lia.
+    rewrite <- id_kron.
+    rewrite <- swapbc_3gate. 2,3,4: solve_WF_matrix.
+    repeat rewrite <- Mmult_assoc.
+    assert (fold_help: swapbc × (V3 ⊗ I 2) × swapbc = acgate V3). unfold acgate, abgate. reflexivity.
+    rewrite fold_help at 1. clear fold_help.
+    repeat rewrite Mmult_assoc.
+    apply (f_equal (fun f => acgate V3 × f)).
+    rewrite <- Mmult_assoc with (A:= swapbc).
+    rewrite swapbc_inverse at 1.
+    rewrite Mmult_1_l. 2: apply WF_bcgate; solve_WF_matrix.
+    unfold bcgate at 1.
+    unfold W4.
+    rewrite <- Mmult_1_l with (A:= I 2) at 3. 2: solve_WF_matrix.
+    rewrite <- kron_mixed_product.
+    rewrite kron_assoc. 2,3,4: solve_WF_matrix.
+    rewrite <- Mmult_assoc.
+    assert (kron_mix_help: I 2 ⊗ ((Q) † ⊗ I 2) × (I 2 ⊗ (Q ⊗ I 2)) 
+    = (I 2 × I 2) ⊗ (((Q) † ⊗ I 2) × (Q ⊗ I 2))). apply kron_mixed_product.
+    rewrite kron_mix_help at 1. clear kron_mix_help.
+    assert (kron_mix_help: ((Q) † ⊗ I 2 × (Q ⊗ I 2)) = 
+    ((Q) † × Q) ⊗ (I 2 × I 2)). apply kron_mixed_product.
+    rewrite kron_mix_help at 1. clear kron_mix_help.
+    rewrite Mmult_1_l. 2: solve_WF_matrix.
+    rewrite Q_inv.
+    rewrite id_kron. rewrite id_kron.
+    rewrite Mmult_1_l. 2: solve_WF_matrix.
+    unfold bcgate. reflexivity.
+}
+assert (v2q_prop: forall (phi: Vector 2), WF_Matrix phi -> V2 × (phi ⊗ ∣0⟩) = (Q × phi) ⊗ (P × ∣0⟩)).
+{
+    intros phi WF_phi.
+    assert (el_decomp:= qubit_decomposition1 phi WF_phi).
+    rewrite el_decomp.
+    rewrite kron_plus_distr_r.
+    rewrite Mmult_plus_distr_l.
+    repeat rewrite Mscale_kron_dist_l.
+    repeat rewrite Mscale_mult_dist_r.
+    rewrite v2w0 at 1.
+    rewrite v2w1 at 1.
+    replace (P × ∣0⟩) with psi. 2: lma'.
+    rewrite Mmult_plus_distr_l.
+    repeat rewrite Mscale_mult_dist_r.
+    replace (Q × ∣0⟩) with w0 by lma'; solve_WF_matrix.
+    replace (Q × ∣1⟩) with w1 by lma'; solve_WF_matrix.
+    rewrite kron_plus_distr_r.
+    repeat rewrite Mscale_kron_dist_l.
+    reflexivity.
+}
+assert (a18_partial:= a18 W2 W2_unitary).
+assert (w2_form: exists P2 : Square 2,
+W2 = I 2 ⊗ ∣0⟩⟨0∣ .+ P2 ⊗ ∣1⟩⟨1∣ /\ WF_Unitary P2).
+{
+    apply a18_partial.
+    intros beta WF_beta.
+    unfold W2.
+    repeat rewrite Mmult_assoc.
+    repeat rewrite kron_adjoint.
+    rewrite id_adjoint_eq.
+    assert (kron_mix_help: ((Q) † ⊗ I 2 × (beta ⊗ ∣0⟩)) = ((Q) † × beta) ⊗ (I 2 × ∣0⟩)). apply kron_mixed_product.
+    rewrite kron_mix_help at 1. clear kron_mix_help.
+    rewrite Mmult_1_l. 2: solve_WF_matrix.
+    rewrite v2q_prop. 2: solve_WF_matrix.
+    rewrite <- Mmult_assoc.
+    rewrite Qdag_inv.
+    rewrite Mmult_1_l. 2: solve_WF_matrix.
+    assert (kron_mix_help: I 2 ⊗ (P) † × (beta ⊗ (P × ∣0⟩)) = (I 2 × beta) ⊗ ((P) † × (P × ∣0⟩))). apply kron_mixed_product.
+    rewrite kron_mix_help at 1. clear kron_mix_help.
+    rewrite <- Mmult_assoc.
+    rewrite P_inv.
+    rewrite Mmult_1_l. 2: solve_WF_matrix.
+    rewrite Mmult_1_l. 2: solve_WF_matrix.
+    reflexivity.
+}
+destruct w2_form as [P2 [w2_form P2_unitary]].
+exists W1, W2, W4, P2.
+split. assumption.
+split. assumption.
+split. assumption.
+split. assumption.
+split. symmetry. assumption.
+assumption.
 Qed.
