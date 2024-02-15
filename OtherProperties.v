@@ -1077,16 +1077,28 @@ rewrite u_unit, v_unit.
 apply Cmult_1_r.
 Qed.
 
-Lemma acgate_tens_eq: forall (U : Square 4) (a b c d e f: Vector 2), 
-WF_Matrix U -> WF_Matrix a -> WF_Matrix b -> WF_Matrix c -> WF_Matrix d -> WF_Matrix e -> WF_Matrix f ->
-(acgate U) × (a ⊗ b ⊗ c) = d ⊗ e ⊗ f ->  U × (a ⊗ c) = d ⊗ f.
+Lemma acgate_tens_eq: forall (U : Square 4) (a b c d e: Vector 2), 
+WF_Matrix U -> WF_Matrix a -> WF_Matrix b -> WF_Matrix c -> WF_Matrix d -> WF_Matrix e ->
+b <> Zero -> (acgate U) × (a ⊗ b ⊗ c) = d ⊗ b ⊗ e ->  U × (a ⊗ c) = d ⊗ e.
 Proof.
-intros U a b c d e f WF_U WF_a WF_b WF_c WF_d WF_e WF_f gate_eq.
+intros U a b c d e WF_U WF_a WF_b WF_c WF_d WF_e bn0 gate_eq.
 unfold acgate in gate_eq.
 rewrite <- swapbc_3q with (a:= d) in gate_eq. 2,3,4: assumption.
 apply (f_equal (fun f => swapbc × f)) in gate_eq.
-repeat rewrite Mmult_assoc in gate_eq.
-Admitted.
+repeat rewrite <- Mmult_assoc in gate_eq.
+rewrite swapbc_inverse in gate_eq.
+rewrite Mmult_1_l in gate_eq. 2: apply WF_abgate; solve_WF_matrix.
+rewrite Mmult_1_l in gate_eq. 2: solve_WF_matrix.
+rewrite Mmult_assoc in gate_eq.
+rewrite swapbc_3q in gate_eq. 2,3,4: solve_WF_matrix.
+unfold abgate in gate_eq.
+assert (kron_mix_help: U ⊗ I 2 × (a ⊗ c ⊗ b) = (U × (a ⊗ c)) ⊗ (I 2 × b)). apply kron_mixed_product.
+rewrite kron_mix_help in gate_eq at 1. clear kron_mix_help.
+rewrite Mmult_1_l in gate_eq. 2: solve_WF_matrix.
+apply (@kron_cancel_r 4 1 2 1) with (C:= b).
+1,2,3: solve_WF_matrix.
+1,2: assumption.
+Qed.
 
 
 Lemma a33: forall (V1 V2 V4: Square 4), 
