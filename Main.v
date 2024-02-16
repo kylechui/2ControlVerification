@@ -8,21 +8,6 @@ Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
 Require Import QuantumLib.Matrix.
 
-Lemma eq_Cdiv_eq : forall (a b c d : C),
-  b <> C0 -> c <> C0 -> a * b = c * d -> a / c = d / b.
-Proof.
-  intros.
-  rewrite <- Cmult_1_r with (x := a).
-  rewrite <- Cinv_r with (r := b); auto.
-  repeat rewrite Cmult_assoc.
-  rewrite H1.
-  unfold Cdiv.
-  rewrite Cmult_comm.
-  repeat rewrite Cmult_assoc.
-  rewrite Cinv_l; auto.
-  lca.
-Qed.
-
 Lemma kron_uniq2: forall (a b c d : Vector 2),
   WF_Matrix a -> WF_Matrix b -> WF_Matrix c -> WF_Matrix d ->
   a <> Zero -> b <> Zero -> c <> Zero -> d <> Zero ->
