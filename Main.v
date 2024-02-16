@@ -21,14 +21,7 @@ Proof.
     pose proof (Cmult_simplify _ _ _ _ H1 H2) as H3.
     replace (c0 * d * (a1 * b)) with (b * d * (a1 * c0)) in H3 by lca.
     replace (a0 * b * (c1 * d)) with (b * d * (a0 * c1)) in H3 by lca.
-    assert (bd_nonzero : b * d <> C0).
-    {
-      intros contra.
-      apply H.
-      pose proof (Cmult_integral _ _ contra) as H4.
-      destruct H4; auto.
-      contradiction.
-    }
+    assert (bd_nonzero : b * d <> C0) by (apply Cmult_neq_zero; assumption).
     pose proof (Cmult_cancel_l _ (a1 * c0) (a0 * c1) bd_nonzero H3) as H4.
     destruct (Ceq_dec a0 C0) as [a0_zero | a0_nonzero].
     {
@@ -222,212 +215,133 @@ Proof.
   assert (el2: a1 * b0 = c1 * d0). rewrite ab2, cd2, tens_eq. reflexivity.
   assert (el3: a1 * b1 = c1 * d1). rewrite ab3, cd3, tens_eq. reflexivity.
   clear ab0 ab1 ab2 ab3 cd0 cd1 cd2 cd3.
-  assert (a0_iff_c0 : a0 = C0 <-> c0 = C0).
+  assert (a0_zero_iff_c0_zero : a0 = C0 <-> c0 = C0).
   {
     split.
     {
       intro.
-      rewrite H, Cmult_0_l in el0, el1.
-      destruct (Ceq_dec c0 C0).
+      rewrite H in el0, el1.
+      destruct (nonzero_def2 d WF_d dn0).
       {
-        assumption.
+        apply Cmult_cancel_r with (a := d0); auto.
+        rewrite <- el0; lca.
       }
       {
-        destruct (nonzero_def2 d WF_d dn0).
-        {
-          symmetry in el0.
-          apply Cmult_integral in el0.
-          destruct el0; auto.
-          contradiction.
-        }
-        {
-          symmetry in el1.
-          apply Cmult_integral in el1.
-          destruct el1; auto.
-          contradiction.
-        }
+        apply Cmult_cancel_r with (a := d1); auto.
+        rewrite <- el1; lca.
       }
     }
     {
       intro.
-      rewrite H, Cmult_0_l in el0, el1.
-      destruct (Ceq_dec a0 C0).
+      rewrite H in el0, el1.
+      destruct (nonzero_def2 b WF_b bn0).
       {
-        assumption.
+        apply Cmult_cancel_r with (a := b0); auto.
+        rewrite el0; lca.
       }
       {
-        destruct (nonzero_def2 b WF_b bn0).
-        {
-          apply Cmult_integral in el0.
-          destruct el0; auto.
-          contradiction.
-        }
-        {
-          apply Cmult_integral in el1.
-          destruct el1; auto.
-          contradiction.
-        }
+        apply Cmult_cancel_r with (a := b1); auto.
+        rewrite el1; lca.
       }
     }
   }
-  assert (a1_iff_c1 : a1 = C0 <-> c1 = C0).
+  assert (a1_zero_iff_c1_zero : a1 = C0 <-> c1 = C0).
   {
     split.
     {
       intro.
-      rewrite H, Cmult_0_l in el2, el3.
-      destruct (Ceq_dec c1 C0).
+      rewrite H in el2, el3.
+      destruct (nonzero_def2 d WF_d dn0).
       {
-        assumption.
+        apply Cmult_cancel_r with (a := d0); auto.
+        rewrite <- el2; lca.
       }
       {
-        destruct (nonzero_def2 d WF_d dn0).
-        {
-          symmetry in el2.
-          apply Cmult_integral in el2.
-          destruct el2; auto.
-          contradiction.
-        }
-        {
-          symmetry in el3.
-          apply Cmult_integral in el3.
-          destruct el3; auto.
-          contradiction.
-        }
+        apply Cmult_cancel_r with (a := d1); auto.
+        rewrite <- el3; lca.
       }
     }
     {
       intro.
-      rewrite H, Cmult_0_l in el2, el3.
-      destruct (Ceq_dec a1 C0).
+      rewrite H in el2, el3.
+      destruct (nonzero_def2 b WF_b bn0).
       {
-        assumption.
+        apply Cmult_cancel_r with (a := b0); auto.
+        rewrite el2; lca.
       }
       {
-        destruct (nonzero_def2 b WF_b bn0).
-        {
-          apply Cmult_integral in el2.
-          destruct el2; auto.
-          contradiction.
-        }
-        {
-          apply Cmult_integral in el3.
-          destruct el3; auto.
-          contradiction.
-        }
+        apply Cmult_cancel_r with (a := b1); auto.
+        rewrite el3; lca.
       }
     }
   }
-  assert (b0_iff_d0 : b0 = C0 <-> d0 = C0).
+  assert (b0_zero_iff_d0_zero : b0 = C0 <-> d0 = C0).
   {
     split.
     {
       intro.
-      rewrite H, Cmult_0_r in el0, el2.
-      destruct (Ceq_dec d0 C0).
+      rewrite H in el0, el2.
+      destruct (nonzero_def2 c WF_c cn0).
       {
-        assumption.
+        apply Cmult_cancel_l with (a := c0); auto.
+        rewrite <- el0; lca.
       }
       {
-        destruct (nonzero_def2 c WF_c cn0).
-        {
-          symmetry in el0.
-          apply Cmult_integral in el0.
-          destruct el0; auto.
-          contradiction.
-        }
-        {
-          symmetry in el2.
-          apply Cmult_integral in el2.
-          destruct el2; auto.
-          contradiction.
-        }
+        apply Cmult_cancel_l with (a := c1); auto.
+        rewrite <- el2; lca.
       }
     }
     {
       intro.
-      rewrite H, Cmult_0_r in el0, el2.
-      destruct (Ceq_dec b0 C0).
+      rewrite H in el0, el2.
+      destruct (nonzero_def2 a WF_a an0).
       {
-        assumption.
+        apply Cmult_cancel_l with (a := a0); auto.
+        rewrite el0; lca.
       }
       {
-        destruct (nonzero_def2 a WF_a an0).
-        {
-          apply Cmult_integral in el0.
-          destruct el0; auto.
-          contradiction.
-        }
-        {
-          apply Cmult_integral in el2.
-          destruct el2; auto.
-          contradiction.
-        }
+        apply Cmult_cancel_l with (a := a1); auto.
+        rewrite el2; lca.
       }
     }
   }
-  assert (b1_iff_d1 : b1 = C0 <-> d1 = C0).
+  assert (b1_zero_iff_d1_zero : b1 = C0 <-> d1 = C0).
   {
     split.
     {
       intro.
-      rewrite H, Cmult_0_r in el1, el3.
-      destruct (Ceq_dec d1 C0).
+      rewrite H in el1, el3.
+      destruct (nonzero_def2 c WF_c cn0).
       {
-        assumption.
+        apply Cmult_cancel_l with (a := c0); auto.
+        rewrite <- el1; lca.
       }
       {
-        destruct (nonzero_def2 c WF_c cn0).
-        {
-          symmetry in el1.
-          apply Cmult_integral in el1.
-          destruct el1; auto.
-          contradiction.
-        }
-        {
-          symmetry in el3.
-          apply Cmult_integral in el3.
-          destruct el3; auto.
-          contradiction.
-        }
+        apply Cmult_cancel_l with (a := c1); auto.
+        rewrite <- el3; lca.
       }
     }
     {
       intro.
-      rewrite H, Cmult_0_r in el1, el3.
-      destruct (Ceq_dec b1 C0).
+      rewrite H in el1, el3.
+      destruct (nonzero_def2 a WF_a an0).
       {
-        assumption.
+        apply Cmult_cancel_l with (a := a0); auto.
+        rewrite el1; lca.
       }
       {
-        destruct (nonzero_def2 a WF_a an0).
-        {
-          apply Cmult_integral in el1.
-          destruct el1; auto.
-          contradiction.
-        }
-        {
-          apply Cmult_integral in el3.
-          destruct el3; auto.
-          contradiction.
-        }
+        apply Cmult_cancel_l with (a := a1); auto.
+        rewrite el3; lca.
       }
     }
   }
   destruct (Ceq_dec a0 C0) as [a0_zero | a0_nonzero].
   {
-    pose proof a0_zero as c0_zero; rewrite a0_iff_c0 in c0_zero.
+    pose proof a0_zero as c0_zero; rewrite a0_zero_iff_c0_zero in c0_zero.
     destruct (nonzero_def2 a WF_a an0); try contradiction.
     destruct (nonzero_def2 c WF_c cn0); try contradiction.
-    assert (H4 : a1 * c1 <> C0).
-    {
-      intro.
-      apply H.
-      apply Cmult_integral in H3.
-      destruct H3; auto.
-      contradiction.
-    }
     exists (c1 / a1).
+    assert (a1c1_nonzero : a1 * c1 <> C0) by (apply Cmult_neq_zero; assumption).
     symmetry in el3.
     pose proof (Cmult_simplify _ _ _ _ el2 el3) as H3.
     replace (a1 * b0 * (c1 * d1)) with (a1 * c1 * (b0 * d1)) in H3 by lca.
@@ -435,7 +349,7 @@ Proof.
     apply Cmult_cancel_l in H3; auto.
     destruct (Ceq_dec b0 C0) as [b0_zero | b0_nonzero].
     {
-      pose proof b0_zero as d0_zero; rewrite b0_iff_d0 in d0_zero.
+      pose proof b0_zero as d0_zero; rewrite b0_zero_iff_d0_zero in d0_zero.
       destruct (nonzero_def2 b WF_b bn0); try contradiction.
       destruct (nonzero_def2 d WF_d dn0); try contradiction.
       exists (d1 / b1).
@@ -512,6 +426,129 @@ Proof.
         {
           unfold scale, Cdiv; simpl.
           fold b1 d1.
+          replace (d0 * / b0 * b1) with (b1 * d0 * / b0) by lca.
+          rewrite <- H3.
+          replace (b0 * d1 * / b0) with (b0 * / b0 * d1) by lca.
+          rewrite Cinv_r; auto.
+          lca.
+        }
+      }
+    }
+  }
+  {
+    exists (c0 / a0).
+    assert (c0_nonzero : c0 <> C0).
+    {
+      intro contra.
+      apply a0_nonzero.
+      apply a0_zero_iff_c0_zero.
+      exact contra.
+    }
+    assert (a0c0_nonzero : a0 * c0 <> C0) by (apply Cmult_neq_zero; assumption).
+    symmetry in el1.
+    pose proof (Cmult_simplify _ _ _ _ el0 el1) as H3.
+    replace (a0 * b0 * (c0 * d1)) with (a0 * c0 * (b0 * d1)) in H3 by lca.
+    replace (c0 * d0 * (a0 * b1)) with (a0 * c0 * (b1 * d0)) in H3 by lca.
+    apply Cmult_cancel_l in H3; auto.
+    destruct (Ceq_dec b0 C0) as [b0_zero | b0_nonzero].
+    {
+      pose proof b0_zero as d0_zero; rewrite b0_zero_iff_d0_zero in d0_zero.
+      destruct (nonzero_def2 b WF_b bn0); try contradiction.
+      destruct (nonzero_def2 d WF_d dn0); try contradiction.
+      assert (b1d1_nonzero : b1 * d1 <> C0) by (apply Cmult_neq_zero; assumption).
+      pose proof (Cmult_simplify _ _ _ _ el1 el3) as H6.
+      replace (c0 * d1 * (a1 * b1)) with (a1 * c0 * (b1 * d1)) in H6 by lca.
+      replace (a0 * b1 * (c1 * d1)) with (a0 * c1 * (b1 * d1)) in H6 by lca.
+      apply Cmult_cancel_r in H6; auto.
+      exists (d1 / b1).
+      split.
+      {
+        lma'.
+        {
+          unfold scale, Cdiv; simpl.
+          fold a0 c0.
+          rewrite <- Cmult_assoc.
+          rewrite Cinv_l; auto.
+          lca.
+        }
+        {
+          unfold scale, Cdiv; simpl.
+          fold a1 c1.
+          rewrite Cmult_comm.
+          rewrite Cmult_assoc.
+          rewrite H6.
+          rewrite Cmult_comm.
+          rewrite Cmult_assoc.
+          rewrite Cinv_l; auto.
+          lca.
+        }
+      }
+      {
+        lma'.
+        {
+          unfold scale, Cdiv; simpl.
+          fold b0 d0.
+          rewrite b0_zero, d0_zero.
+          lca.
+        }
+        {
+          unfold scale, Cdiv; simpl.
+          fold b1 d1.
+          rewrite <- Cmult_assoc.
+          rewrite Cinv_l; auto.
+          lca.
+        }
+      }
+    }
+    {
+      exists (d0 / b0).
+      split.
+      {
+        lma'.
+        {
+          unfold scale, Cdiv; simpl.
+          fold a0 c0.
+          rewrite <- Cmult_assoc.
+          rewrite Cinv_l; auto.
+          lca.
+        }
+        {
+          assert (d0_nonzero : d0 <> C0).
+          {
+            intro contra.
+            apply b0_nonzero.
+            apply b0_zero_iff_d0_zero.
+            exact contra.
+          }
+          assert (b0d0_nonzero : b0 * d0 <> C0) by (apply Cmult_neq_zero; assumption).
+          symmetry in el0.
+          pose proof (Cmult_simplify _ _ _ _ el0 el2) as H6.
+          replace (c0 * d0 * (a1 * b0)) with (a1 * c0 * (b0 * d0)) in H6 by lca.
+          replace (a0 * b0 * (c1 * d0)) with (a0 * c1 * (b0 * d0)) in H6 by lca.
+          apply Cmult_cancel_r in H6; auto.
+          unfold scale, Cdiv; simpl.
+          fold a1 c1.
+          rewrite Cmult_comm.
+          rewrite Cmult_assoc.
+          rewrite H6.
+          rewrite Cmult_comm.
+          rewrite Cmult_assoc.
+          rewrite Cinv_l; auto.
+          lca.
+        }
+      }
+      {
+        lma'.
+        {
+          unfold scale, Cdiv; simpl.
+          fold b0 d0.
+          rewrite <- Cmult_assoc.
+          rewrite Cinv_l; auto.
+          lca.
+        }
+        {
+          unfold scale, Cdiv; simpl.
+          fold b1 d1.
           rewrite Cmult_comm.
           rewrite Cmult_assoc.
           rewrite <- H3.
@@ -519,148 +556,6 @@ Proof.
           rewrite Cmult_assoc.
           rewrite Cinv_l; auto.
           lca.
-        }
-      }
-    }
-  }
-  {
-    destruct (Ceq_dec c0 C0) as [c0_zero | c0_nonzero].
-    {
-      pose proof c0_zero as a0_zero; rewrite <- a0_iff_c0 in a0_zero.
-      contradiction.
-    }
-    {
-      assert (H4 : a0 * c0 <> C0).
-      {
-        intro.
-        apply a0_nonzero.
-        apply Cmult_integral in H.
-        destruct H; auto.
-        contradiction.
-      }
-      exists (c0 / a0).
-      symmetry in el1.
-      pose proof (Cmult_simplify _ _ _ _ el0 el1) as H3.
-      replace (a0 * b0 * (c0 * d1)) with (a0 * c0 * (b0 * d1)) in H3 by lca.
-      replace (c0 * d0 * (a0 * b1)) with (a0 * c0 * (b1 * d0)) in H3 by lca.
-      apply Cmult_cancel_l in H3; auto.
-      destruct (Ceq_dec b0 C0) as [b0_zero | b0_nonzero].
-      {
-        pose proof b0_zero as d0_zero; rewrite b0_iff_d0 in d0_zero.
-        destruct (nonzero_def2 b WF_b bn0); try contradiction.
-        destruct (nonzero_def2 d WF_d dn0); try contradiction.
-        assert (H5 : b1 * d1 <> C0).
-        {
-          intro.
-          apply Cmult_integral in H5.
-          destruct H5; auto.
-        }
-        pose proof (Cmult_simplify _ _ _ _ el1 el3) as H6.
-        replace (c0 * d1 * (a1 * b1)) with (a1 * c0 * (b1 * d1)) in H6 by lca.
-        replace (a0 * b1 * (c1 * d1)) with (a0 * c1 * (b1 * d1)) in H6 by lca.
-        apply Cmult_cancel_r in H6; auto.
-        exists (d1 / b1).
-        split.
-        {
-          lma'.
-          {
-            unfold scale, Cdiv; simpl.
-            fold a0 c0.
-            rewrite <- Cmult_assoc.
-            rewrite Cinv_l; auto.
-            lca.
-          }
-          {
-            unfold scale, Cdiv; simpl.
-            fold a1 c1.
-            rewrite Cmult_comm.
-            rewrite Cmult_assoc.
-            rewrite H6.
-            rewrite Cmult_comm.
-            rewrite Cmult_assoc.
-            rewrite Cinv_l; auto.
-            lca.
-          }
-        }
-        {
-          lma'.
-          {
-            unfold scale, Cdiv; simpl.
-            fold b0 d0.
-            rewrite b0_zero, d0_zero.
-            lca.
-          }
-          {
-            unfold scale, Cdiv; simpl.
-            fold b1 d1.
-            rewrite <- Cmult_assoc.
-            rewrite Cinv_l; auto.
-            lca.
-          }
-        }
-      }
-      {
-        exists (d0 / b0).
-        split.
-        {
-          lma'.
-          {
-            unfold scale, Cdiv; simpl.
-            fold a0 c0.
-            rewrite <- Cmult_assoc.
-            rewrite Cinv_l; auto.
-            lca.
-          }
-          {
-            destruct (Ceq_dec d0 C0) as [d0_zero | d0_nonzero].
-            {
-              pose proof d0_zero as b0_zero; rewrite <- b0_iff_d0 in b0_zero.
-              contradiction.
-            }
-            {
-              assert (H5 : b0 * d0 <> C0).
-              {
-                intro.
-                apply Cmult_integral in H.
-                destruct H; auto.
-              }
-              symmetry in el0.
-              pose proof (Cmult_simplify _ _ _ _ el0 el2) as H6.
-              replace (c0 * d0 * (a1 * b0)) with (a1 * c0 * (b0 * d0)) in H6 by lca.
-              replace (a0 * b0 * (c1 * d0)) with (a0 * c1 * (b0 * d0)) in H6 by lca.
-              apply Cmult_cancel_r in H6; auto.
-              unfold scale, Cdiv; simpl.
-              fold a1 c1.
-              rewrite Cmult_comm.
-              rewrite Cmult_assoc.
-              rewrite H6.
-              rewrite Cmult_comm.
-              rewrite Cmult_assoc.
-              rewrite Cinv_l; auto.
-              lca.
-            }
-          }
-        }
-        {
-          lma'.
-          {
-            unfold scale, Cdiv; simpl.
-            fold b0 d0.
-            rewrite <- Cmult_assoc.
-            rewrite Cinv_l; auto.
-            lca.
-          }
-          {
-            unfold scale, Cdiv; simpl.
-            fold b1 d1.
-            rewrite Cmult_comm.
-            rewrite Cmult_assoc.
-            rewrite <- H3.
-            rewrite Cmult_comm.
-            rewrite Cmult_assoc.
-            rewrite Cinv_l; auto.
-            lca.
-          }
         }
       }
     }
