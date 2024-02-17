@@ -671,3 +671,17 @@ rewrite kron_inner_prod.
 rewrite u_unit, v_unit.
 apply Cmult_1_r.
 Qed.
+
+Lemma qubit_implies_nonzero {n}: forall (q : Vector n), 
+WF_Qubit q -> q <> Zero.
+Proof.
+intros.
+destruct H as [_ [WF_q q_unit]].
+unfold not.
+intro.
+rewrite <- inner_product_zero_iff_zero in H. 2: assumption.
+apply C1_neq_C0.
+rewrite <- H.
+rewrite <- q_unit.
+reflexivity.
+Qed.
