@@ -431,7 +431,7 @@ Qed.
 Lemma a22: forall (U: Square 4) (a b g psi : Vector 2) (phi : Vector 4), 
 WF_Unitary U -> WF_Qubit a -> WF_Qubit b -> WF_Qubit g -> WF_Qubit psi -> WF_Qubit phi -> 
 (acgate U) × (a ⊗ b ⊗ g) = psi ⊗ phi -> 
-exists (w : Vector 2), phi = b ⊗ w.
+exists (w : Vector 2), WF_Qubit w /\ phi = b ⊗ w.
 Proof.
 intros U a b g psi phi U_unitary a_qubit b_qubit g_qubit psi_qubit phi_qubit acU_app.
 assert (WF_U: WF_Matrix U). apply U_unitary.
@@ -535,6 +535,17 @@ rewrite outer_prod_equiv in phi_decomp.
 rewrite kron_0_r in phi_decomp.
 rewrite Mplus_0_r in phi_decomp.
 exists w.
+split.
+{
+    split. exists 1%nat. trivial.
+    split. assumption.
+    rewrite <- Cmult_1_l at 1.
+    destruct b_qubit as [_ [_ b_unit]].
+    rewrite <- b_unit at 1.
+    rewrite <- kron_inner_prod.
+    rewrite <- phi_decomp.
+    apply phi_qubit.
+}
 apply phi_decomp.
 Qed.
 

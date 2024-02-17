@@ -645,3 +645,43 @@ rewrite <- orth. lca.
 rewrite <- Cconj_0. rewrite <- orth. lca.
 rewrite <- b_unit. lca.
 Qed.
+
+Lemma Mmult_qubit {n}: forall (U : Square n) (x : Vector n), 
+WF_Unitary U -> WF_Qubit x -> WF_Qubit (U × x).
+Proof.
+intros.
+destruct H0 as [pow_prop [WF_x x_unit]].
+split. apply pow_prop.
+split. solve_WF_matrix. apply H.
+rewrite <- unitary_preserves_inner_prod.
+all: assumption.
+Qed. 
+
+Lemma kron_qubit {n}: forall (u v : Vector n), 
+WF_Qubit u -> WF_Qubit v -> WF_Qubit (u ⊗ v).
+Proof.
+intros.
+destruct H as [pow_prop [WF_u u_unit]].
+destruct H0 as [_ [WF_v v_unit]].
+destruct pow_prop as [m m_prop].
+split. exists (m*2)%nat. rewrite <- m_prop.
+rewrite Nat.pow_mul_r. rewrite Nat.pow_2_r. reflexivity.
+split. solve_WF_matrix.
+rewrite kron_inner_prod.
+rewrite u_unit, v_unit.
+apply Cmult_1_r.
+Qed.
+
+Lemma qubit_implies_nonzero {n}: forall (q : Vector n), 
+WF_Qubit q -> q <> Zero.
+Proof.
+intros.
+destruct H as [_ [WF_q q_unit]].
+unfold not.
+intro.
+rewrite <- inner_product_zero_iff_zero in H. 2: assumption.
+apply C1_neq_C0.
+rewrite <- H.
+rewrite <- q_unit.
+reflexivity.
+Qed.
