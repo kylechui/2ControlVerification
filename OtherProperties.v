@@ -1051,65 +1051,18 @@ split.
 }
 Qed.
 
-Lemma Mmult_qubit {n}: forall (U : Square n) (x : Vector n), 
-WF_Unitary U -> WF_Qubit x -> WF_Qubit (U × x).
-Proof.
-intros.
-destruct H0 as [pow_prop [WF_x x_unit]].
-split. apply pow_prop.
-split. solve_WF_matrix. apply H.
-rewrite <- unitary_preserves_inner_prod.
-all: assumption.
-Qed. 
-
-Lemma kron_qubit {n}: forall (u v : Vector n), 
-WF_Qubit u -> WF_Qubit v -> WF_Qubit (u ⊗ v).
-Proof.
-intros.
-destruct H as [pow_prop [WF_u u_unit]].
-destruct H0 as [_ [WF_v v_unit]].
-destruct pow_prop as [m m_prop].
-split. exists (m*2)%nat. rewrite <- m_prop.
-rewrite Nat.pow_mul_r. rewrite Nat.pow_2_r. reflexivity.
-split. solve_WF_matrix.
-rewrite kron_inner_prod.
-rewrite u_unit, v_unit.
-apply Cmult_1_r.
-Qed.
-
-Lemma acgate_tens_eq: forall (U : Square 4) (a b c d e: Vector 2), 
-WF_Matrix U -> WF_Matrix a -> WF_Matrix b -> WF_Matrix c -> WF_Matrix d -> WF_Matrix e ->
-b <> Zero -> (acgate U) × (a ⊗ b ⊗ c) = d ⊗ b ⊗ e ->  U × (a ⊗ c) = d ⊗ e.
-Proof.
-intros U a b c d e WF_U WF_a WF_b WF_c WF_d WF_e bn0 gate_eq.
-unfold acgate in gate_eq.
-rewrite <- swapbc_3q with (a:= d) in gate_eq. 2,3,4: assumption.
-apply (f_equal (fun f => swapbc × f)) in gate_eq.
-repeat rewrite <- Mmult_assoc in gate_eq.
-rewrite swapbc_inverse in gate_eq.
-rewrite Mmult_1_l in gate_eq. 2: apply WF_abgate; solve_WF_matrix.
-rewrite Mmult_1_l in gate_eq. 2: solve_WF_matrix.
-rewrite Mmult_assoc in gate_eq.
-rewrite swapbc_3q in gate_eq. 2,3,4: solve_WF_matrix.
-unfold abgate in gate_eq.
-assert (kron_mix_help: U ⊗ I 2 × (a ⊗ c ⊗ b) = (U × (a ⊗ c)) ⊗ (I 2 × b)). apply kron_mixed_product.
-rewrite kron_mix_help in gate_eq at 1. clear kron_mix_help.
-rewrite Mmult_1_l in gate_eq. 2: solve_WF_matrix.
-apply (@kron_cancel_r 4 1 2 1) with (C:= b).
-1,2,3: solve_WF_matrix.
-1,2: assumption.
-Qed.
-
-
 Lemma a33: forall (V1 V2 V4: Square 4), 
 WF_Unitary V1 -> WF_Unitary V2 -> WF_Unitary V4 -> 
 (forall (x: Vector 2), WF_Qubit x -> (acgate V1) × (bcgate V2) × (∣0⟩ ⊗ x ⊗ ∣0⟩) = (bcgate V4)† × (∣0⟩ ⊗ x ⊗ ∣0⟩))
 -> (exists (psi: Vector 2), WF_Qubit psi /\ 
     (forall (x: Vector 2), WF_Qubit x -> 
         exists (z: Vector 2), WF_Qubit z /\ V2 × (x ⊗ ∣0⟩) = psi ⊗ z)) -> 
-exists (P0 P1: Square 2), V1 = ∣0⟩⟨0∣ ⊗ P0 .+ ∣1⟩⟨1∣ ⊗ P1.
+exists (P0 P1: Square 2), V1 = ∣0⟩⟨0∣ ⊗ P0 .+ ∣1⟩⟨1∣ ⊗ P1 /\
+WF_Unitary P0 /\ WF_Unitary P1.
 Proof.
 intros V1 V2 V4 V1_unitary V2_unitary V4_unitary gate_prop v2_tens.
+assert (temp: WF_Unitary V1). assumption.
+destruct temp as [WF_V1 V1_inv].
 assert (temp: WF_Unitary V4). assumption.
 destruct temp as [WF_V4 V4_inv].
 assert (a25_partial:= a25 V2 V2_unitary v2_tens).
@@ -1172,15 +1125,49 @@ assert (temp: WF_Unitary Q1). assumption.
 destruct temp as [WF_Q1 Q1_inv].
 assert (temp: WF_Qubit psi2). assumption.
 destruct temp as [_ [WF_psi2 psi2_unit]]. 
+assert (same_psi: exists (c: C), c .* psi1 = psi2).
+{
+    specialize (v4tq1_prop ∣0⟩ qubit0_qubit).
+    specialize (v4_tens ∣0⟩ qubit0_qubit).
+    destruct v4_tens as [w [w_qubit eq1]].
+    rewrite v4tq1_prop in eq1.
+    apply eq_sym in eq1.
+    apply kron_uniq2 in eq1.
+    2,4,5: solve_WF_matrix.
+    2: apply w_qubit.
+    2,3,4,5: apply qubit_implies_nonzero.
+    2,3,4: assumption.
+    2: apply Mmult_qubit. 2: assumption. 2: apply qubit0_qubit.
+    destruct eq1 as [c1 [_ [psi_scale _]]].
+    exists c1. assumption.
+}
+destruct same_psi as [c psi_scale].
 assert (main: forall (x: Vector 2), WF_Qubit x -> 
-acgate V1 × (∣0⟩ ⊗ psi1 ⊗ (Q0 × x)) = ∣0⟩ ⊗ psi2 ⊗ (Q1 × x)).
+acgate V1 × (∣0⟩ ⊗ psi1 ⊗ (Q0 × x)) = ∣0⟩ ⊗ psi1 ⊗ (c .* Q1 × x)).
 {
     intros x x_qubit.
     assert (temp: WF_Qubit x). assumption. 
     destruct temp as [_ [WF_x x_unit]].
     rewrite intermediary_step. 2: assumption.
     rewrite v4tq1_prop. 2: assumption.
+    rewrite <- psi_scale.
+    rewrite Mscale_kron_dist_l.
+    rewrite <- Mscale_kron_dist_r.
+    rewrite Mscale_mult_dist_l.
     symmetry. rewrite kron_assoc. 2,3,4: solve_WF_matrix.
     reflexivity.
 }
-Admitted.
+assert (qubit0_prop:= main ∣0⟩ qubit0_qubit).
+assert (qubit1_prop:= main ∣1⟩ qubit1_qubit).
+apply acgate_tens_eq in qubit0_prop. 2,3,4,5,6,7: solve_WF_matrix. 2: apply qubit_implies_nonzero; assumption.
+apply acgate_tens_eq in qubit1_prop. 2,3,4,5,6,7: solve_WF_matrix. 2: apply qubit_implies_nonzero; assumption.
+assert (a17_partial:= a17 V1 (Q0 × ∣0⟩) (Q0 × ∣1⟩) V1_unitary).
+apply a17_partial.
+apply Mmult_qubit. assumption. apply qubit0_qubit.
+apply Mmult_qubit. assumption. apply qubit1_qubit.
+rewrite <- unitary_preserves_inner_prod. lca. assumption. solve_WF_matrix.
+exists (c .* Q1 × ∣0⟩), (c .* Q1 × ∣1⟩).
+split. solve_WF_matrix.
+split. solve_WF_matrix.
+split. all: assumption.
+Qed.
