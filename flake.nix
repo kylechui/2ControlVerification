@@ -58,16 +58,8 @@
           pkgs.coq.ocamlPackages.ocaml
           pkgs.coq.ocamlPackages.dune_3
           coq-quantumlib
-          coq-lsp
-        ];
-        propagatedBuildInputs = [ pkgs.coqPackages.serapi ]
-          ++ (with pkgs.coq.ocamlPackages; [
-            camlp-streams
-            dune-build-info
-            menhir
-            uri
-            yojson
-          ]);
+        ] ++ pkgs.lib.optional (builtins.getEnv "CI" != "true")
+          coq-lsp; # Don't build the LSP in GitHub Action
       };
     };
 }

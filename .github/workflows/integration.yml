@@ -19,4 +19,5 @@ jobs:
         uses: cachix/install-nix-action@v22
 
       - name: Build release
-        run: nix develop --command make
+        # The `--impure` flag lets the `devShell` read environment variables (e.g. $CI)
+        run: nix develop --impure --command make
