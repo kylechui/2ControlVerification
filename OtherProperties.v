@@ -1065,14 +1065,15 @@ assert (temp: WF_Unitary V1). assumption.
 destruct temp as [WF_V1 V1_inv].
 assert (temp: WF_Unitary V4). assumption.
 destruct temp as [WF_V4 V4_inv].
-assert (a25_partial:= a25 V2 V2_unitary v2_tens).
-destruct a25_partial as [Q0 [Q0_unitary [psi1 [psi1_qubit v2q0_prop]]]].
+destruct v2_tens as [psi [psi_qubit v2_tens]].
+assert (temp: WF_Qubit psi). assumption. 
+destruct temp as [_ [WF_psi psi_unit]].
+assert (a25_partial:= a25 V2 psi V2_unitary psi_qubit v2_tens).
+destruct a25_partial as [Q0 [Q0_unitary v2q0_prop]].
 assert (temp: WF_Unitary Q0). assumption.
 destruct temp as [WF_Q0 Q0_inv].
-assert (temp: WF_Qubit psi1). assumption.
-destruct temp as [_ [WF_psi1 psi1_unit]]. 
 assert (intermediary_step: forall (x: Vector 2), WF_Qubit x -> 
-acgate V1 × (∣0⟩ ⊗ psi1 ⊗ (Q0 × x)) = ∣0⟩ ⊗ ((V4) † × (x ⊗ ∣0⟩))).
+acgate V1 × (∣0⟩ ⊗ psi ⊗ (Q0 × x)) = ∣0⟩ ⊗ ((V4) † × (x ⊗ ∣0⟩))).
 {
     intros x x_qubit.
     assert (temp: WF_Qubit x). assumption. 
@@ -1095,10 +1096,10 @@ acgate V1 × (∣0⟩ ⊗ psi1 ⊗ (Q0 × x)) = ∣0⟩ ⊗ ((V4) † × (x ⊗ 
     reflexivity.
 }
 assert (v4_tens: forall (x: Vector 2), WF_Qubit x -> 
-    exists (w: Vector 2), WF_Qubit w /\ V4† × (x ⊗ ∣0⟩) = psi1 ⊗ w).
+    exists (w: Vector 2), WF_Qubit w /\ V4† × (x ⊗ ∣0⟩) = psi ⊗ w).
 {
     intros x x_qubit.
-    assert (a22_partial:= a22 V1 ∣0⟩ psi1 (Q0 × x) ∣0⟩ (V4† × (x ⊗ ∣0⟩))).
+    assert (a22_partial:= a22 V1 ∣0⟩ psi (Q0 × x) ∣0⟩ (V4† × (x ⊗ ∣0⟩))).
     apply a22_partial.
     assumption.
     apply qubit0_qubit.
@@ -1111,50 +1112,21 @@ assert (v4_tens: forall (x: Vector 2), WF_Qubit x ->
     assumption. apply qubit0_qubit.
     apply intermediary_step.
     assumption.
-}
-assert (exists_v4_tens: (exists psi : Vector 2,
-WF_Qubit psi /\
-(forall x : Vector 2,
- WF_Qubit x ->
- exists phi : Vector 2,
-   WF_Qubit phi /\ (V4) † × (x ⊗ ∣0⟩) = psi ⊗ phi))). exists psi1. split. assumption. apply v4_tens.
+}   
 assert (V4t_unitary: WF_Unitary (V4) †). apply transpose_unitary. assumption.
-assert (a25_partial_2:= a25 (V4) † V4t_unitary exists_v4_tens).
-destruct a25_partial_2 as [Q1 [Q1_unitary [psi2 [psi2_qubit v4tq1_prop]]]].
+assert (a25_partial_2:= a25 V4† psi V4t_unitary psi_qubit v4_tens).
+destruct a25_partial_2 as [Q1 [Q1_unitary v4tq1_prop]].
 assert (temp: WF_Unitary Q1). assumption.
 destruct temp as [WF_Q1 Q1_inv].
-assert (temp: WF_Qubit psi2). assumption.
-destruct temp as [_ [WF_psi2 psi2_unit]]. 
-assert (same_psi: exists (c: C), c .* psi1 = psi2).
-{
-    specialize (v4tq1_prop ∣0⟩ qubit0_qubit).
-    specialize (v4_tens ∣0⟩ qubit0_qubit).
-    destruct v4_tens as [w [w_qubit eq1]].
-    rewrite v4tq1_prop in eq1.
-    apply eq_sym in eq1.
-    apply kron_uniq2 in eq1.
-    2,4,5: solve_WF_matrix.
-    2: apply w_qubit.
-    2,3,4,5: apply qubit_implies_nonzero.
-    2,3,4: assumption.
-    2: apply Mmult_qubit. 2: assumption. 2: apply qubit0_qubit.
-    destruct eq1 as [c1 [_ [psi_scale _]]].
-    exists c1. assumption.
-}
-destruct same_psi as [c psi_scale].
 assert (main: forall (x: Vector 2), WF_Qubit x -> 
-acgate V1 × (∣0⟩ ⊗ psi1 ⊗ (Q0 × x)) = ∣0⟩ ⊗ psi1 ⊗ (c .* Q1 × x)).
+acgate V1 × (∣0⟩ ⊗ psi ⊗ (Q0 × x)) = ∣0⟩ ⊗ psi ⊗ (Q1 × x)).
 {
     intros x x_qubit.
     assert (temp: WF_Qubit x). assumption. 
     destruct temp as [_ [WF_x x_unit]].
     rewrite intermediary_step. 2: assumption.
     rewrite v4tq1_prop. 2: assumption.
-    rewrite <- psi_scale.
-    rewrite Mscale_kron_dist_l.
-    rewrite <- Mscale_kron_dist_r.
-    rewrite Mscale_mult_dist_l.
-    symmetry. rewrite kron_assoc. 2,3,4: solve_WF_matrix.
+    rewrite kron_assoc. 2,3,4: solve_WF_matrix.
     reflexivity.
 }
 assert (qubit0_prop:= main ∣0⟩ qubit0_qubit).
@@ -1166,7 +1138,7 @@ apply a17_partial.
 apply Mmult_qubit. assumption. apply qubit0_qubit.
 apply Mmult_qubit. assumption. apply qubit1_qubit.
 rewrite <- unitary_preserves_inner_prod. lca. assumption. solve_WF_matrix.
-exists (c .* Q1 × ∣0⟩), (c .* Q1 × ∣1⟩).
+exists (Q1 × ∣0⟩), (Q1 × ∣1⟩).
 split. solve_WF_matrix.
 split. solve_WF_matrix.
 split. all: assumption.

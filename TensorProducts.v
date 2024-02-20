@@ -801,17 +801,14 @@ apply tens in temp.
 destruct temp as [a [b [a_qubit [b_qubit ab_decomp]]]].
 Admitted.
 
-Lemma a25: forall (V : Square 4), 
-WF_Unitary V -> 
-(exists (psi : Vector 2), WF_Qubit psi /\ 
+Lemma a25: forall (V : Square 4) (psi: Vector 2), 
+WF_Unitary V -> WF_Qubit psi ->
 (forall (x : Vector 2), WF_Qubit x -> 
-(exists (phi : Vector 2), WF_Qubit phi /\ V × (x ⊗ ∣0⟩) = psi ⊗ phi ))) -> 
+(exists (phi : Vector 2), WF_Qubit phi /\ V × (x ⊗ ∣0⟩) = psi ⊗ phi )) -> 
 (exists (Q : Square 2), WF_Unitary Q /\
-(exists (psi : Vector 2), WF_Qubit psi /\
-(forall (x : Vector 2), WF_Qubit x -> V × (x ⊗ ∣0⟩) = psi ⊗ (Q × x)))).
+(forall (x : Vector 2), WF_Qubit x -> V × (x ⊗ ∣0⟩) = psi ⊗ (Q × x))).
 Proof. 
-intros V V_unitary first_prop.
-destruct first_prop as [psi [psi_qubit first_prop]].
+intros V psi V_unitary psi_qubit first_prop.
 assert(temp: WF_Qubit psi). assumption.
 destruct temp as [_ [WF_psi psi_unit]].
 assert(w0_def:= first_prop qubit0 qubit0_qubit).
@@ -848,8 +845,6 @@ assert (forall (x: Vector 2), WF_Qubit x -> Q × x = (x 0%nat 0%nat) .* w0 .+ (x
     reflexivity.
 }
 exists Q.
-split. assumption.
-exists psi.
 split. assumption.
 intros x x_qubit.
 assert (temp: WF_Qubit x). assumption.
