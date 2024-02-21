@@ -428,6 +428,171 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣0⟩ ⊗ ∣0⟩)))).
 }
 Qed.
 
+Lemma a21b: forall (U : Square 4), 
+WF_Unitary U -> exists (psi : Vector 2), 
+WF_Qubit psi /\ TensorProd (U × (∣1⟩ ⊗ psi)).
+Proof. 
+intros U U_unitary.
+destruct (Classical_Prop.classic (TensorProd (U × (∣1⟩ ⊗ ∣0⟩)))).
+{
+    exists ∣0⟩. split. apply qubit0_qubit. assumption.
+}
+{
+    set (a00 := (U × (∣1⟩ ⊗ ∣0⟩)) 0%nat 0%nat).
+    set (a01 := (U × (∣1⟩ ⊗ ∣0⟩)) 1%nat 0%nat).
+    set (a10 := (U × (∣1⟩ ⊗ ∣0⟩)) 2%nat 0%nat).
+    set (a11 := (U × (∣1⟩ ⊗ ∣0⟩)) 3%nat 0%nat).
+    set (b00 := (U × (∣1⟩ ⊗ ∣1⟩)) 0%nat 0%nat).
+    set (b01 := (U × (∣1⟩ ⊗ ∣1⟩)) 1%nat 0%nat).
+    set (b10 := (U × (∣1⟩ ⊗ ∣1⟩)) 2%nat 0%nat).
+    set (b11 := (U × (∣1⟩ ⊗ ∣1⟩)) 3%nat 0%nat).
+    set (a := (a00 * a11 - a01 * a10)%C).
+    set (b := (a00 * b11 + a11 * b00 - a01 * b10 - a10 * b01)%C).
+    set (c := (b00 * b11 - b01 * b10)%C).
+    set (quad := Complex_sqrt (b * b - 4 * a * c)%C).
+    set (p0 := (/ (2 * a)%C * (-b + quad))%C).
+    set (c0 := 1 / √ ((Cmod p0)^2 + 1)%R).
+    set (psi0 := c0 * p0 .* ∣0⟩ .+ c0 .* ∣1⟩).
+    exists psi0.
+    assert (div_g0: 0 < Cmod p0 ^ 2 + 1). 
+    {
+        rewrite <- Rplus_0_l with (r:= 0).
+        apply Rplus_le_lt_compat. 2: lra.
+        apply Rsqr_ge_0.
+    }
+    split. 
+    {
+        unfold WF_Qubit.
+        split. exists (1%nat). trivial.
+        split. solve_WF_matrix.
+        rewrite vector2_inner_prod_decomp.
+        unfold psi0.
+        repeat rewrite Mplus_access.
+        repeat rewrite <- Mscale_access.
+        simpl.
+        repeat rewrite Cmult_0_r.
+        repeat rewrite Cmult_1_r.
+        repeat rewrite Cplus_0_l, Cplus_0_r.
+        rewrite Cconj_mult_distr.
+        rewrite <- Cmult_assoc.
+        rewrite Cmult_comm with (x := p0^*).
+        rewrite <- Cmult_assoc. rewrite Cmult_assoc at 1.
+        rewrite <- Cmult_1_r with (x:= c0 ^* * c0) at 2.
+        rewrite <- Cmult_plus_distr_l with (x:= c0 ^* * c0).
+        assert (expansion: c0^* * c0 = C1 / (Cmod p0 ^ 2 + 1)).
+        {
+            unfold c0.
+            repeat rewrite <- RtoC_div.
+            rewrite RtoC_conj.
+            rewrite <- RtoC_mult.
+            rewrite Rfrac_product with (a:= 1) .
+            rewrite sqrt_sqrt.
+            rewrite Rmult_1_l.
+            rewrite RtoC_div.
+            rewrite RtoC_plus.
+            rewrite RtoC_pow.
+            reflexivity.
+            3,4,5: apply g0_sqn0.
+            apply Rgt_not_eq.
+            apply Rlt_gt.
+            2: apply Rlt_le.
+            all: apply div_g0.
+        }
+        rewrite expansion.
+        rewrite Cmult_comm with (x:= p0).
+        rewrite <- Cmod_sqr.
+        unfold Cdiv.
+        rewrite Cmult_1_l.
+        apply Cinv_l.
+        unfold not.
+        intro.
+        apply complex_split in H0.
+        destruct H0.
+        apply eq_sym in H0.
+        revert H0.
+        rewrite RtoC_pow.
+        rewrite <- RtoC_plus.
+        unfold RtoC.
+        simpl.
+        apply Rlt_not_eq.
+        replace ((Cmod p0 * (Cmod p0 * 1))%R) with ((Cmod p0 ^ 2)%R) by lra.
+        assumption.
+    }
+    apply a20. solve_WF_matrix. apply U_unitary.
+    assert (psi0_def: psi0 = c0 * p0 .* ∣0⟩ .+ c0 .* ∣1⟩). unfold psi0. reflexivity.
+    assert (prod_decomp: U × (∣1⟩ ⊗ psi0) = U × (∣1⟩ ⊗ psi0)). reflexivity.
+    rewrite psi0_def in prod_decomp at 2.
+    rewrite kron_plus_distr_l in prod_decomp.
+    repeat rewrite Mscale_kron_dist_r in prod_decomp.
+    rewrite Mmult_plus_distr_l in prod_decomp.
+    repeat rewrite Mscale_mult_dist_r in prod_decomp.
+    assert (def0: (U × (∣1⟩ ⊗ psi0)) 0%nat 0%nat = c0 * p0 * a00 + c0 * b00).
+    {
+        rewrite prod_decomp.
+        rewrite Mplus_access.
+        repeat rewrite <- Mscale_access.
+        unfold a00, b00.
+        reflexivity.
+    }
+    assert (def1: (U × (∣1⟩ ⊗ psi0)) 1%nat 0%nat = c0 * p0 * a01 + c0 * b01).
+    {
+        rewrite prod_decomp.
+        rewrite Mplus_access.
+        repeat rewrite <- Mscale_access.
+        unfold a01, b01.
+        reflexivity.
+    }
+    assert (def2: (U × (∣1⟩ ⊗ psi0)) 2%nat 0%nat = c0 * p0 * a10 + c0 * b10).
+    {
+        rewrite prod_decomp.
+        rewrite Mplus_access.
+        repeat rewrite <- Mscale_access.
+        unfold a10, b10.
+        reflexivity.
+    }
+    assert (def3: (U × (∣1⟩ ⊗ psi0)) 3%nat 0%nat = c0 * p0 * a11 + c0 * b11).
+    {
+        rewrite prod_decomp.
+        rewrite Mplus_access.
+        repeat rewrite <- Mscale_access.
+        unfold a11, b11.
+        reflexivity.
+    }
+    rewrite def0, def1, def2, def3.
+    repeat rewrite <- Cmult_assoc.
+    repeat rewrite <- Cmult_plus_distr_l.
+    repeat rewrite <- Cmult_assoc.
+    rewrite Cmult_comm with (x := (p0 * a00 + b00)).
+    rewrite Cmult_comm with (x := (p0 * a01 + b01)).
+    rewrite <- Cmult_assoc.
+    rewrite Cmult_assoc with (y := c0).
+    rewrite <- Cmult_assoc with (y := (p0 * a10 + b10)).
+    rewrite Cmult_assoc with (y := c0).
+    apply Cmult_simplify. reflexivity.
+    rewrite <- Cplus_0_l with (x := (p0 * a11 + b11) * (p0 * a00 + b00)).
+    rewrite <- Cplus_0_r with (x := (p0 * a10 + b10) * (p0 * a01 + b01)).
+    rewrite <- Cplus_opp_r with (x := (p0 * a10 + b10) * (p0 * a01 + b01)) at 1.
+    rewrite <- Cplus_assoc.
+    apply Cplus_simplify. reflexivity.
+    assert (replace_helper: forall (p0 a10 b10 a01 b01 a11 b11 a00 b00: C), 
+    - ((p0 * a10 + b10) * (p0 * a01 + b01)) + (p0 * a11 + b11) * (p0 * a00 + b00) = 
+    p0 ^ 2 * (a00 * a11 - a01 * a10) + p0 * (a00 * b11 + a11 * b00 - a01 * b10 - a10 * b01) + 
+    (b00 * b11 - b01 * b10)). intros. lca.
+    rewrite replace_helper.
+    fold a b c.
+    apply quadratic_formula. 2: unfold p0. 2: reflexivity.
+    (* follows from U00 not a tensor prod *)
+    unfold a. unfold not. intro.
+    apply H.
+    rewrite a20. 2: solve_WF_matrix. 2: apply U_unitary.
+    fold a00 a11 a01 a10.
+    apply (f_equal (fun f => f + a01 * a10)) in H0.
+    rewrite Cplus_0_l in H0.
+    rewrite <- H0.
+    lca.
+}
+Qed.
+
 Lemma a22: forall (U: Square 4) (a b g psi : Vector 2) (phi : Vector 4), 
 WF_Unitary U -> WF_Qubit a -> WF_Qubit b -> WF_Qubit g -> WF_Qubit psi -> WF_Qubit phi -> 
 (acgate U) × (a ⊗ b ⊗ g) = psi ⊗ phi -> 
