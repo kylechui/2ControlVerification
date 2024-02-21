@@ -769,6 +769,410 @@ destruct casework as [blindep|alindep].
 }
 Qed.
 
+Lemma abgate_control: forall (U W0 W1: Square 4), 
+WF_Unitary U -> WF_Unitary W0 -> WF_Unitary W1 -> 
+abgate U = ∣0⟩⟨0∣ ⊗ W0 .+ ∣1⟩⟨1∣ ⊗ W1 ->
+exists (P0 P1: Square 2), WF_Unitary P0 /\ WF_Unitary P1 /\
+abgate U = ∣0⟩⟨0∣ ⊗ P0 ⊗ I 2 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ I 2.
+Proof.
+intros U W0 W1 U_unitary W0_unitary W1_unitary abgate_c.
+assert (temp: WF_Unitary W0). assumption. 
+destruct temp as [WF_W0 W0_inv].
+assert (temp: WF_Unitary W1). assumption. 
+destruct temp as [WF_W1 W1_inv].
+unfold abgate in *.
+assert (W0_11: W0 1%nat 1%nat = W0 0%nat 0%nat).
+{
+    assert (W0 1%nat 1%nat = (U ⊗ I 2) 1%nat 1%nat). rewrite abgate_c. lca.
+    assert (W0 0%nat 0%nat = (U ⊗ I 2) 0%nat 0%nat). rewrite abgate_c. lca.
+    rewrite H, H0.
+    lca.
+}
+assert (W0_13: W0 1%nat 3%nat = W0 0%nat 2%nat).
+{
+    assert (W0 1%nat 3%nat = (U ⊗ I 2) 1%nat 3%nat). rewrite abgate_c. lca.
+    assert (W0 0%nat 2%nat = (U ⊗ I 2) 0%nat 2%nat). rewrite abgate_c. lca.
+    rewrite H, H0.
+    lca.
+}
+assert (W0_31: W0 3%nat 1%nat = W0 2%nat 0%nat).
+{
+    assert (W0 3%nat 1%nat = (U ⊗ I 2) 3%nat 1%nat). rewrite abgate_c. lca.
+    assert (W0 2%nat 0%nat = (U ⊗ I 2) 2%nat 0%nat). rewrite abgate_c. lca.
+    rewrite H, H0.
+    lca.
+}
+assert (W0_33: W0 3%nat 3%nat = W0 2%nat 2%nat).
+{
+    assert (W0 3%nat 3%nat = (U ⊗ I 2) 3%nat 3%nat). rewrite abgate_c. lca.
+    assert (W0 2%nat 2%nat = (U ⊗ I 2) 2%nat 2%nat). rewrite abgate_c. lca.
+    rewrite H, H0.
+    lca.
+}
+assert (W0_01: W0 0%nat 1%nat = 0).
+{
+    assert (W0 0%nat 1%nat = (U ⊗ I 2) 0%nat 1%nat). rewrite abgate_c. lca.
+    rewrite H. 
+    lca.
+}
+assert (W0_03: W0 0%nat 3%nat = 0).
+{
+    assert (W0 0%nat 3%nat = (U ⊗ I 2) 0%nat 3%nat). rewrite abgate_c. lca.
+    rewrite H. 
+    lca.
+}
+assert (W0_10: W0 1%nat 0%nat = 0).
+{
+    assert (W0 1%nat 0%nat = (U ⊗ I 2) 1%nat 0%nat). rewrite abgate_c. lca.
+    rewrite H. 
+    lca.
+}
+assert (W0_12: W0 1%nat 2%nat = 0).
+{
+    assert (W0 1%nat 2%nat = (U ⊗ I 2) 1%nat 2%nat). rewrite abgate_c. lca.
+    rewrite H. 
+    lca.
+}
+assert (W0_21: W0 2%nat 1%nat = 0).
+{
+    assert (W0 2%nat 1%nat = (U ⊗ I 2) 2%nat 1%nat). rewrite abgate_c. lca.
+    rewrite H. 
+    lca.
+}
+assert (W0_23: W0 2%nat 3%nat = 0).
+{
+    assert (W0 2%nat 3%nat = (U ⊗ I 2) 2%nat 3%nat). rewrite abgate_c. lca.
+    rewrite H. 
+    lca.
+}
+assert (W0_30: W0 3%nat 0%nat = 0).
+{
+    assert (W0 3%nat 0%nat = (U ⊗ I 2) 3%nat 0%nat). rewrite abgate_c. lca.
+    rewrite H. 
+    lca.
+}
+assert (W0_32: W0 3%nat 2%nat = 0).
+{
+    assert (W0 3%nat 2%nat = (U ⊗ I 2) 3%nat 2%nat). rewrite abgate_c. lca.
+    rewrite H. 
+    lca.
+}
+assert (P0_inv_00: (W0 0%nat 0%nat)^* * (W0 0%nat 0%nat) + (W0 2%nat 0%nat)^* * (W0 2%nat 0%nat) = 1).
+{
+    assert ((W0 0%nat 0%nat) ^* * W0 0%nat 0%nat + (W0 1%nat 0%nat) ^* * W0 1%nat 0%nat +
+    (W0 2%nat 0%nat) ^* * W0 2%nat 0%nat + (W0 3%nat 0%nat) ^* * W0 3%nat 0%nat = ((W0) † × W0) 0%nat 0%nat). lca.
+    rewrite W0_10 in H.
+    rewrite W0_30 in H.
+    rewrite Cmult_0_r in H.
+    do 2 rewrite Cplus_0_r in H.
+    rewrite H.
+    rewrite W0_inv.
+    lca.
+}
+assert (P0_inv_01: (W0 0%nat 0%nat)^* * (W0 0%nat 2%nat) + (W0 2%nat 0%nat)^* * (W0 2%nat 2%nat) = 0).
+{
+    assert ((W0 0%nat 0%nat) ^* * W0 0%nat 2%nat + (W0 1%nat 0%nat) ^* * W0 1%nat 2%nat +
+    (W0 2%nat 0%nat) ^* * W0 2%nat 2%nat + (W0 3%nat 0%nat) ^* * W0 3%nat 2%nat = ((W0) † × W0) 0%nat 2%nat). lca.
+    rewrite W0_10 in H.
+    rewrite W0_30 in H.
+    rewrite Cconj_0 in H.
+    do 2 rewrite Cmult_0_l in H.
+    do 2 rewrite Cplus_0_r in H.
+    rewrite H.
+    rewrite W0_inv.
+    lca.
+}
+assert (P0_inv_10: (W0 0%nat 2%nat)^* * (W0 0%nat 0%nat) + (W0 2%nat 2%nat)^* * (W0 2%nat 0%nat) = 0).
+{
+    assert ((W0 0%nat 2%nat) ^* * W0 0%nat 0%nat + (W0 1%nat 2%nat) ^* * W0 1%nat 0%nat +
+    (W0 2%nat 2%nat) ^* * W0 2%nat 0%nat + (W0 3%nat 2%nat) ^* * W0 3%nat 0%nat = ((W0) † × W0) 2%nat 0%nat). lca.
+    rewrite W0_10 in H.
+    rewrite W0_30 in H.
+    rewrite Cmult_0_r in H.
+    rewrite Cmult_0_r in H.
+    do 2 rewrite Cplus_0_r in H.
+    rewrite H.
+    rewrite W0_inv.
+    lca.
+}
+assert (P0_inv_11: (W0 0%nat 2%nat)^* * (W0 0%nat 2%nat) + (W0 2%nat 2%nat)^* * (W0 2%nat 2%nat) = 1).
+{
+    assert ((W0 0%nat 2%nat) ^* * W0 0%nat 2%nat + (W0 1%nat 2%nat) ^* * W0 1%nat 2%nat +
+    (W0 2%nat 2%nat) ^* * W0 2%nat 2%nat + (W0 3%nat 2%nat) ^* * W0 3%nat 2%nat = ((W0) † × W0) 2%nat 2%nat). lca.
+    rewrite W0_12 in H.
+    rewrite W0_32 in H.
+    rewrite Cmult_0_r in H.
+    do 2 rewrite Cplus_0_r in H.
+    rewrite H.
+    rewrite W0_inv.
+    lca.
+}
+set (P0 := (fun x y => match (x,y) with
+| (0,0) => W0 0%nat 0%nat
+| (0,1) => W0 0%nat 2%nat
+| (1,0) => W0 2%nat 0%nat
+| (1,1) => W0 2%nat 2%nat
+| _ => 0
+end) : Square 2).
+assert (WF_P0: WF_Matrix P0).
+{
+    unfold WF_Matrix.
+    intros.
+    unfold P0.
+    destruct H.
+    {
+        destruct x as [| x'].
+        contradict H. lia.
+        destruct x' as [|x].
+        contradict H. lia. reflexivity.
+    }
+    {
+        destruct x as [| x'].
+        destruct y as [|y']. contradict H. lia.
+        destruct y' as [|y]. contradict H. lia. reflexivity.
+        destruct x' as [|x].
+        destruct y as [|y']. contradict H. lia.
+        destruct y' as [|y]. contradict H. lia. reflexivity. reflexivity.
+    }
+}
+assert (P0_unitary: WF_Unitary P0).
+{
+    split. assumption.
+    lma'.
+    assert (unfold_help: ((P0) † × P0) 0%nat 0%nat = (P0 0%nat 0%nat) ^* * P0 0%nat 0%nat +
+    (P0 1%nat 0%nat) ^* * P0 1%nat 0%nat). lca.
+    rewrite unfold_help. unfold P0. rewrite P0_inv_00. lca.
+    assert (unfold_help: ((P0) † × P0) 0%nat 1%nat = (P0 0%nat 0%nat) ^* * P0 0%nat 1%nat +
+    (P0 1%nat 0%nat) ^* * P0 1%nat 1%nat). lca.
+    rewrite unfold_help. unfold P0. rewrite P0_inv_01. lca. 
+    assert (unfold_help: ((P0) † × P0) 1%nat 0%nat = (P0 0%nat 1%nat) ^* * P0 0%nat 0%nat +
+    (P0 1%nat 1%nat) ^* * P0 1%nat 0%nat). lca.
+    rewrite unfold_help. unfold P0. rewrite P0_inv_10. lca.
+    assert (unfold_help: ((P0) † × P0) 1%nat 1%nat = (P0 0%nat 1%nat) ^* * P0 0%nat 1%nat +
+    (P0 1%nat 1%nat) ^* * P0 1%nat 1%nat). lca.
+    rewrite unfold_help. unfold P0. rewrite P0_inv_11. lca. 
+}
+assert (P0_tens_W0: P0 ⊗ I 2 = W0).
+{
+    lma'.
+    unfold kron, P0. simpl. lca.
+    rewrite W0_01. lca.
+    unfold kron, P0. simpl. lca.
+    rewrite W0_03. lca.
+    rewrite W0_10. lca.
+    unfold kron, P0. simpl. rewrite W0_11. lca.
+    rewrite W0_12. lca.
+    unfold kron, P0. simpl. rewrite W0_13. lca.
+    unfold kron, P0. simpl. lca.
+    rewrite W0_21. lca.
+    unfold kron, P0. simpl. lca.
+    rewrite W0_23. lca.
+    rewrite W0_30. lca.
+    unfold kron, P0. simpl. rewrite W0_31. lca.
+    rewrite W0_32. lca.
+    unfold kron, P0. simpl. rewrite W0_33. lca.
+}
+assert (W1_11: W1 1%nat 1%nat = W1 0%nat 0%nat).
+{
+    assert (W1 1%nat 1%nat = (U ⊗ I 2) 5%nat 5%nat). rewrite abgate_c. lca.
+    assert (W1 0%nat 0%nat = (U ⊗ I 2) 4%nat 4%nat). rewrite abgate_c. lca.
+    rewrite H, H0.
+    lca.
+}
+assert (W1_13: W1 1%nat 3%nat = W1 0%nat 2%nat).
+{
+    assert (W1 1%nat 3%nat = (U ⊗ I 2) 5%nat 7%nat). rewrite abgate_c. lca.
+    assert (W1 0%nat 2%nat = (U ⊗ I 2) 4%nat 6%nat). rewrite abgate_c. lca.
+    rewrite H, H0.
+    lca.
+}
+assert (W1_31: W1 3%nat 1%nat = W1 2%nat 0%nat).
+{
+    assert (W1 3%nat 1%nat = (U ⊗ I 2) 7%nat 5%nat). rewrite abgate_c. lca.
+    assert (W1 2%nat 0%nat = (U ⊗ I 2) 6%nat 4%nat). rewrite abgate_c. lca.
+    rewrite H, H0.
+    lca.
+}
+assert (W1_33: W1 3%nat 3%nat = W1 2%nat 2%nat).
+{
+    assert (W1 3%nat 3%nat = (U ⊗ I 2) 7%nat 7%nat). rewrite abgate_c. lca.
+    assert (W1 2%nat 2%nat = (U ⊗ I 2) 6%nat 6%nat). rewrite abgate_c. lca.
+    rewrite H, H0.
+    lca.
+}
+assert (W1_01: W1 0%nat 1%nat = 0).
+{
+    assert (W1 0%nat 1%nat = (U ⊗ I 2) 4%nat 5%nat). rewrite abgate_c. lca.
+    rewrite H. 
+    lca.
+}
+assert (W1_03: W1 0%nat 3%nat = 0).
+{
+    assert (W1 0%nat 3%nat = (U ⊗ I 2) 4%nat 7%nat). rewrite abgate_c. lca.
+    rewrite H. 
+    lca.
+}
+assert (W1_10: W1 1%nat 0%nat = 0).
+{
+    assert (W1 1%nat 0%nat = (U ⊗ I 2) 5%nat 4%nat). rewrite abgate_c. lca.
+    rewrite H. 
+    lca.
+}
+assert (W1_12: W1 1%nat 2%nat = 0).
+{
+    assert (W1 1%nat 2%nat = (U ⊗ I 2) 5%nat 6%nat). rewrite abgate_c. lca.
+    rewrite H. 
+    lca.
+}
+assert (W1_21: W1 2%nat 1%nat = 0).
+{
+    assert (W1 2%nat 1%nat = (U ⊗ I 2) 6%nat 5%nat). rewrite abgate_c. lca.
+    rewrite H. 
+    lca.
+}
+assert (W1_23: W1 2%nat 3%nat = 0).
+{
+    assert (W1 2%nat 3%nat = (U ⊗ I 2) 6%nat 7%nat). rewrite abgate_c. lca.
+    rewrite H. 
+    lca.
+}
+assert (W1_30: W1 3%nat 0%nat = 0).
+{
+    assert (W1 3%nat 0%nat = (U ⊗ I 2) 7%nat 4%nat). rewrite abgate_c. lca.
+    rewrite H. 
+    lca.
+}
+assert (W1_32: W1 3%nat 2%nat = 0).
+{
+    assert (W1 3%nat 2%nat = (U ⊗ I 2) 7%nat 6%nat). rewrite abgate_c. lca.
+    rewrite H. 
+    lca.
+}
+assert (P1_inv_00: (W1 0%nat 0%nat)^* * (W1 0%nat 0%nat) + (W1 2%nat 0%nat)^* * (W1 2%nat 0%nat) = 1).
+{
+    assert ((W1 0%nat 0%nat) ^* * W1 0%nat 0%nat + (W1 1%nat 0%nat) ^* * W1 1%nat 0%nat +
+    (W1 2%nat 0%nat) ^* * W1 2%nat 0%nat + (W1 3%nat 0%nat) ^* * W1 3%nat 0%nat = ((W1) † × W1) 0%nat 0%nat). lca.
+    rewrite W1_10 in H.
+    rewrite W1_30 in H.
+    rewrite Cmult_0_r in H.
+    do 2 rewrite Cplus_0_r in H.
+    rewrite H.
+    rewrite W1_inv.
+    lca.
+}
+assert (P1_inv_01: (W1 0%nat 0%nat)^* * (W1 0%nat 2%nat) + (W1 2%nat 0%nat)^* * (W1 2%nat 2%nat) = 0).
+{
+    assert ((W1 0%nat 0%nat) ^* * W1 0%nat 2%nat + (W1 1%nat 0%nat) ^* * W1 1%nat 2%nat +
+    (W1 2%nat 0%nat) ^* * W1 2%nat 2%nat + (W1 3%nat 0%nat) ^* * W1 3%nat 2%nat = ((W1) † × W1) 0%nat 2%nat). lca.
+    rewrite W1_10 in H.
+    rewrite W1_30 in H.
+    rewrite Cconj_0 in H.
+    do 2 rewrite Cmult_0_l in H.
+    do 2 rewrite Cplus_0_r in H.
+    rewrite H.
+    rewrite W1_inv.
+    lca.
+}
+assert (P1_inv_10: (W1 0%nat 2%nat)^* * (W1 0%nat 0%nat) + (W1 2%nat 2%nat)^* * (W1 2%nat 0%nat) = 0).
+{
+    assert ((W1 0%nat 2%nat) ^* * W1 0%nat 0%nat + (W1 1%nat 2%nat) ^* * W1 1%nat 0%nat +
+    (W1 2%nat 2%nat) ^* * W1 2%nat 0%nat + (W1 3%nat 2%nat) ^* * W1 3%nat 0%nat = ((W1) † × W1) 2%nat 0%nat). lca.
+    rewrite W1_10 in H.
+    rewrite W1_30 in H.
+    rewrite Cmult_0_r in H.
+    rewrite Cmult_0_r in H.
+    do 2 rewrite Cplus_0_r in H.
+    rewrite H.
+    rewrite W1_inv.
+    lca.
+}
+assert (P1_inv_11: (W1 0%nat 2%nat)^* * (W1 0%nat 2%nat) + (W1 2%nat 2%nat)^* * (W1 2%nat 2%nat) = 1).
+{
+    assert ((W1 0%nat 2%nat) ^* * W1 0%nat 2%nat + (W1 1%nat 2%nat) ^* * W1 1%nat 2%nat +
+    (W1 2%nat 2%nat) ^* * W1 2%nat 2%nat + (W1 3%nat 2%nat) ^* * W1 3%nat 2%nat = ((W1) † × W1) 2%nat 2%nat). lca.
+    rewrite W1_12 in H.
+    rewrite W1_32 in H.
+    rewrite Cmult_0_r in H.
+    do 2 rewrite Cplus_0_r in H.
+    rewrite H.
+    rewrite W1_inv.
+    lca.
+}
+set (P1 := (fun x y => match (x,y) with
+| (0,0) => W1 0%nat 0%nat
+| (0,1) => W1 0%nat 2%nat
+| (1,0) => W1 2%nat 0%nat
+| (1,1) => W1 2%nat 2%nat
+| _ => 0
+end) : Square 2).
+assert (WF_P1: WF_Matrix P1).
+{
+    unfold WF_Matrix.
+    intros.
+    unfold P1.
+    destruct H.
+    {
+        destruct x as [| x'].
+        contradict H. lia.
+        destruct x' as [|x].
+        contradict H. lia. reflexivity.
+    }
+    {
+        destruct x as [| x'].
+        destruct y as [|y']. contradict H. lia.
+        destruct y' as [|y]. contradict H. lia. reflexivity.
+        destruct x' as [|x].
+        destruct y as [|y']. contradict H. lia.
+        destruct y' as [|y]. contradict H. lia. reflexivity. reflexivity.
+    }
+}
+assert (P1_unitary: WF_Unitary P1).
+{
+    split. assumption.
+    lma'.
+    assert (unfold_help: ((P1) † × P1) 0%nat 0%nat = (P1 0%nat 0%nat) ^* * P1 0%nat 0%nat +
+    (P1 1%nat 0%nat) ^* * P1 1%nat 0%nat). lca.
+    rewrite unfold_help. unfold P1. rewrite P1_inv_00. lca.
+    assert (unfold_help: ((P1) † × P1) 0%nat 1%nat = (P1 0%nat 0%nat) ^* * P1 0%nat 1%nat +
+    (P1 1%nat 0%nat) ^* * P1 1%nat 1%nat). lca.
+    rewrite unfold_help. unfold P1. rewrite P1_inv_01. lca. 
+    assert (unfold_help: ((P1) † × P1) 1%nat 0%nat = (P1 0%nat 1%nat) ^* * P1 0%nat 0%nat +
+    (P1 1%nat 1%nat) ^* * P1 1%nat 0%nat). lca.
+    rewrite unfold_help. unfold P1. rewrite P1_inv_10. lca.
+    assert (unfold_help: ((P1) † × P1) 1%nat 1%nat = (P1 0%nat 1%nat) ^* * P1 0%nat 1%nat +
+    (P1 1%nat 1%nat) ^* * P1 1%nat 1%nat). lca.
+    rewrite unfold_help. unfold P1. rewrite P1_inv_11. lca. 
+}
+assert (P1_tens_W1: P1 ⊗ I 2 = W1).
+{
+    lma'.
+    unfold kron, P1. simpl. lca.
+    rewrite W1_01. lca.
+    unfold kron, P1. simpl. lca.
+    rewrite W1_03. lca.
+    rewrite W1_10. lca.
+    unfold kron, P1. simpl. rewrite W1_11. lca.
+    rewrite W1_12. lca.
+    unfold kron, P1. simpl. rewrite W1_13. lca.
+    unfold kron, P1. simpl. lca.
+    rewrite W1_21. lca.
+    unfold kron, P1. simpl. lca.
+    rewrite W1_23. lca.
+    rewrite W1_30. lca.
+    unfold kron, P1. simpl. rewrite W1_31. lca.
+    rewrite W1_32. lca.
+    unfold kron, P1. simpl. rewrite W1_33. lca.
+}
+exists P0, P1.
+split. assumption.
+split. assumption.
+rewrite kron_assoc. 2,3,4: solve_WF_matrix.
+rewrite kron_assoc. 2,3,4: solve_WF_matrix.
+rewrite P0_tens_W0. rewrite P1_tens_W1.
+apply abgate_c.
+Qed.
+
+
 Lemma a24: forall (U V W00 W11 : Square 4), 
 WF_Unitary U -> WF_Unitary V -> WF_Unitary W00 -> WF_Unitary W11 -> 
 acgate U × acgate V = ∣0⟩⟨0∣ ⊗ W00 .+ ∣1⟩⟨1∣ ⊗ W11 -> 
