@@ -1172,6 +1172,59 @@ rewrite P0_tens_W0. rewrite P1_tens_W1.
 apply abgate_c.
 Qed.
 
+Lemma acgate_control: forall (U W0 W1: Square 4), 
+WF_Unitary U -> WF_Unitary W0 -> WF_Unitary W1 -> 
+acgate U = ∣0⟩⟨0∣ ⊗ W0 .+ ∣1⟩⟨1∣ ⊗ W1 ->
+exists (P0 P1: Square 2), WF_Unitary P0 /\ WF_Unitary P1 /\
+acgate U = ∣0⟩⟨0∣ ⊗ I 2 ⊗ P0 .+ ∣1⟩⟨1∣ ⊗ I 2 ⊗ P1.
+Proof.
+intros U W0 W1 U_unitary W0_unitary W1_unitary acgate_c.
+assert (temp: WF_Unitary U). assumption.
+destruct temp as [WF_U U_inv].
+unfold acgate in acgate_c.
+apply (f_equal (fun f => swapbc × f)) in acgate_c.
+repeat rewrite <- Mmult_assoc in acgate_c.
+rewrite swapbc_inverse in acgate_c. rewrite Mmult_1_l in acgate_c. 2: apply WF_abgate; solve_WF_matrix.
+rewrite Mmult_plus_distr_l in acgate_c.
+unfold swapbc in acgate_c at 2. rewrite kron_mixed_product in acgate_c.
+unfold swapbc in acgate_c at 2. rewrite kron_mixed_product in acgate_c.
+rewrite Mmult_1_l in acgate_c. 2: solve_WF_matrix.
+rewrite Mmult_1_l in acgate_c. 2: solve_WF_matrix.
+apply (f_equal (fun f => f × swapbc)) in acgate_c.
+rewrite Mmult_assoc in acgate_c.
+rewrite swapbc_inverse in acgate_c at 1. rewrite Mmult_1_r in acgate_c. 2: apply WF_abgate; solve_WF_matrix.
+rewrite Mmult_plus_distr_r in acgate_c.
+unfold swapbc in acgate_c at 2. rewrite kron_mixed_product in acgate_c.
+unfold swapbc in acgate_c at 1. rewrite kron_mixed_product in acgate_c.
+rewrite Mmult_1_r in acgate_c. 2: solve_WF_matrix.
+rewrite Mmult_1_r in acgate_c. 2: solve_WF_matrix.
+assert (swapW0_unit: WF_Unitary (swap × W0 × swap)). 
+{
+    apply Mmult_unitary. apply Mmult_unitary.
+    apply swap_unitary. assumption. apply swap_unitary.
+}
+assert (swapW1_unit: WF_Unitary (swap × W1 × swap)). 
+{
+    apply Mmult_unitary. apply Mmult_unitary.
+    apply swap_unitary. assumption. apply swap_unitary.
+}
+assert (abgate_control_partial := abgate_control U (swap × W0 × swap) (swap × W1 × swap) U_unitary
+swapW0_unit swapW1_unit acgate_c).
+destruct abgate_control_partial as [P0 [P1 [P0_unitary [P1_unitary abgate_prop]]]].
+exists P0,P1.
+split. assumption.
+split. assumption.
+unfold acgate.
+rewrite abgate_prop.
+destruct P0_unitary as [WF_P0 P0_inv].
+destruct P1_unitary as [WF_P1 P1_inv].
+rewrite Mmult_plus_distr_l.
+rewrite Mmult_plus_distr_r.
+rewrite swapbc_3gate. 2,3,4: solve_WF_matrix.
+rewrite swapbc_3gate. 2,3,4: solve_WF_matrix.
+reflexivity.
+Qed.
+
 
 Lemma a24: forall (U V W00 W11 : Square 4), 
 WF_Unitary U -> WF_Unitary V -> WF_Unitary W00 -> WF_Unitary W11 -> 
