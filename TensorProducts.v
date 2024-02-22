@@ -1390,6 +1390,16 @@ rewrite swapbc_3gate. 2,3,4: solve_WF_matrix.
 reflexivity.
 Qed.
 
+Lemma abgate_0prop_topright_0block: forall (U: Square 4), 
+WF_Unitary U -> (exists (y: Vector 2), WF_Matrix y /\ 
+forall (x : Vector 2), WF_Matrix x -> (exists (phi: Vector 4), 
+(abgate U) × (∣0⟩ ⊗ x ⊗ y)  =  ∣0⟩ ⊗ phi)) -> exists (TL BL BR: Square 4), 
+abgate U = ∣0⟩⟨0∣ ⊗ TL .+ ∣1⟩⟨0∣ ⊗ BL .+ ∣1⟩⟨1∣ ⊗ BR.
+Proof.
+intros U U_unitary zeropassthrough.
+destruct zeropassthrough as [y [WF_y zeropassthrough]].
+Admitted.
+
 
 Lemma a24: forall (U V W00 W11 : Square 4), 
 WF_Unitary U -> WF_Unitary V -> WF_Unitary W00 -> WF_Unitary W11 -> 

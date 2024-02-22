@@ -167,7 +167,8 @@ do 2 rewrite Mplus_0_r in V3_way1.
 do 2 rewrite Mplus_assoc in V3_way1. rewrite Mplus_comm with (A:= ∣1⟩⟨1∣
 ⊗ ((V2) † × (I 2 ⊗ (P1) †) × U1 × (V4) †)) in V3_way1.
 repeat rewrite <- Mplus_assoc in V3_way1.
-assert (v3_decomp:= block_decomp_4 V3 WF_v3).
+assert (ne20: 2%nat <> 0%nat). lia.
+assert (v3_decomp:= @block_decomp_general 2 V3 ne20 WF_v3).
 destruct v3_decomp as [Q00 [Q01 [Q10 [Q11 [WF_Q00 [WF_Q01 [WF_Q10 [WF_Q11 v3_decomp]]]]]]]].
 assert (V3_way2: acgate V3 = swapbc × abgate V3 × swapbc). unfold acgate. reflexivity.
 unfold abgate in V3_way2.

@@ -1212,130 +1212,158 @@ rewrite <- Cconj_0.
 apply Cconj_simplify. do 2 rewrite Cconj_involutive. assumption.
 Qed.
 
-Lemma block_decomp_4: forall (U: Square 4), WF_Matrix U ->
-exists (P00 P01 P10 P11: Square 2), 
-WF_Matrix P00 /\ WF_Matrix P01 /\ WF_Matrix P10 /\ WF_Matrix P11 /\
-U = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11.
+Lemma block_decomp_general {n}: forall (U: Square (2*n)), n <> 0%nat -> WF_Matrix U -> 
+exists (TL TR BL BR : Square n), 
+WF_Matrix TL /\ WF_Matrix TR /\ WF_Matrix BL /\ WF_Matrix BR /\
+U = ∣0⟩⟨0∣ ⊗ TL .+ ∣0⟩⟨1∣ ⊗ TR .+ ∣1⟩⟨0∣ ⊗ BL .+ ∣1⟩⟨1∣ ⊗ BR.
 Proof.
-intros U WF_U.
-set (P00 := (fun x y =>
-match (x,y) with
-| (0,0) => (U 0 0)%nat
-| (0,1) => (U 0 1)%nat
-| (1,0) => (U 1 0)%nat
-| (1,1) => (U 1 1)%nat
-| _ => C0
-end) : (Square 2)).
-set (P01 := (fun x y =>
-match (x,y) with
-| (0,0) => (U 0 2)%nat
-| (0,1) => (U 0 3)%nat
-| (1,0) => (U 1 2)%nat
-| (1,1) => (U 1 3)%nat
-| _ => C0
-end) : (Square 2)).
-set (P10 := (fun x y =>
-match (x,y) with
-| (0,0) => (U 2 0)%nat
-| (0,1) => (U 2 1)%nat
-| (1,0) => (U 3 0)%nat
-| (1,1) => (U 3 1)%nat
-| _ => C0
-end) : (Square 2)).
-set (P11 := (fun x y =>
-match (x,y) with
-| (0,0) => (U 2 2)%nat
-| (0,1) => (U 2 3)%nat
-| (1,0) => (U 3 2)%nat
-| (1,1) => (U 3 3)%nat
-| _ => C0
-end) : (Square 2)).
-exists P00, P01, P10, P11.
-assert (WF_P00: WF_Matrix P00). 
+intros U nn0 WF_U.
+set (TL := (fun x y => if (x <? n) && (y <? n) then U x y else 0 ): Square n).
+assert (WF_TL: WF_Matrix TL).
 {
-    unfold WF_Matrix. intros.
-    unfold P00.
-    destruct H.
-    destruct x as [|x']. contradict H. lia.
-    destruct x' as [| x'']. contradict H. lia. 
-    reflexivity.
-    destruct x as [|x'].
-    destruct y as [|y']. contradict H. lia.
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    destruct x' as [| x''].
-    destruct y as [| y']. contradict H. lia. 
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    reflexivity.
+  unfold WF_Matrix.
+  intros.
+  unfold TL.
+  destruct H.
+  replace (x <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
+  rewrite andb_false_l. reflexivity.
+  replace (y <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
+  rewrite andb_false_r. reflexivity.
 }
-split. assumption.
-assert (WF_P01: WF_Matrix P01). 
+set (TR := (fun x y => if (x <? n) && (y <? n) then U x (y+n)%nat else 0 ): Square n).
+assert (WF_TR: WF_Matrix TR).
 {
-    unfold WF_Matrix. intros.
-    unfold P01.
-    destruct H.
-    destruct x as [|x']. contradict H. lia.
-    destruct x' as [| x'']. contradict H. lia. 
-    reflexivity.
-    destruct x as [|x'].
-    destruct y as [|y']. contradict H. lia.
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    destruct x' as [| x''].
-    destruct y as [| y']. contradict H. lia. 
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    reflexivity.
+  unfold WF_Matrix.
+  intros.
+  unfold TR.
+  destruct H.
+  replace (x <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
+  rewrite andb_false_l. reflexivity.
+  replace (y <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
+  rewrite andb_false_r. reflexivity.
 }
-split. assumption.
-assert (WF_P10: WF_Matrix P10). 
+set (BL := (fun x y => if (x <? n) && (y <? n) then U (x+n)%nat y else 0 ): Square n).
+assert (WF_BL: WF_Matrix BL).
 {
-    unfold WF_Matrix. intros.
-    unfold P10.
-    destruct H.
-    destruct x as [|x']. contradict H. lia.
-    destruct x' as [| x'']. contradict H. lia. 
-    reflexivity.
-    destruct x as [|x'].
-    destruct y as [|y']. contradict H. lia.
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    destruct x' as [| x''].
-    destruct y as [| y']. contradict H. lia. 
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    reflexivity.
+  unfold WF_Matrix.
+  intros.
+  unfold BL.
+  destruct H.
+  replace (x <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
+  rewrite andb_false_l. reflexivity.
+  replace (y <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
+  rewrite andb_false_r. reflexivity.
 }
-split. assumption.
-assert (WF_P11: WF_Matrix P11). 
+set (BR := (fun x y => if (x <? n) && (y <? n) then U (x+n)%nat (y+n)%nat else 0 ): Square n).
+assert (WF_BR: WF_Matrix BR).
 {
-    unfold WF_Matrix. intros.
-    unfold P11.
-    destruct H.
-    destruct x as [|x']. contradict H. lia.
-    destruct x' as [| x'']. contradict H. lia. 
-    reflexivity.
-    destruct x as [|x'].
-    destruct y as [|y']. contradict H. lia.
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    destruct x' as [| x''].
-    destruct y as [| y']. contradict H. lia. 
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    reflexivity.
+  unfold WF_Matrix.
+  intros.
+  unfold BR.
+  destruct H.
+  replace (x <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
+  rewrite andb_false_l. reflexivity.
+  replace (y <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
+  rewrite andb_false_r. reflexivity.
 }
+exists TL, TR, BL, BR.
+split. assumption. 
+split. assumption. 
+split. assumption. 
 split. assumption.
-lma'. apply (@WF_blockmatrix 2). 1,2,3,4: assumption.
-all: unfold Mplus, kron, "∣0⟩⟨0∣", "∣0⟩⟨1∣", "∣1⟩⟨0∣", "∣1⟩⟨1∣", Mmult, adjoint.
-all: simpl.
-all: Csimpl.
-1,2,5,6: unfold P00.
-5,6,7,8: unfold P01.
-9,10,13,14: unfold P10.
-13,14,15,16: unfold P11.
-all: lca.
+assert (WF_block: WF_Matrix (∣0⟩⟨0∣ ⊗ TL .+ ∣0⟩⟨1∣ ⊗ TR .+ ∣1⟩⟨0∣ ⊗ BL .+ ∣1⟩⟨1∣ ⊗ BR)).
+{
+  apply WF_blockmatrix. all: assumption.
+}
+prep_matrix_equality.
+destruct (le_lt_dec (n*2)%nat x). rewrite WF_block. rewrite WF_U. reflexivity. left. lia. left. lia.
+destruct (le_lt_dec (n*2)%nat y). rewrite WF_block. rewrite WF_U. reflexivity. right. lia. right. lia.
+assert (xsubbound : (x - n < n)%nat). lia.
+assert (ysubbount : (y - n < n)%nat). lia.
+repeat rewrite Mplus_access.
+destruct (le_lt_dec n x).
+{
+  destruct (le_lt_dec n y).
+  {
+    rewrite upper_left_block_nonentries.
+    rewrite upper_right_block_nonentries.
+    rewrite lower_left_block_nonentries.
+    rewrite lower_right_block_entries.
+    Csimpl.
+    unfold BR.
+    replace (x - n <? n) with true.
+    replace (y - n <? n) with true.
+    simpl.
+    replace (x - n + n)%nat with x by lia.
+    replace (y - n + n)%nat with y by lia.
+    reflexivity.
+    1,2: symmetry; rewrite Nat.ltb_lt; assumption.
+    1,2,4,5,7,8,10,11: assumption.
+    split. lia. lia. 
+    right. lia. 
+    left. lia.
+    right. lia.
+  } 
+  {
+    rewrite upper_left_block_nonentries.
+    rewrite upper_right_block_nonentries.
+    rewrite lower_left_block_entries.
+    rewrite lower_right_block_nonentries.
+    Csimpl.
+    unfold BL.
+    replace (x - n <? n) with true.
+    replace (y <? n) with true.
+    simpl.
+    replace (x - n + n)%nat with x by lia.
+    reflexivity.
+    1,2: symmetry; rewrite Nat.ltb_lt; assumption.
+    1,2,4,5,7,8,10,11: assumption.
+    right. lia. 
+    split. lia. lia. 
+    right. lia.
+    left. lia.
+  }
+}
+{
+  destruct (le_lt_dec n y).
+  {
+    rewrite upper_left_block_nonentries.
+    rewrite upper_right_block_entries.
+    rewrite lower_left_block_nonentries.
+    rewrite lower_right_block_nonentries.
+    Csimpl.
+    unfold TR.
+    replace (x <? n) with true.
+    replace (y - n <? n) with true.
+    simpl.
+    replace (y - n + n)%nat with y by lia.
+    reflexivity.
+    1,2: symmetry; rewrite Nat.ltb_lt; assumption.
+    1,2,4,5,7,8,10,11: assumption. 
+    left. lia. 
+    left. lia.
+    split. lia. lia.
+    right. lia.
+  } 
+  {
+    rewrite upper_left_block_entries.
+    rewrite upper_right_block_nonentries.
+    rewrite lower_left_block_nonentries.
+    rewrite lower_right_block_nonentries.
+    Csimpl.
+    unfold TL.
+    replace (x <? n) with true.
+    replace (y <? n) with true.
+    simpl.
+    reflexivity.
+    1,2: symmetry; rewrite Nat.ltb_lt; assumption.
+    1,2,4,5,7,8: assumption.
+    right. lia. 
+    left. lia.
+    right. lia.
+    split. lia. lia. 
+  }
+}
 Qed.
 
 Lemma element_equiv_vec_element {m n}: forall (A: Matrix m n), 
