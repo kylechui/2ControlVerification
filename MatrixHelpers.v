@@ -1212,6 +1212,160 @@ rewrite <- Cconj_0.
 apply Cconj_simplify. do 2 rewrite Cconj_involutive. assumption.
 Qed.
 
+Lemma block_decomp_general {n}: forall (U: Square (2*n)), n <> 0%nat -> WF_Matrix U -> 
+exists (TL TR BL BR : Square n), 
+WF_Matrix TL /\ WF_Matrix TR /\ WF_Matrix BL /\ WF_Matrix BR /\
+U = ∣0⟩⟨0∣ ⊗ TL .+ ∣0⟩⟨1∣ ⊗ TR .+ ∣1⟩⟨0∣ ⊗ BL .+ ∣1⟩⟨1∣ ⊗ BR.
+Proof.
+intros U nn0 WF_U.
+set (TL := (fun x y => if (x <? n) && (y <? n) then U x y else 0 ): Square n).
+assert (WF_TL: WF_Matrix TL).
+{
+  unfold WF_Matrix.
+  intros.
+  unfold TL.
+  destruct H.
+  replace (x <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
+rewrite andb_false_l. reflexivity.
+  replace (y <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
+  rewrite andb_false_r. reflexivity.
+}
+set (TR := (fun x y => if (x <? n) && (y <? n) then U x (y+n)%nat else 0 ): Square n).
+assert (WF_TR: WF_Matrix TR).
+{
+  unfold WF_Matrix.
+  intros.
+  unfold TR.
+  destruct H.
+  replace (x <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
+  rewrite andb_false_l. reflexivity.
+  replace (y <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
+  rewrite andb_false_r. reflexivity.
+}
+set (BL := (fun x y => if (x <? n) && (y <? n) then U (x+n)%nat y else 0 ): Square n).
+assert (WF_BL: WF_Matrix BL).
+{
+  unfold WF_Matrix.
+  intros.
+  unfold BL.
+  destruct H.
+  replace (x <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
+  rewrite andb_false_l. reflexivity.
+  replace (y <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
+  rewrite andb_false_r. reflexivity.
+}
+set (BR := (fun x y => if (x <? n) && (y <? n) then U (x+n)%nat (y+n)%nat else 0 ): Square n).
+assert (WF_BR: WF_Matrix BR).
+{
+  unfold WF_Matrix.
+  intros.
+  unfold BR.
+  destruct H.
+  replace (x <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
+  rewrite andb_false_l. reflexivity.
+  replace (y <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
+  rewrite andb_false_r. reflexivity.
+}
+exists TL, TR, BL, BR.
+split. assumption. 
+split. assumption. 
+split. assumption. 
+split. assumption.
+assert (WF_block: WF_Matrix (∣0⟩⟨0∣ ⊗ TL .+ ∣0⟩⟨1∣ ⊗ TR .+ ∣1⟩⟨0∣ ⊗ BL .+ ∣1⟩⟨1∣ ⊗ BR)).
+{
+  apply WF_blockmatrix. all: assumption.
+}
+prep_matrix_equality.
+destruct (le_lt_dec (n*2)%nat x). rewrite WF_block. rewrite WF_U. reflexivity. left. lia. left. lia.
+destruct (le_lt_dec (n*2)%nat y). rewrite WF_block. rewrite WF_U. reflexivity. right. lia. right. lia.
+assert (xsubbound : (x - n < n)%nat). lia.
+assert (ysubbount : (y - n < n)%nat). lia.
+repeat rewrite Mplus_access.
+destruct (le_lt_dec n x).
+{
+  destruct (le_lt_dec n y).
+  {
+    rewrite upper_left_block_nonentries.
+    rewrite upper_right_block_nonentries.
+    rewrite lower_left_block_nonentries.
+    rewrite lower_right_block_entries.
+    Csimpl.
+    unfold BR.
+    replace (x - n <? n) with true.
+    replace (y - n <? n) with true.
+    simpl.
+    replace (x - n + n)%nat with x by lia.
+    replace (y - n + n)%nat with y by lia.
+    reflexivity.
+    1,2: symmetry; rewrite Nat.ltb_lt; assumption.
+    1,2,4,5,7,8,10,11: assumption.
+    split. lia. lia. 
+    right. lia. 
+    left. lia.
+    right. lia.
+  } 
+  {
+    rewrite upper_left_block_nonentries.
+    rewrite upper_right_block_nonentries.
+    rewrite lower_left_block_entries.
+    rewrite lower_right_block_nonentries.
+    Csimpl.
+    unfold BL.
+    replace (x - n <? n) with true.
+    replace (y <? n) with true.
+    simpl.
+    replace (x - n + n)%nat with x by lia.
+    reflexivity.
+    1,2: symmetry; rewrite Nat.ltb_lt; assumption.
+    1,2,4,5,7,8,10,11: assumption.
+    right. lia. 
+    split. lia. lia. 
+    right. lia.
+    left. lia.
+  }
+}
+{
+  destruct (le_lt_dec n y).
+  {
+    rewrite upper_left_block_nonentries.
+    rewrite upper_right_block_entries.
+    rewrite lower_left_block_nonentries.
+    rewrite lower_right_block_nonentries.
+    Csimpl.
+    unfold TR.
+    replace (x <? n) with true.
+    replace (y - n <? n) with true.
+    simpl.
+    replace (y - n + n)%nat with y by lia.
+    reflexivity.
+    1,2: symmetry; rewrite Nat.ltb_lt; assumption.
+    1,2,4,5,7,8,10,11: assumption. 
+    left. lia. 
+    left. lia.
+    split. lia. lia.
+    right. lia.
+  } 
+  {
+    rewrite upper_left_block_entries.
+    rewrite upper_right_block_nonentries.
+    rewrite lower_left_block_nonentries.
+    rewrite lower_right_block_nonentries.
+    Csimpl.
+    unfold TL.
+    replace (x <? n) with true.
+    replace (y <? n) with true.
+    simpl.
+    reflexivity.
+    1,2: symmetry; rewrite Nat.ltb_lt; assumption.
+    1,2,4,5,7,8: assumption.
+    right. lia. 
+    left. lia.
+    right. lia.
+    split. lia. lia. 
+  }
+}
+Qed.
+
 Lemma block_decomp_4: forall (U: Square 4), WF_Matrix U ->
 exists (P00 P01 P10 P11: Square 2), 
 WF_Matrix P00 /\ WF_Matrix P01 /\ WF_Matrix P10 /\ WF_Matrix P11 /\
