@@ -2609,6 +2609,165 @@ apply cntrps_premise.
 apply onepassthrough.
 Qed.
 
+Lemma abgate_diagblock: forall (U: Square 4), 
+WF_Unitary U -> (exists (y: Vector 2), WF_Qubit y /\ 
+forall (x : Vector 2), WF_Qubit x -> (exists (phi: Vector 4), WF_Matrix phi /\
+(abgate U) × (∣0⟩ ⊗ x ⊗ y)  =  ∣0⟩ ⊗ phi)) -> (exists (y: Vector 2), WF_Qubit y /\ 
+forall (x : Vector 2), WF_Qubit x -> (exists (phi: Vector 4), WF_Matrix phi /\
+(abgate U) × (∣1⟩ ⊗ x ⊗ y)  =  ∣1⟩ ⊗ phi)) ->
+exists (TL BR: Square 4), WF_Unitary TL /\ WF_Unitary BR /\
+abgate U = ∣0⟩⟨0∣ ⊗ TL .+ ∣1⟩⟨1∣ ⊗ BR.
+Proof.
+intros U U_unitary zeropassthrough onepassthrough.
+assert (zpass_decomp:= abgate_0prop_bottomleft_0block U U_unitary zeropassthrough).
+destruct zpass_decomp as [TL0 [TR0 [BR0 [WF_TL0 [WF_TR0 [WF_BR0 zpass_decomp]]]]]].
+assert (opass_decomp:= abgate_1prop_topright_0block U U_unitary onepassthrough).
+destruct opass_decomp as [TL1 [BL1 [BR1 [WF_TL1 [WF_BL1 [WF_BR1 opass_decomp]]]]]].
+replace (∣0⟩⟨0∣ ⊗ TL0 .+ ∣0⟩⟨1∣ ⊗ TR0 .+ ∣1⟩⟨1∣ ⊗ BR0) with
+(∣0⟩⟨0∣ ⊗ TL0 .+ ∣0⟩⟨1∣ ⊗ TR0 .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ BR0) in zpass_decomp.
+2: rewrite kron_0_r; rewrite Mplus_0_r; reflexivity.
+replace (∣0⟩⟨0∣ ⊗ TL1 .+ ∣1⟩⟨0∣ ⊗ BL1 .+ ∣1⟩⟨1∣ ⊗ BR1) with
+(∣0⟩⟨0∣ ⊗ TL1 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ BL1 .+ ∣1⟩⟨1∣ ⊗ BR1) in opass_decomp.
+2: rewrite kron_0_r; rewrite Mplus_0_r; reflexivity.
+assert (neq40: 4%nat <> 0%nat). lia.
+assert (self_eq: abgate U = abgate U). reflexivity.
+assert (block_eq:= @block_equalities_general 4 (abgate U) (abgate U) TL0 TR0 Zero BR0 TL1 Zero BL1 BR1
+neq40 WF_TL0 WF_TR0 (@WF_Zero 4 4) WF_BR0 WF_TL1 (@WF_Zero 4 4) WF_BL1 WF_BR1 zpass_decomp opass_decomp self_eq).
+clear self_eq.
+destruct block_eq as [_ [TR0_0 [_ _]]].
+assert (abgate_partial_decomp: abgate U =  ∣0⟩⟨0∣ ⊗ TL0 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ BR0).
+{
+    rewrite zpass_decomp.
+    rewrite TR0_0.
+    repeat rewrite kron_0_r.
+    repeat rewrite Mplus_0_r.
+    reflexivity.   
+}
+assert (abgate_U_unitary: WF_Unitary (abgate U)). apply abgate_unitary; assumption.
+destruct abgate_U_unitary as [WF_abU abU_inv].
+replace (I (4 * 2)) with (∣0⟩⟨0∣ ⊗ I 4 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ I 4) in abU_inv.
+2: lma'; solve_WF_matrix.
+assert (block_mult_partial := @block_multiply 4 (abgate U) † (abgate U) TL0† Zero Zero BR0†
+TL0 Zero Zero BR0).
+assert (block_mult: (abgate U) † × abgate U = ∣0⟩⟨0∣ ⊗ ((TL0) † × TL0 .+ (@Zero 4 4) × (@Zero 4 4))
+.+ ∣0⟩⟨1∣ ⊗ ((TL0) † × (@Zero 4 4) .+ (@Zero 4 4) × BR0)
+.+ ∣1⟩⟨0∣ ⊗ ((@Zero 4 4) × TL0 .+ (BR0) † × (@Zero 4 4))
+.+ ∣1⟩⟨1∣ ⊗ ((@Zero 4 4) × (@Zero 4 4) .+ (BR0) † × BR0)).
+{
+    apply block_mult_partial.
+    1,2,3,4,5,6,7,8: solve_WF_matrix.
+    rewrite abgate_partial_decomp.
+    repeat rewrite Mplus_adjoint.
+    repeat rewrite kron_adjoint.
+    rewrite adjoint00, adjoint01, adjoint10, adjoint11.
+    rewrite zero_adjoint_eq.
+    repeat rewrite kron_0_r.
+    repeat rewrite Mplus_0_r.
+    reflexivity.
+    apply abgate_partial_decomp.
+}
+clear block_mult_partial.
+repeat rewrite Mmult_0_r in block_mult.
+repeat rewrite Mmult_0_l in block_mult.
+repeat rewrite Mplus_0_r in block_mult.
+repeat rewrite Mplus_0_l in block_mult.
+assert (WF_TL0_inv: WF_Matrix ((TL0) † × TL0)). solve_WF_matrix.
+assert (WF_BR0_inv: WF_Matrix ((BR0) † × BR0)). solve_WF_matrix.
+assert (self_eq: (abgate U) † × abgate U = (abgate U) † × abgate U). reflexivity.
+assert (block_eq:= @block_equalities_general 4%nat ((abgate U) † × abgate U) ((abgate U) † × abgate U) 
+((TL0) † × TL0) Zero Zero ((BR0) † × BR0) (I 4) Zero Zero (I 4) neq40 
+WF_TL0_inv (@WF_Zero 4 4) (@WF_Zero 4 4) WF_BR0_inv
+(@WF_I 4) (@WF_Zero 4 4) (@WF_Zero 4 4) (@WF_I 4) block_mult abU_inv self_eq).
+destruct block_eq as [TL0_inv [_ [_ BR0_inv]]].
+exists TL0, BR0.
+split. split. 1,2: assumption.
+split. split. 1,2: assumption.
+rewrite abgate_partial_decomp.
+repeat rewrite kron_0_r.
+repeat rewrite Mplus_0_r.
+reflexivity.
+Qed.
+
+Lemma acgate_diagblock: forall (U: Square 4), 
+WF_Unitary U -> (exists (x: Vector 2), WF_Qubit x /\ 
+forall (y : Vector 2), WF_Qubit y -> (exists (phi: Vector 4), WF_Matrix phi /\
+(acgate U) × (∣0⟩ ⊗ x ⊗ y)  =  ∣0⟩ ⊗ phi)) -> (exists (x: Vector 2), WF_Qubit x /\ 
+forall (y : Vector 2), WF_Qubit y -> (exists (phi: Vector 4), WF_Matrix phi /\
+(acgate U) × (∣1⟩ ⊗ x ⊗ y)  =  ∣1⟩ ⊗ phi)) ->
+exists (TL BR: Square 4), WF_Unitary TL /\ WF_Unitary BR /\
+acgate U = ∣0⟩⟨0∣ ⊗ TL .+ ∣1⟩⟨1∣ ⊗ BR.
+Proof.
+intros U U_unitary zeropassthrough onepassthrough.
+assert (goal_change: (exists TL BR : Square 4,
+WF_Unitary TL /\ WF_Unitary BR /\ abgate U = ∣0⟩⟨0∣ ⊗ TL .+ ∣1⟩⟨1∣ ⊗ BR) -> 
+exists TL BR : Square 4, WF_Unitary TL /\ WF_Unitary BR /\
+acgate U = ∣0⟩⟨0∣ ⊗ TL .+ ∣1⟩⟨1∣ ⊗ BR).
+{
+    intros.
+    destruct H as [TLs [BRs [TLs_unitary [BRs_unitary abs]]]].
+    exists (swap × TLs × swap), (swap × BRs × swap).
+    split. apply Mmult_unitary. apply Mmult_unitary. 1,3: apply swap_unitary. assumption.
+    split. apply Mmult_unitary. apply Mmult_unitary. 1,3: apply swap_unitary. assumption.
+    unfold acgate.
+    rewrite abs.
+    unfold swapbc.
+    rewrite Mmult_plus_distr_l.
+    repeat rewrite kron_mixed_product.
+    repeat rewrite Mmult_1_l. 2,3: solve_WF_matrix.
+    rewrite Mmult_plus_distr_r.
+    repeat rewrite kron_mixed_product.
+    repeat rewrite Mmult_1_r. 2,3: solve_WF_matrix.
+    reflexivity.
+}
+apply goal_change.
+apply abgate_diagblock.
+assumption.
+{
+    destruct zeropassthrough as [x [x_qubit zeropassthrough]].
+    exists x.
+    split. assumption.
+    intros y y_qubit.
+    specialize (zeropassthrough y y_qubit).
+    destruct zeropassthrough as [phis [WF_phis zeropassthrough]].
+    exists (swap × phis).
+    split. solve_WF_matrix.
+    unfold acgate in zeropassthrough.
+    apply (f_equal (fun f => swapbc × f)) in zeropassthrough.
+    repeat rewrite <- Mmult_assoc in zeropassthrough.
+    rewrite swapbc_inverse in zeropassthrough at 1.
+    rewrite Mmult_1_l in zeropassthrough. 2: apply WF_abgate; apply U_unitary.
+    rewrite Mmult_assoc in zeropassthrough.
+    rewrite swapbc_3q in zeropassthrough. 2: solve_WF_matrix. 2: apply x_qubit. 2: apply y_qubit.
+    rewrite zeropassthrough at 1.
+    unfold swapbc.
+    rewrite kron_mixed_product.
+    rewrite Mmult_1_l. 2: solve_WF_matrix.
+    reflexivity.
+}
+{
+    destruct onepassthrough as [x [x_qubit onepassthrough]].
+    exists x.
+    split. assumption.
+    intros y y_qubit.
+    specialize (onepassthrough y y_qubit).
+    destruct onepassthrough as [phis [WF_phis onepassthrough]].
+    exists (swap × phis).
+    split. solve_WF_matrix.
+    unfold acgate in onepassthrough.
+    apply (f_equal (fun f => swapbc × f)) in onepassthrough.
+    repeat rewrite <- Mmult_assoc in onepassthrough.
+    rewrite swapbc_inverse in onepassthrough at 1.
+    rewrite Mmult_1_l in onepassthrough. 2: apply WF_abgate; apply U_unitary.
+    rewrite Mmult_assoc in onepassthrough.
+    rewrite swapbc_3q in onepassthrough. 2: solve_WF_matrix. 2: apply x_qubit. 2: apply y_qubit.
+    rewrite onepassthrough at 1.
+    unfold swapbc.
+    rewrite kron_mixed_product.
+    rewrite Mmult_1_l. 2: solve_WF_matrix.
+    reflexivity.
+}
+Qed.
+
 Lemma a24: forall (U V W00 W11 : Square 4), 
 WF_Unitary U -> WF_Unitary V -> WF_Unitary W00 -> WF_Unitary W11 -> 
 acgate U × acgate V = ∣0⟩⟨0∣ ⊗ W00 .+ ∣1⟩⟨1∣ ⊗ W11 -> 
