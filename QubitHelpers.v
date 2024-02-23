@@ -2,7 +2,6 @@ Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
 From Proof Require Import MatrixHelpers.
 From Proof Require Import AlgebraHelpers.
-From Proof Require Import ExplicitDecompositions.
 
 Definition WF_Qubit {n} (q: Vector n) := (exists m: nat, (2 ^ m = n)%nat) /\ WF_Matrix q /\ ⟨ q, q ⟩ = 1.
 
@@ -684,4 +683,51 @@ apply C1_neq_C0.
 rewrite <- H.
 rewrite <- q_unit.
 reflexivity.
+Qed.
+
+Lemma qubit_not_0tens {n}: forall (x : Vector (2*n)),
+n <> 0%nat -> WF_Matrix x -> 
+(exists i: nat, (n <= i)%nat /\ x i 0%nat <> 0) -> 
+forall (y : Vector n), WF_Matrix y -> x <> ∣0⟩ ⊗ y.
+Proof.
+intros x nn0 WF_x eln0 y.
+destruct eln0 as [i [ibound x0]].
+unfold not. 
+intros.
+apply x0.
+rewrite H0.
+unfold kron.
+rewrite <- Nat.mul_1_r with (n:= n) in ibound.
+apply Nat.div_le_lower_bound in ibound. 2: assumption.
+assert (iub : (i < n * 2)%nat).
+{
+    destruct (le_lt_dec (n*2) i).
+    {
+        contradict x0.
+        rewrite WF_x.
+        reflexivity.
+        left. lia.
+    }
+    assumption.   
+}
+apply Nat.div_lt_upper_bound in iub. 2: assumption.
+assert (ind_val:= nat_tight_bound 1 (i/n)%nat ibound iub).
+rewrite <- ind_val.
+lca.
+Qed.
+
+Lemma qubit_not_1tens {n}: forall (x : Vector (2*n)),
+n <> 0%nat -> WF_Matrix x -> 
+(exists i: nat, (i < n)%nat /\ x i 0%nat <> 0) -> 
+forall (y : Vector n), WF_Matrix y -> x <> ∣1⟩ ⊗ y.
+Proof.
+intros x nn0 WF_x eln0 y.
+destruct eln0 as [i [ibound x0]].
+unfold not. 
+intros.
+apply x0.
+rewrite H0.
+unfold kron.
+rewrite Nat.div_small.
+lca. assumption.
 Qed.

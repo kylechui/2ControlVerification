@@ -449,34 +449,6 @@ Proof.
   all: solve_WF_matrix.
 Qed.
 
-Lemma nat_tight_bound: forall (i j: nat), 
-(i <= j -> j < S i -> i = j)%nat.
-Proof.
-intros i j lb up.
-apply Nat.le_antisymm.
-assumption.
-apply le_S_n. apply up.
-Qed.
-
-Lemma sub_mod_equiv: forall (i j: nat), 
-(i < j * 2 -> j <= i -> (i mod j) = i - j)%nat.
-Proof.
-intros.
-assert ((i - j) = ((i - j) mod j))%nat.
-{
-  symmetry.
-  apply Nat.mod_small.
-  lia.
-}
-rewrite H1.
-symmetry.
-rewrite <- Nat.mul_1_l with (n := j) at 1.
-apply sub_mul_mod.
-rewrite Nat.mul_1_l.
-assumption.
-Qed.
-
-
 Lemma upper_left_block_entries {n}: forall (A : Square n) (i j: nat), 
 (i < n /\ j < n)%nat -> (∣0⟩⟨0∣ ⊗ A) i j = A i j.
 Proof.
@@ -2243,4 +2215,44 @@ Proof.
       }
     }
   }
+Qed.
+
+Lemma vector2_inner_prod_decomp: forall (a b : Vector 2), 
+(⟨ a, b ⟩ = (a 0%nat 0%nat)^* * (b 0%nat 0%nat) + (a 1%nat 0%nat)^* * (b 1%nat 0%nat)).
+Proof.
+intros.
+lca.
+Qed.
+
+Lemma Mmult_square2_explicit: forall (A B: Square 2), 
+WF_Matrix A -> WF_Matrix B -> 
+(A × B) = (fun x y => A x 0%nat * B 0%nat y + A x 1%nat * B 1%nat y).
+Proof.
+intros. lma'.
+unfold WF_Matrix.
+intros.
+destruct H1.
+repeat rewrite H. lca. 1,2: lia.
+repeat rewrite H0. lca. 1,2: lia.
+Qed.
+
+Lemma Mv_prod_21_explicit: forall (A: Square 2) (v : Vector 2),
+WF_Matrix A -> WF_Matrix v ->
+(A × v) = ((fun x y => 
+match (x,y) with 
+| (0,0) => (A 0 0)%nat * (v 0 0)%nat + (A 0 1)%nat * (v 1 0)%nat
+| (1,0) => (A 1 0)%nat * (v 0 0)%nat + (A 1 1)%nat * (v 1 0)%nat
+| _ => C0
+end): Square 2). 
+Proof.
+intros.
+lma'.
+unfold WF_Matrix.
+intros.
+destruct H1.
+destruct x as [|a]. contradict H. lia.
+destruct a as [|x]. contradict H. lia. reflexivity.
+destruct x as [|a]. destruct y as [|b]. contradict H. lia.
+reflexivity.
+destruct a as [|x]. destruct y as [|b]. contradict H. lia. reflexivity. reflexivity.
 Qed.
