@@ -605,6 +605,59 @@ split.
 }
 Qed.
 
+Lemma exists_unitary_mapping_qubit_to_1: forall (a : Vector 2), 
+WF_Qubit a -> exists (P : Square 2), WF_Unitary P /\ P × a = ∣1⟩.
+Proof.
+intros a a_qubit.
+assert (temp: WF_Qubit a). assumption.
+destruct temp as [_ [WF_a a_unit]].
+set (P := (fun x y => 
+match (x,y) with 
+| (0,0) => - (a 1%nat 0%nat)
+| (0,1) => (a 0%nat 0%nat)
+| (1,0) => (a 0%nat 0%nat)^* 
+| (1,1) => (a 1%nat 0%nat)^*
+| _ => C0
+end) : Square 2).
+assert (WF_P: WF_Matrix P).
+{
+    unfold WF_Matrix.
+    intros.
+    unfold P.
+    destruct H.
+    destruct x as [|b]. contradict H. lia.
+    destruct b as [|x]. contradict H. lia. reflexivity.
+    destruct x as [|b]. destruct y as [|c]. contradict H. lia.
+    destruct c as [|y]. contradict H. lia. reflexivity.
+    destruct b as [|x]. destruct y as [|c]. contradict H. lia.
+    destruct c as [|y]. contradict H. lia.
+    reflexivity. reflexivity.   
+}
+exists P.
+split.
+{
+    unfold WF_Unitary.
+    split. assumption.
+    lma'.
+    all: rewrite Mmult_square2_explicit.
+    2,3,5,6,8,9,11,12: solve_WF_matrix.
+    all: repeat rewrite Madj_explicit_decomp.
+    all: unfold P,I.
+    all: simpl.
+    2,3: lca.
+    all: rewrite <- a_unit. 
+    all: lca.
+}
+{
+    lma'.
+    all: rewrite Mv_prod_21_explicit.
+    2,3,5,6: assumption.
+    all: unfold P.
+    lca.
+    rewrite <- a_unit. lca.
+}
+Qed.
+
 Lemma orth_qubit_unitary: forall (a b: Vector 2), 
 WF_Qubit a -> WF_Qubit b -> ⟨ a, b ⟩ = 0 -> 
 WF_Unitary (a × ⟨0∣ .+ b × ⟨1∣).
