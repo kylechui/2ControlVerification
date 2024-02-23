@@ -936,34 +936,82 @@ Qed.
 
 Lemma a24: forall (U V W00 W11 : Square 4), 
 WF_Unitary U -> WF_Unitary V -> WF_Unitary W00 -> WF_Unitary W11 -> 
-acgate U × acgate V = ∣0⟩⟨0∣ ⊗ W00 .+ ∣1⟩⟨1∣ ⊗ W11 -> 
+acgate U × abgate V = ∣0⟩⟨0∣ ⊗ W00 .+ ∣1⟩⟨1∣ ⊗ W11 -> 
 exists (P0 Q0 P1 Q1 : Square 2), 
 WF_Unitary P0 /\ WF_Unitary Q0 /\ WF_Unitary P1 /\ WF_Unitary Q1 /\
-acgate U × acgate V = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1.
+acgate U × abgate V = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1.
 Proof.
 intros U V W00 W11 U_unitary V_unitary W00_unitary W11_unitary acgate_mult.
 assert (temp: WF_Unitary V). assumption.
 destruct temp as [WF_V V_inv].
+assert (temp: WF_Unitary W00). assumption.
+destruct temp as [WF_W00 W00_inv].
 assert (temp:= a21 V V_unitary).
-destruct temp as [psi [psi_qubit tens]].
-assert (temp: WF_Qubit psi). assumption.
-destruct temp as [_ [WF_psi psi_unit]].
+destruct temp as [psi0 [psi0_qubit tens]].
+assert (temp: WF_Qubit psi0). assumption.
+destruct temp as [_ [WF_psi0 psi0_unit]].
 rewrite tensor_prod_of_qubit in tens.
 2: {
     unfold WF_Qubit.
     split. exists 2%nat. trivial.
     split. solve_WF_matrix.
     rewrite <- unitary_preserves_inner_prod. 2: assumption. 2: solve_WF_matrix.
-    assert (kip_help: ⟨ ∣0⟩ ⊗ psi, ∣0⟩ ⊗ psi ⟩ = ⟨ ∣0⟩, ∣0⟩ ⟩ * ⟨ psi, psi ⟩). apply kron_inner_prod.
+    assert (kip_help: ⟨ ∣0⟩ ⊗ psi0, ∣0⟩ ⊗ psi0 ⟩ = ⟨ ∣0⟩, ∣0⟩ ⟩ * ⟨ psi0, psi0 ⟩). apply kron_inner_prod.
     rewrite kip_help at 1. clear kip_help.
     replace (⟨ ∣0⟩, ∣0⟩ ⟩) with (C1) by lca.
-    rewrite psi_unit.
+    rewrite psi0_unit.
     apply Cmult_1_l.
 }
-assert (temp: WF_Matrix (V × (∣0⟩ ⊗ psi))). solve_WF_matrix.
+assert (temp: WF_Matrix (V × (∣0⟩ ⊗ psi0))). solve_WF_matrix.
 unfold TensorProdQubit in tens.
 apply tens in temp. clear tens.
 destruct temp as [a [b [a_qubit [b_qubit ab_decomp]]]].
+destruct (exists_unitary_mapping_qubit_to_0 a a_qubit) as [M0 [M0_unitary M0_prop]].
+assert (temp: WF_Unitary M0). assumption.
+destruct temp as [WF_M0 M0_inv].
+assert (M0IV_prop: (M0 ⊗ I 2) × V × (∣0⟩ ⊗ psi0) = ∣0⟩ ⊗ b).
+{
+    rewrite Mmult_assoc.
+    rewrite ab_decomp at 1.
+    rewrite kron_mixed_product.
+    rewrite M0_prop.
+    rewrite Mmult_1_l. 2: apply b_qubit.
+    reflexivity.
+}
+assert (prod_decomp_0pass: acgate U × abgate V = acgate U × (M0† ⊗ I 2 ⊗ I 2) × (M0 ⊗ I 2 ⊗ I 2) × abgate V).
+{
+    rewrite Mmult_assoc. rewrite Mmult_assoc.
+    rewrite <- Mmult_assoc with (C:= abgate V).
+    assert (kron_mix_help: (M0) † ⊗ I 2 ⊗ I 2 × (M0 ⊗ I 2 ⊗ I 2) = ((M0) † ⊗ I 2 × (M0 ⊗ I 2))  ⊗ (I 2 × (I 2))).
+    apply kron_mixed_product.
+    rewrite kron_mix_help at 1.
+    rewrite kron_mixed_product.
+    rewrite Mmult_1_l. 2: solve_WF_matrix.
+    rewrite M0_inv.
+    rewrite id_kron. rewrite id_kron. rewrite Mmult_1_l.
+    reflexivity.
+    apply WF_abgate. assumption.
+}
+assert (ac_0pass: forall (y: Vector 2), WF_Qubit y -> 
+(exists (phi : Vector 4), WF_Matrix phi /\ acgate U × abgate V × (∣0⟩ ⊗ psi0 ⊗ y)  =  ∣0⟩ ⊗ phi)).
+{
+    intros y y_qubit.
+    destruct y_qubit as [_ [WF_y y_unit]].
+    exists (W00 × (psi0 ⊗ y)).
+    split. solve_WF_matrix.
+    rewrite acgate_mult.
+    rewrite Mmult_plus_distr_r.
+    rewrite kron_assoc. 2,3,4: solve_WF_matrix.
+    repeat rewrite kron_mixed_product.
+    repeat rewrite Mmult_assoc.
+    rewrite Mmult10 at 1.
+    rewrite Mmult_0_r. rewrite kron_0_l. rewrite Mplus_0_r.
+    rewrite Mmult00 at 1.
+    rewrite Mmult_1_r. 2: solve_WF_matrix.
+    reflexivity.   
+}
+rewrite prod_decomp_0pass in ac_0pass.
+rewrite Mmult_assoc with (C := (∣0⟩ ⊗ psi0 ⊗ y)) in ac_0pass.
 Admitted.
 
 Lemma a25: forall (V : Square 4) (psi: Vector 2), 
