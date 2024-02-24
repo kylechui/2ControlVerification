@@ -1218,640 +1218,33 @@ apply cntrps_premise.
 apply zeropassthrough.
 Qed.
 
-Lemma abgate_1prop_topright_0block: forall (U: Square 4), 
-WF_Unitary U -> (exists (y: Vector 2), WF_Qubit y /\ 
-forall (x : Vector 2), WF_Qubit x -> (exists (phi: Vector 4), WF_Matrix phi /\
-(abgate U) × (∣1⟩ ⊗ x ⊗ y)  =  ∣1⟩ ⊗ phi)) -> exists (TL BL BR: Square 4), 
-WF_Matrix TL /\ WF_Matrix BL /\ WF_Matrix BR /\
-abgate U = ∣0⟩⟨0∣ ⊗ TL .+ ∣1⟩⟨0∣ ⊗ BL .+ ∣1⟩⟨1∣ ⊗ BR.
-Proof.
-intros U U_unitary onepassthrough.
-destruct onepassthrough as [y [WF_y onepassthrough]].
-destruct (@block_decomp_general 2 U) as [TL [TR [BL [BR [WF_TL [WF_TR [WF_BL [WF_BR decomp]]]]]]]].
-lia. apply U_unitary.
-exists (TL ⊗ I 2), (BL ⊗ I 2), (BR ⊗ I 2).
-split. solve_WF_matrix.
-split. solve_WF_matrix.
-split. solve_WF_matrix.
-assert (abgate_decomp: abgate U = ∣0⟩⟨0∣ ⊗ (TL ⊗ I 2) .+ ∣0⟩⟨1∣ ⊗ (TR ⊗ I 2) .+ ∣1⟩⟨0∣ ⊗ (BL ⊗ I 2)
-.+ ∣1⟩⟨1∣ ⊗ (BR ⊗ I 2)).
-{
-    rewrite decomp.   
-    unfold abgate.
-    repeat rewrite kron_plus_distr_r.
-    repeat rewrite kron_assoc.
-    reflexivity.
-    all: solve_WF_matrix.
-}
-assert (goal_change: TR = Zero -> abgate U = ∣0⟩⟨0∣ ⊗ (TL ⊗ I 2) .+ ∣1⟩⟨0∣ ⊗ (BL ⊗ I 2)
- .+ ∣1⟩⟨1∣ ⊗ (BR ⊗ I 2)).
-{
-    intros.
-    rewrite abgate_decomp.
-    rewrite H.
-    rewrite kron_0_l. rewrite kron_0_r.
-    rewrite Mplus_0_r.
-    reflexivity.
-}
-apply goal_change. clear goal_change.
-assert (onetens_040: forall (y0: Vector 2), (∣1⟩ ⊗ ∣0⟩ ⊗ y0) 0%nat 0%nat = 0). intros. lca.
-assert (onetens_050: forall (y0: Vector 2), (∣1⟩ ⊗ ∣0⟩ ⊗ y0) 1%nat 0%nat = 0). intros. lca.
-assert (onetens_060: forall (y0: Vector 2), (∣1⟩ ⊗ ∣0⟩ ⊗ y0) 2%nat 0%nat = 0). intros. lca.
-assert (onetens_070: forall (y0: Vector 2), (∣1⟩ ⊗ ∣0⟩ ⊗ y0) 3%nat 0%nat = 0). intros. lca.
-assert (onetens_140: forall (y0: Vector 2), (∣1⟩ ⊗ ∣1⟩ ⊗ y0) 0%nat 0%nat = 0). intros. lca.
-assert (onetens_150: forall (y0: Vector 2), (∣1⟩ ⊗ ∣1⟩ ⊗ y0) 1%nat 0%nat = 0). intros. lca.
-assert (onetens_160: forall (y0: Vector 2), (∣1⟩ ⊗ ∣1⟩ ⊗ y0) 2%nat 0%nat = 0). intros. lca.
-assert (onetens_170: forall (y0: Vector 2), (∣1⟩ ⊗ ∣1⟩ ⊗ y0) 3%nat 0%nat = 0). intros. lca.
-assert (case000_goal_change: forall (U: Square 4) (y: Vector 2), 
-(∣1⟩ ⊗ ∣0⟩ ⊗ y) 6%nat 0%nat = 0 -> (∣1⟩ ⊗ ∣0⟩ ⊗ y) 7%nat 0%nat = 0 ->
-(∣1⟩ ⊗ ∣0⟩ ⊗ y) 4%nat 0%nat <> 0 -> (abgate U) 0%nat 4%nat <> 0 -> 
-(abgate U) 0%nat 5%nat = 0 -> (abgate U × (∣1⟩ ⊗ ∣0⟩ ⊗ y)) 0%nat 0%nat <> 0).
-{
-    intros.
-    replace ((abgate U0 × (∣1⟩ ⊗ ∣0⟩ ⊗ y0)) 0%nat 0%nat) with (
-        (abgate U0 0%nat 0%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 0%nat 0%nat) + 
-        (abgate U0 0%nat 1%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 1%nat 0%nat) + 
-        (abgate U0 0%nat 2%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 2%nat 0%nat) + 
-        (abgate U0 0%nat 3%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 3%nat 0%nat) + 
-        (abgate U0 0%nat 4%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 4%nat 0%nat) + 
-        (abgate U0 0%nat 5%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 5%nat 0%nat) + 
-        (abgate U0 0%nat 6%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 6%nat 0%nat) + 
-        (abgate U0 0%nat 7%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 7%nat 0%nat)
-    ) by lca.
-    rewrite H, H0, H3, onetens_040, onetens_050, onetens_060, onetens_070.
-    Csimpl.
-    apply Cmult_neq_0.
-    all: assumption.
-}
-assert (case000_el_eq: abgate U 0%nat 4%nat = TR 0%nat 0%nat).
-{
-    rewrite abgate_decomp.
-    repeat rewrite Mplus_access.
-    rewrite upper_left_block_nonentries.
-    rewrite lower_right_block_nonentries.
-    rewrite lower_left_block_nonentries.
-    rewrite upper_right_block_entries.
-    Csimpl. simpl.
-    lca.
-    1,4,7,10: solve_WF_matrix.
-    1,3,5,7: lia.
-    split. lia. lia.
-    right. lia. left. lia.
-    right. lia.   
-}
-assert (case001_goal_change: forall (U: Square 4) (y: Vector 2), 
-(∣1⟩ ⊗ ∣0⟩ ⊗ y) 6%nat 0%nat = 0 -> (∣1⟩ ⊗ ∣0⟩ ⊗ y) 7%nat 0%nat = 0 ->
-(∣1⟩ ⊗ ∣0⟩ ⊗ y) 5%nat 0%nat <> 0 -> (abgate U) 1%nat 5%nat <> 0 -> 
-(abgate U) 1%nat 4%nat = 0 -> (abgate U × (∣1⟩ ⊗ ∣0⟩ ⊗ y)) 1%nat 0%nat <> 0).
-{
-    intros.
-    replace ((abgate U0 × (∣1⟩ ⊗ ∣0⟩ ⊗ y0)) 1%nat 0%nat) with (
-        (abgate U0 1%nat 0%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 0%nat 0%nat) + 
-        (abgate U0 1%nat 1%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 1%nat 0%nat) + 
-        (abgate U0 1%nat 2%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 2%nat 0%nat) + 
-        (abgate U0 1%nat 3%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 3%nat 0%nat) + 
-        (abgate U0 1%nat 4%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 4%nat 0%nat) + 
-        (abgate U0 1%nat 5%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 5%nat 0%nat) + 
-        (abgate U0 1%nat 6%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 6%nat 0%nat) + 
-        (abgate U0 1%nat 7%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 7%nat 0%nat)
-    ) by lca.
-    rewrite H, H0, H3, onetens_040, onetens_050, onetens_060, onetens_070.
-    Csimpl.
-    apply Cmult_neq_0.
-    all: assumption.
-}
-assert (case001_el_eq: abgate U 1%nat 5%nat = TR 0%nat 0%nat).
-{
-    rewrite abgate_decomp.
-    repeat rewrite Mplus_access.
-    rewrite upper_left_block_nonentries.
-    rewrite lower_right_block_nonentries.
-    rewrite lower_left_block_nonentries.
-    rewrite upper_right_block_entries.
-    Csimpl. simpl.
-    lca.
-    1,4,7,10: solve_WF_matrix.
-    1,3,5,7: lia.
-    split. lia. lia.
-    right. lia. left. lia.
-    right. lia.     
-}
-assert (case010_goal_change: forall (U: Square 4) (y: Vector 2), 
-(∣1⟩ ⊗ ∣1⟩ ⊗ y) 4%nat 0%nat = 0 -> (∣1⟩ ⊗ ∣1⟩ ⊗ y) 5%nat 0%nat = 0 ->
-(∣1⟩ ⊗ ∣1⟩ ⊗ y) 6%nat 0%nat <> 0 -> (abgate U) 0%nat 6%nat <> 0 -> 
-(abgate U) 0%nat 7%nat = 0 -> (abgate U × (∣1⟩ ⊗ ∣1⟩ ⊗ y)) 0%nat 0%nat <> 0).
-{
-    intros.
-    replace ((abgate U0 × (∣1⟩ ⊗ ∣1⟩ ⊗ y0)) 0%nat 0%nat) with (
-        (abgate U0 0%nat 0%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 0%nat 0%nat) + 
-        (abgate U0 0%nat 1%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 1%nat 0%nat) + 
-        (abgate U0 0%nat 2%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 2%nat 0%nat) + 
-        (abgate U0 0%nat 3%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 3%nat 0%nat) + 
-        (abgate U0 0%nat 4%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 4%nat 0%nat) + 
-        (abgate U0 0%nat 5%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 5%nat 0%nat) + 
-        (abgate U0 0%nat 6%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 6%nat 0%nat) + 
-        (abgate U0 0%nat 7%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 7%nat 0%nat)
-    ) by lca.
-    rewrite H, H0, H3, onetens_140, onetens_150, onetens_160, onetens_170.
-    Csimpl.
-    apply Cmult_neq_0.
-    all: assumption.
-}
-assert (case010_el_eq: abgate U 0%nat 6%nat = TR 0%nat 1%nat).
-{
-    rewrite abgate_decomp.
-    repeat rewrite Mplus_access.
-    rewrite upper_left_block_nonentries.
-    rewrite lower_right_block_nonentries.
-    rewrite lower_left_block_nonentries.
-    rewrite upper_right_block_entries.
-    Csimpl. simpl.
-    lca.
-    1,4,7,10: solve_WF_matrix.
-    1,3,5,7: lia.
-    split. lia. lia.
-    right. lia. left. lia.
-    right. lia.   
-}
-assert (case011_goal_change: forall (U: Square 4) (y: Vector 2), 
-(∣1⟩ ⊗ ∣1⟩ ⊗ y) 4%nat 0%nat = 0 -> (∣1⟩ ⊗ ∣1⟩ ⊗ y) 5%nat 0%nat = 0 ->
-(∣1⟩ ⊗ ∣1⟩ ⊗ y) 7%nat 0%nat <> 0 -> (abgate U) 1%nat 7%nat <> 0 -> 
-(abgate U) 1%nat 6%nat = 0 -> (abgate U × (∣1⟩ ⊗ ∣1⟩ ⊗ y)) 1%nat 0%nat <> 0).
-{
-    intros.
-    replace ((abgate U0 × (∣1⟩ ⊗ ∣1⟩ ⊗ y0)) 1%nat 0%nat) with (
-        (abgate U0 1%nat 0%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 0%nat 0%nat) + 
-        (abgate U0 1%nat 1%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 1%nat 0%nat) + 
-        (abgate U0 1%nat 2%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 2%nat 0%nat) + 
-        (abgate U0 1%nat 3%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 3%nat 0%nat) + 
-        (abgate U0 1%nat 4%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 4%nat 0%nat) + 
-        (abgate U0 1%nat 5%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 5%nat 0%nat) + 
-        (abgate U0 1%nat 6%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 6%nat 0%nat) + 
-        (abgate U0 1%nat 7%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 7%nat 0%nat)
-    ) by lca.
-    rewrite H, H0, H3, onetens_140, onetens_150, onetens_160, onetens_170.
-    Csimpl.
-    apply Cmult_neq_0.
-    all: assumption.
-}
-assert (case011_el_eq: abgate U 1%nat 7%nat = TR 0%nat 1%nat).
-{
-    rewrite abgate_decomp.
-    repeat rewrite Mplus_access.
-    rewrite upper_left_block_nonentries.
-    rewrite lower_right_block_nonentries.
-    rewrite lower_left_block_nonentries.
-    rewrite upper_right_block_entries.
-    Csimpl. simpl.
-    lca.
-    1,4,7,10: solve_WF_matrix.
-    1,3,5,7: lia.
-    split. lia. lia.
-    right. lia. left. lia.
-    right. lia.   
-}
-assert (case100_goal_change: forall (U: Square 4) (y: Vector 2), 
-(∣1⟩ ⊗ ∣0⟩ ⊗ y) 6%nat 0%nat = 0 -> (∣1⟩ ⊗ ∣0⟩ ⊗ y) 7%nat 0%nat = 0 ->
-(∣1⟩ ⊗ ∣0⟩ ⊗ y) 4%nat 0%nat <> 0 -> (abgate U) 2%nat 4%nat <> 0 -> 
-(abgate U) 2%nat 5%nat = 0 -> (abgate U × (∣1⟩ ⊗ ∣0⟩ ⊗ y)) 2%nat 0%nat <> 0).
-{
-    intros.
-    replace ((abgate U0 × (∣1⟩ ⊗ ∣0⟩ ⊗ y0)) 2%nat 0%nat) with (
-        (abgate U0 2%nat 0%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 0%nat 0%nat) + 
-        (abgate U0 2%nat 1%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 1%nat 0%nat) + 
-        (abgate U0 2%nat 2%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 2%nat 0%nat) + 
-        (abgate U0 2%nat 3%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 3%nat 0%nat) + 
-        (abgate U0 2%nat 4%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 4%nat 0%nat) + 
-        (abgate U0 2%nat 5%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 5%nat 0%nat) + 
-        (abgate U0 2%nat 6%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 6%nat 0%nat) + 
-        (abgate U0 2%nat 7%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 7%nat 0%nat)
-    ) by lca.
-    rewrite H, H0, H3, onetens_040, onetens_050, onetens_060, onetens_070.
-    Csimpl.
-    apply Cmult_neq_0.
-    all: assumption.
-}
-assert (case100_el_eq: abgate U 2%nat 4%nat = TR 1%nat 0%nat).
-{
-    rewrite abgate_decomp.
-    repeat rewrite Mplus_access.
-    rewrite upper_left_block_nonentries.
-    rewrite lower_right_block_nonentries.
-    rewrite lower_left_block_nonentries.
-    rewrite upper_right_block_entries.
-    Csimpl. simpl.
-    lca.
-    1,4,7,10: solve_WF_matrix.
-    1,3,5,7: lia.
-    split. lia. lia.
-    right. lia. left. lia.
-    right. lia.     
-}
-assert (case101_goal_change: forall (U: Square 4) (y: Vector 2), 
-(∣1⟩ ⊗ ∣0⟩ ⊗ y) 6%nat 0%nat = 0 -> (∣1⟩ ⊗ ∣0⟩ ⊗ y) 7%nat 0%nat = 0 ->
-(∣1⟩ ⊗ ∣0⟩ ⊗ y) 5%nat 0%nat <> 0 -> (abgate U) 3%nat 5%nat <> 0 -> 
-(abgate U) 3%nat 4%nat = 0 -> (abgate U × (∣1⟩ ⊗ ∣0⟩ ⊗ y)) 3%nat 0%nat <> 0).
-{
-    intros.
-    replace ((abgate U0 × (∣1⟩ ⊗ ∣0⟩ ⊗ y0)) 3%nat 0%nat) with (
-        (abgate U0 3%nat 0%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 0%nat 0%nat) + 
-        (abgate U0 3%nat 1%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 1%nat 0%nat) + 
-        (abgate U0 3%nat 2%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 2%nat 0%nat) + 
-        (abgate U0 3%nat 3%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 3%nat 0%nat) + 
-        (abgate U0 3%nat 4%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 4%nat 0%nat) + 
-        (abgate U0 3%nat 5%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 5%nat 0%nat) + 
-        (abgate U0 3%nat 6%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 6%nat 0%nat) + 
-        (abgate U0 3%nat 7%nat) * ((∣1⟩ ⊗ ∣0⟩ ⊗ y0) 7%nat 0%nat)
-    ) by lca.
-    rewrite H, H0, H3, onetens_040, onetens_050, onetens_060, onetens_070.
-    Csimpl.
-    apply Cmult_neq_0.
-    all: assumption.
-}
-assert (case101_el_eq: abgate U 3%nat 5%nat = TR 1%nat 0%nat).
-{
-    rewrite abgate_decomp.
-    repeat rewrite Mplus_access.
-    rewrite upper_left_block_nonentries.
-    rewrite lower_right_block_nonentries.
-    rewrite lower_left_block_nonentries.
-    rewrite upper_right_block_entries.
-    Csimpl. simpl.
-    lca.
-    1,4,7,10: solve_WF_matrix.
-    1,3,5,7: lia.
-    split. lia. lia.
-    right. lia. left. lia.
-    right. lia.     
-}
-assert (case110_goal_change: forall (U: Square 4) (y: Vector 2), 
-(∣1⟩ ⊗ ∣1⟩ ⊗ y) 4%nat 0%nat = 0 -> (∣1⟩ ⊗ ∣1⟩ ⊗ y) 5%nat 0%nat = 0 ->
-(∣1⟩ ⊗ ∣1⟩ ⊗ y) 6%nat 0%nat <> 0 -> (abgate U) 2%nat 6%nat <> 0 -> 
-(abgate U) 2%nat 7%nat = 0 -> (abgate U × (∣1⟩ ⊗ ∣1⟩ ⊗ y)) 2%nat 0%nat <> 0).
-{
-    intros.
-    replace ((abgate U0 × (∣1⟩ ⊗ ∣1⟩ ⊗ y0)) 2%nat 0%nat) with (
-        (abgate U0 2%nat 0%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 0%nat 0%nat) + 
-        (abgate U0 2%nat 1%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 1%nat 0%nat) + 
-        (abgate U0 2%nat 2%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 2%nat 0%nat) + 
-        (abgate U0 2%nat 3%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 3%nat 0%nat) + 
-        (abgate U0 2%nat 4%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 4%nat 0%nat) + 
-        (abgate U0 2%nat 5%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 5%nat 0%nat) + 
-        (abgate U0 2%nat 6%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 6%nat 0%nat) + 
-        (abgate U0 2%nat 7%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 7%nat 0%nat)
-    ) by lca.
-    rewrite H, H0, H3, onetens_140, onetens_150, onetens_160, onetens_170.
-    Csimpl.
-    apply Cmult_neq_0.
-    all: assumption.
-}
-assert (case110_el_eq: abgate U 2%nat 6%nat = TR 1%nat 1%nat).
-{
-    rewrite abgate_decomp.
-    repeat rewrite Mplus_access.
-    rewrite upper_left_block_nonentries.
-    rewrite lower_right_block_nonentries.
-    rewrite lower_left_block_nonentries.
-    rewrite upper_right_block_entries.
-    Csimpl. simpl.
-    lca.
-    1,4,7,10: solve_WF_matrix.
-    1,3,5,7: lia.
-    split. lia. lia.
-    right. lia. left. lia.
-    right. lia.     
-}
-assert (case111_goal_change: forall (U: Square 4) (y: Vector 2), 
-(∣1⟩ ⊗ ∣1⟩ ⊗ y) 4%nat 0%nat = 0 -> (∣1⟩ ⊗ ∣1⟩ ⊗ y) 5%nat 0%nat = 0 ->
-(∣1⟩ ⊗ ∣1⟩ ⊗ y) 7%nat 0%nat <> 0 -> (abgate U) 3%nat 7%nat <> 0 -> 
-(abgate U) 3%nat 6%nat = 0 -> (abgate U × (∣1⟩ ⊗ ∣1⟩ ⊗ y)) 3%nat 0%nat <> 0).
-{
-    intros.
-    replace ((abgate U0 × (∣1⟩ ⊗ ∣1⟩ ⊗ y0)) 3%nat 0%nat) with (
-        (abgate U0 3%nat 0%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 0%nat 0%nat) + 
-        (abgate U0 3%nat 1%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 1%nat 0%nat) + 
-        (abgate U0 3%nat 2%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 2%nat 0%nat) + 
-        (abgate U0 3%nat 3%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 3%nat 0%nat) + 
-        (abgate U0 3%nat 4%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 4%nat 0%nat) + 
-        (abgate U0 3%nat 5%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 5%nat 0%nat) + 
-        (abgate U0 3%nat 6%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 6%nat 0%nat) + 
-        (abgate U0 3%nat 7%nat) * ((∣1⟩ ⊗ ∣1⟩ ⊗ y0) 7%nat 0%nat)
-    ) by lca.
-    rewrite H, H0, H3, onetens_140, onetens_150, onetens_160, onetens_170.
-    Csimpl.
-    apply Cmult_neq_0.
-    all: assumption.
-}
-assert (case111_el_eq: abgate U 3%nat 7%nat = TR 1%nat 1%nat).
-{
-    rewrite abgate_decomp.
-    repeat rewrite Mplus_access.
-    rewrite upper_left_block_nonentries.
-    rewrite lower_right_block_nonentries.
-    rewrite lower_left_block_nonentries.
-    rewrite upper_right_block_entries.
-    Csimpl. simpl.
-    lca.
-    1,4,7,10: solve_WF_matrix.
-    1,3,5,7: lia.
-    split. lia. lia.
-    right. lia. left. lia.
-    right. lia.    
-}
-assert (cntrps: not (TR = Zero) -> not (forall x : Vector 2,
-WF_Qubit x -> exists phi : Vector 4,
-WF_Matrix phi /\ abgate U × (∣1⟩ ⊗ x ⊗ y) = ∣1⟩ ⊗ phi)).
-{
-    intros BLn0.
-    apply Coq.Logic.Classical_Pred_Type.ex_not_not_all.
-    rewrite nonzero_def in BLn0.
-    destruct BLn0 as [i [j n0point]].
-    assert (y <> Zero). apply qubit_implies_nonzero. apply WF_y.
-    assert (yeln0: (y 0%nat 0%nat) <> 0 \/ (y 1%nat 0%nat) <> 0).
-    {
-        apply Coq.Logic.Classical_Prop.not_and_or.
-        unfold not.
-        intro.
-        apply H.
-        destruct H0.
-        lma'. apply WF_y.
-        rewrite H0. lca.
-        rewrite H1. lca.
-    }
-    destruct (le_lt_dec 2 i).
-    {
-        contradict n0point.
-        rewrite WF_TR. reflexivity.
-        left. lia.   
-    }
-    {
-        destruct (le_lt_dec 1 i).
-        {
-            assert (ival := nat_tight_bound 1 i l0 l).
-            destruct (le_lt_dec 2 j).
-            {
-                contradict n0point.
-                rewrite WF_TR. reflexivity.
-                right. lia.
-            }
-            {
-                destruct (le_lt_dec 1 j).
-                {
-                    assert (jval := nat_tight_bound 1 j l2 l1).
-                    destruct yeln0.
-                    {
-                        exists ∣1⟩.
-                        rewrite implication_decomp.
-                        apply Coq.Logic.Classical_Prop.and_not_or.
-                        split. 
-                        unfold not.
-                        intro. apply H1. apply qubit1_qubit.
-                        apply Coq.Logic.Classical_Pred_Type.all_not_not_ex.
-                        intros.
-                        apply Coq.Logic.Classical_Prop.or_not_and.
-                        rewrite <- implication_decomp.
-                        apply qubit_not_1tens. lia. solve_WF_matrix. apply U_unitary. apply WF_y.
-                        exists 2%nat.
-                        split. lia.
-                        apply case110_goal_change.
-                        lca. lca.
-                        replace ((∣1⟩ ⊗ ∣1⟩ ⊗ y) 6%nat 0%nat) with (y 0%nat 0%nat) by lca.
-                        assumption.
-                        replace (abgate U 2%nat 6%nat) with (TR 1%nat 1%nat).
-                        rewrite ival at 1. rewrite jval. assumption. lca.
-                    }
-                    {
-                        exists ∣1⟩.
-                        rewrite implication_decomp.
-                        apply Coq.Logic.Classical_Prop.and_not_or.
-                        split. 
-                        unfold not.
-                        intro. apply H1. apply qubit1_qubit.
-                        apply Coq.Logic.Classical_Pred_Type.all_not_not_ex.
-                        intros.
-                        apply Coq.Logic.Classical_Prop.or_not_and.
-                        rewrite <- implication_decomp.
-                        apply qubit_not_1tens. lia. solve_WF_matrix. apply U_unitary. apply WF_y.
-                        exists 3%nat.
-                        split. lia.
-                        apply case111_goal_change.
-                        lca. lca.
-                        replace ((∣1⟩ ⊗ ∣1⟩ ⊗ y) 7%nat 0%nat) with (y 1%nat 0%nat) by lca.
-                        assumption.
-                        replace (abgate U 3%nat 7%nat) with (TR 1%nat 1%nat).
-                        rewrite ival at 1. rewrite jval. assumption. lca.
-                    }
-                }
-                {
-                    rewrite Nat.lt_1_r in l2.
-                    destruct yeln0.
-                    {
-                        exists ∣0⟩.
-                        rewrite implication_decomp.
-                        apply Coq.Logic.Classical_Prop.and_not_or.
-                        split. 
-                        unfold not.
-                        intro. apply H1. apply qubit0_qubit.
-                        apply Coq.Logic.Classical_Pred_Type.all_not_not_ex.
-                        intros.
-                        apply Coq.Logic.Classical_Prop.or_not_and.
-                        rewrite <- implication_decomp.
-                        apply qubit_not_1tens. lia. solve_WF_matrix. apply U_unitary. apply WF_y.
-                        exists 2%nat.
-                        split. lia.
-                        apply case100_goal_change.
-                        lca. lca.
-                        replace ((∣1⟩ ⊗ ∣0⟩ ⊗ y) 4%nat 0%nat) with (y 0%nat 0%nat) by lca.
-                        assumption.
-                        replace (abgate U 2%nat 4%nat) with (TR 1%nat 0%nat).
-                        rewrite ival at 1. rewrite <- l2. assumption. lca.
-                    }
-                    {
-                        exists ∣0⟩.
-                        rewrite implication_decomp.
-                        apply Coq.Logic.Classical_Prop.and_not_or.
-                        split. 
-                        unfold not.
-                        intro. apply H1. apply qubit0_qubit.
-                        apply Coq.Logic.Classical_Pred_Type.all_not_not_ex.
-                        intros.
-                        apply Coq.Logic.Classical_Prop.or_not_and.
-                        rewrite <- implication_decomp.
-                        apply qubit_not_1tens. lia. solve_WF_matrix. apply U_unitary. apply WF_y.
-                        exists 3%nat.
-                        split. lia.
-                        apply case101_goal_change.
-                        lca. lca.
-                        replace ((∣1⟩ ⊗ ∣0⟩ ⊗ y) 5%nat 0%nat) with (y 1%nat 0%nat) by lca.
-                        assumption.
-                        replace (abgate U 3%nat 5%nat) with (TR 1%nat 0%nat).
-                        rewrite ival at 1. rewrite <- l2. assumption. lca.
-                    }  
-                }   
-            }
-        }
-        {
-            rewrite Nat.lt_1_r in l0.
-            destruct (le_lt_dec 2 j).
-            {
-                contradict n0point.
-                rewrite WF_TR. reflexivity.
-                right. lia.
-            }
-            {
-                destruct (le_lt_dec 1 j).
-                {
-                    assert (jval := nat_tight_bound 1 j l2 l1).
-                    destruct yeln0.
-                    {
-                        exists ∣1⟩.
-                        rewrite implication_decomp.
-                        apply Coq.Logic.Classical_Prop.and_not_or.
-                        split. 
-                        unfold not.
-                        intro. apply H1. apply qubit1_qubit.
-                        apply Coq.Logic.Classical_Pred_Type.all_not_not_ex.
-                        intros.
-                        apply Coq.Logic.Classical_Prop.or_not_and.
-                        rewrite <- implication_decomp.
-                        apply qubit_not_1tens. lia. solve_WF_matrix. apply U_unitary. apply WF_y.
-                        exists 0%nat.
-                        split. lia.
-                        apply case010_goal_change.
-                        lca. lca.
-                        replace ((∣1⟩ ⊗ ∣1⟩ ⊗ y) 6%nat 0%nat) with (y 0%nat 0%nat) by lca.
-                        assumption.
-                        replace (abgate U 0%nat 6%nat) with (TR 0%nat 1%nat).
-                        rewrite <- l0 at 1. rewrite jval. assumption. lca.
-                    }
-                    {
-                        exists ∣1⟩.
-                        rewrite implication_decomp.
-                        apply Coq.Logic.Classical_Prop.and_not_or.
-                        split. 
-                        unfold not.
-                        intro. apply H1. apply qubit1_qubit.
-                        apply Coq.Logic.Classical_Pred_Type.all_not_not_ex.
-                        intros.
-                        apply Coq.Logic.Classical_Prop.or_not_and.
-                        rewrite <- implication_decomp.
-                        apply qubit_not_1tens. lia. solve_WF_matrix. apply U_unitary. apply WF_y.
-                        exists 1%nat.
-                        split. lia.
-                        apply case011_goal_change.
-                        lca. lca.
-                        replace ((∣1⟩ ⊗ ∣1⟩ ⊗ y) 7%nat 0%nat) with (y 1%nat 0%nat) by lca.
-                        assumption.
-                        replace (abgate U 1%nat 7%nat) with (TR 0%nat 1%nat).
-                        rewrite <- l0 at 1. rewrite jval. assumption. lca.
-                    }
-                }
-                {
-                    rewrite Nat.lt_1_r in l2.
-                    destruct yeln0.
-                    {
-                        exists ∣0⟩.
-                        rewrite implication_decomp.
-                        apply Coq.Logic.Classical_Prop.and_not_or.
-                        split. 
-                        unfold not.
-                        intro. apply H1. apply qubit0_qubit.
-                        apply Coq.Logic.Classical_Pred_Type.all_not_not_ex.
-                        intros.
-                        apply Coq.Logic.Classical_Prop.or_not_and.
-                        rewrite <- implication_decomp.
-                        apply qubit_not_1tens. lia. solve_WF_matrix. apply U_unitary. apply WF_y.
-                        exists 0%nat.
-                        split. lia.
-                        apply case000_goal_change.
-                        lca. lca.
-                        replace ((∣1⟩ ⊗ ∣0⟩ ⊗ y) 4%nat 0%nat) with (y 0%nat 0%nat) by lca.
-                        assumption.
-                        replace (abgate U 0%nat 4%nat) with (TR 0%nat 0%nat).
-                        rewrite <- l0 at 1. rewrite <- l2. assumption. lca.
-                    }
-                    {
-                        exists ∣0⟩.
-                        rewrite implication_decomp.
-                        apply Coq.Logic.Classical_Prop.and_not_or.
-                        split. 
-                        unfold not.
-                        intro. apply H1. apply qubit0_qubit.
-                        apply Coq.Logic.Classical_Pred_Type.all_not_not_ex.
-                        intros.
-                        apply Coq.Logic.Classical_Prop.or_not_and.
-                        rewrite <- implication_decomp.
-                        apply qubit_not_1tens. lia. solve_WF_matrix. apply U_unitary. apply WF_y.
-                        exists 1%nat.
-                        split. lia.
-                        apply case001_goal_change.
-                        lca. lca.
-                        replace ((∣1⟩ ⊗ ∣0⟩ ⊗ y) 5%nat 0%nat) with (y 1%nat 0%nat) by lca.
-                        assumption.
-                        replace (abgate U 1%nat 5%nat) with (TR 0%nat 0%nat).
-                        rewrite <- l0 at 1. rewrite <- l2. assumption. lca.
-                    }  
-                }   
-            }
-        }
-    }
-}
-apply Coq.Logic.Classical_Prop.NNPP.
-unfold not at 1.
-intros cntrps_premise.
-apply cntrps in cntrps_premise.
-apply cntrps_premise.
-apply onepassthrough.
-Qed.
-
 Lemma abgate_diagblock: forall (U: Square 4), 
 WF_Unitary U -> (exists (y: Vector 2), WF_Qubit y /\ 
 forall (x : Vector 2), WF_Qubit x -> (exists (phi: Vector 4), WF_Matrix phi /\
-(abgate U) × (∣0⟩ ⊗ x ⊗ y)  =  ∣0⟩ ⊗ phi)) -> (exists (y: Vector 2), WF_Qubit y /\ 
-forall (x : Vector 2), WF_Qubit x -> (exists (phi: Vector 4), WF_Matrix phi /\
-(abgate U) × (∣1⟩ ⊗ x ⊗ y)  =  ∣1⟩ ⊗ phi)) ->
+(abgate U) × (∣0⟩ ⊗ x ⊗ y)  =  ∣0⟩ ⊗ phi)) ->
 exists (TL BR: Square 4), WF_Unitary TL /\ WF_Unitary BR /\
 abgate U = ∣0⟩⟨0∣ ⊗ TL .+ ∣1⟩⟨1∣ ⊗ BR.
 Proof.
-intros U U_unitary zeropassthrough onepassthrough.
+intros U U_unitary zeropassthrough.
 assert (zpass_decomp:= abgate_0prop_bottomleft_0block U U_unitary zeropassthrough).
 destruct zpass_decomp as [TL0 [TR0 [BR0 [WF_TL0 [WF_TR0 [WF_BR0 zpass_decomp]]]]]].
-assert (opass_decomp:= abgate_1prop_topright_0block U U_unitary onepassthrough).
-destruct opass_decomp as [TL1 [BL1 [BR1 [WF_TL1 [WF_BL1 [WF_BR1 opass_decomp]]]]]].
 replace (∣0⟩⟨0∣ ⊗ TL0 .+ ∣0⟩⟨1∣ ⊗ TR0 .+ ∣1⟩⟨1∣ ⊗ BR0) with
 (∣0⟩⟨0∣ ⊗ TL0 .+ ∣0⟩⟨1∣ ⊗ TR0 .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ BR0) in zpass_decomp.
 2: rewrite kron_0_r; rewrite Mplus_0_r; reflexivity.
-replace (∣0⟩⟨0∣ ⊗ TL1 .+ ∣1⟩⟨0∣ ⊗ BL1 .+ ∣1⟩⟨1∣ ⊗ BR1) with
-(∣0⟩⟨0∣ ⊗ TL1 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ BL1 .+ ∣1⟩⟨1∣ ⊗ BR1) in opass_decomp.
-2: rewrite kron_0_r; rewrite Mplus_0_r; reflexivity.
-assert (neq40: 4%nat <> 0%nat). lia.
-assert (self_eq: abgate U = abgate U). reflexivity.
-assert (block_eq:= @block_equalities_general 4 (abgate U) (abgate U) TL0 TR0 Zero BR0 TL1 Zero BL1 BR1
-neq40 WF_TL0 WF_TR0 (@WF_Zero 4 4) WF_BR0 WF_TL1 (@WF_Zero 4 4) WF_BL1 WF_BR1 zpass_decomp opass_decomp self_eq).
-clear self_eq.
-destruct block_eq as [_ [TR0_0 [_ _]]].
-assert (abgate_partial_decomp: abgate U =  ∣0⟩⟨0∣ ⊗ TL0 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ BR0).
-{
-    rewrite zpass_decomp.
-    rewrite TR0_0.
-    repeat rewrite kron_0_r.
-    repeat rewrite Mplus_0_r.
-    reflexivity.   
-}
 assert (abgate_U_unitary: WF_Unitary (abgate U)). apply abgate_unitary; assumption.
 destruct abgate_U_unitary as [WF_abU abU_inv].
 replace (I (4 * 2)) with (∣0⟩⟨0∣ ⊗ I 4 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ I 4) in abU_inv.
 2: lma'; solve_WF_matrix.
-assert (block_mult_partial := @block_multiply 4 (abgate U) † (abgate U) TL0† Zero Zero BR0†
-TL0 Zero Zero BR0).
-assert (block_mult: (abgate U) † × abgate U = ∣0⟩⟨0∣ ⊗ ((TL0) † × TL0 .+ (@Zero 4 4) × (@Zero 4 4))
-.+ ∣0⟩⟨1∣ ⊗ ((TL0) † × (@Zero 4 4) .+ (@Zero 4 4) × BR0)
-.+ ∣1⟩⟨0∣ ⊗ ((@Zero 4 4) × TL0 .+ (BR0) † × (@Zero 4 4))
-.+ ∣1⟩⟨1∣ ⊗ ((@Zero 4 4) × (@Zero 4 4) .+ (BR0) † × BR0)).
+assert (block_mult_partial := @block_multiply 4 (abgate U) † (abgate U) TL0† Zero TR0† BR0†
+TL0 TR0 Zero BR0).
+assert (block_mult:  (abgate U) † × abgate U =
+∣0⟩⟨0∣ ⊗ ((TL0) † × TL0 .+ (@Zero 4 4) × Zero) .+ ∣0⟩⟨1∣ ⊗ ((TL0) † × TR0 .+ Zero × BR0)
+.+ ∣1⟩⟨0∣ ⊗ ((TR0) † × TL0 .+ (BR0) † × Zero)
+.+ ∣1⟩⟨1∣ ⊗ ((TR0) † × TR0 .+ (BR0) † × BR0)).
 {
     apply block_mult_partial.
     1,2,3,4,5,6,7,8: solve_WF_matrix.
-    rewrite abgate_partial_decomp.
+    rewrite zpass_decomp.
     repeat rewrite Mplus_adjoint.
     repeat rewrite kron_adjoint.
     rewrite adjoint00, adjoint01, adjoint10, adjoint11.
@@ -1859,7 +1252,7 @@ assert (block_mult: (abgate U) † × abgate U = ∣0⟩⟨0∣ ⊗ ((TL0) † �
     repeat rewrite kron_0_r.
     repeat rewrite Mplus_0_r.
     reflexivity.
-    apply abgate_partial_decomp.
+    apply zpass_decomp.
 }
 clear block_mult_partial.
 repeat rewrite Mmult_0_r in block_mult.
@@ -1867,17 +1260,29 @@ repeat rewrite Mmult_0_l in block_mult.
 repeat rewrite Mplus_0_r in block_mult.
 repeat rewrite Mplus_0_l in block_mult.
 assert (WF_TL0_inv: WF_Matrix ((TL0) † × TL0)). solve_WF_matrix.
-assert (WF_BR0_inv: WF_Matrix ((BR0) † × BR0)). solve_WF_matrix.
+assert (WF_TR_block: WF_Matrix ((TL0) † × TR0)). solve_WF_matrix.
+assert (WF_BL_block: WF_Matrix ((TR0) † × TL0)). solve_WF_matrix.
+assert (WF_BR_block: WF_Matrix ((TR0) † × TR0 .+ (BR0) † × BR0)). solve_WF_matrix.
 assert (self_eq: (abgate U) † × abgate U = (abgate U) † × abgate U). reflexivity.
+assert (neq40: 4%nat <> 0%nat). lia.
 assert (block_eq:= @block_equalities_general 4%nat ((abgate U) † × abgate U) ((abgate U) † × abgate U) 
-((TL0) † × TL0) Zero Zero ((BR0) † × BR0) (I 4) Zero Zero (I 4) neq40 
-WF_TL0_inv (@WF_Zero 4 4) (@WF_Zero 4 4) WF_BR0_inv
+((TL0) † × TL0) ((TL0) † × TR0) ((TR0) † × TL0) ((TR0) † × TR0 .+ (BR0) † × BR0) (I 4) Zero Zero (I 4) neq40 
+WF_TL0_inv WF_TR_block WF_BL_block WF_BR_block
 (@WF_I 4) (@WF_Zero 4 4) (@WF_Zero 4 4) (@WF_I 4) block_mult abU_inv self_eq).
-destruct block_eq as [TL0_inv [_ [_ BR0_inv]]].
+destruct block_eq as [TL0_inv [_ [TR_is_Zero BR0_inv]]].
+assert (TL0_unitary: WF_Unitary TL0). split. 1,2: assumption.
+apply unitary_mult_zero_cancel_r in TR_is_Zero. 2,3: solve_WF_matrix.
+rewrite <- zero_adjoint_eq in TR_is_Zero.
+apply (f_equal (fun f => f †)) in TR_is_Zero.
+repeat rewrite adjoint_involutive in TR_is_Zero.
+rewrite TR_is_Zero in BR0_inv.
+rewrite Mmult_0_r in BR0_inv.
+rewrite Mplus_0_l in BR0_inv.
 exists TL0, BR0.
+split. assumption.
 split. split. 1,2: assumption.
-split. split. 1,2: assumption.
-rewrite abgate_partial_decomp.
+rewrite zpass_decomp.
+rewrite TR_is_Zero.
 repeat rewrite kron_0_r.
 repeat rewrite Mplus_0_r.
 reflexivity.
@@ -1886,13 +1291,11 @@ Qed.
 Lemma acgate_diagblock: forall (U: Square 4), 
 WF_Unitary U -> (exists (x: Vector 2), WF_Qubit x /\ 
 forall (y : Vector 2), WF_Qubit y -> (exists (phi: Vector 4), WF_Matrix phi /\
-(acgate U) × (∣0⟩ ⊗ x ⊗ y)  =  ∣0⟩ ⊗ phi)) -> (exists (x: Vector 2), WF_Qubit x /\ 
-forall (y : Vector 2), WF_Qubit y -> (exists (phi: Vector 4), WF_Matrix phi /\
-(acgate U) × (∣1⟩ ⊗ x ⊗ y)  =  ∣1⟩ ⊗ phi)) ->
+(acgate U) × (∣0⟩ ⊗ x ⊗ y)  =  ∣0⟩ ⊗ phi)) ->
 exists (TL BR: Square 4), WF_Unitary TL /\ WF_Unitary BR /\
 acgate U = ∣0⟩⟨0∣ ⊗ TL .+ ∣1⟩⟨1∣ ⊗ BR.
 Proof.
-intros U U_unitary zeropassthrough onepassthrough.
+intros U U_unitary zeropassthrough.
 assert (goal_change: (exists TL BR : Square 4,
 WF_Unitary TL /\ WF_Unitary BR /\ abgate U = ∣0⟩⟨0∣ ⊗ TL .+ ∣1⟩⟨1∣ ⊗ BR) -> 
 exists TL BR : Square 4, WF_Unitary TL /\ WF_Unitary BR /\
@@ -1917,48 +1320,24 @@ acgate U = ∣0⟩⟨0∣ ⊗ TL .+ ∣1⟩⟨1∣ ⊗ BR).
 apply goal_change.
 apply abgate_diagblock.
 assumption.
-{
-    destruct zeropassthrough as [x [x_qubit zeropassthrough]].
-    exists x.
-    split. assumption.
-    intros y y_qubit.
-    specialize (zeropassthrough y y_qubit).
-    destruct zeropassthrough as [phis [WF_phis zeropassthrough]].
-    exists (swap × phis).
-    split. solve_WF_matrix.
-    unfold acgate in zeropassthrough.
-    apply (f_equal (fun f => swapbc × f)) in zeropassthrough.
-    repeat rewrite <- Mmult_assoc in zeropassthrough.
-    rewrite swapbc_inverse in zeropassthrough at 1.
-    rewrite Mmult_1_l in zeropassthrough. 2: apply WF_abgate; apply U_unitary.
-    rewrite Mmult_assoc in zeropassthrough.
-    rewrite swapbc_3q in zeropassthrough. 2: solve_WF_matrix. 2: apply x_qubit. 2: apply y_qubit.
-    rewrite zeropassthrough at 1.
-    unfold swapbc.
-    rewrite kron_mixed_product.
-    rewrite Mmult_1_l. 2: solve_WF_matrix.
-    reflexivity.
-}
-{
-    destruct onepassthrough as [x [x_qubit onepassthrough]].
-    exists x.
-    split. assumption.
-    intros y y_qubit.
-    specialize (onepassthrough y y_qubit).
-    destruct onepassthrough as [phis [WF_phis onepassthrough]].
-    exists (swap × phis).
-    split. solve_WF_matrix.
-    unfold acgate in onepassthrough.
-    apply (f_equal (fun f => swapbc × f)) in onepassthrough.
-    repeat rewrite <- Mmult_assoc in onepassthrough.
-    rewrite swapbc_inverse in onepassthrough at 1.
-    rewrite Mmult_1_l in onepassthrough. 2: apply WF_abgate; apply U_unitary.
-    rewrite Mmult_assoc in onepassthrough.
-    rewrite swapbc_3q in onepassthrough. 2: solve_WF_matrix. 2: apply x_qubit. 2: apply y_qubit.
-    rewrite onepassthrough at 1.
-    unfold swapbc.
-    rewrite kron_mixed_product.
-    rewrite Mmult_1_l. 2: solve_WF_matrix.
-    reflexivity.
-}
+destruct zeropassthrough as [x [x_qubit zeropassthrough]].
+exists x.
+split. assumption.
+intros y y_qubit.
+specialize (zeropassthrough y y_qubit).
+destruct zeropassthrough as [phis [WF_phis zeropassthrough]].
+exists (swap × phis).
+split. solve_WF_matrix.
+unfold acgate in zeropassthrough.
+apply (f_equal (fun f => swapbc × f)) in zeropassthrough.
+repeat rewrite <- Mmult_assoc in zeropassthrough.
+rewrite swapbc_inverse in zeropassthrough at 1.
+rewrite Mmult_1_l in zeropassthrough. 2: apply WF_abgate; apply U_unitary.
+rewrite Mmult_assoc in zeropassthrough.
+rewrite swapbc_3q in zeropassthrough. 2: solve_WF_matrix. 2: apply x_qubit. 2: apply y_qubit.
+rewrite zeropassthrough at 1.
+unfold swapbc.
+rewrite kron_mixed_product.
+rewrite Mmult_1_l. 2: solve_WF_matrix.
+reflexivity.
 Qed.
