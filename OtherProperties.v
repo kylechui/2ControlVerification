@@ -167,8 +167,7 @@ do 2 rewrite Mplus_0_r in V3_way1.
 do 2 rewrite Mplus_assoc in V3_way1. rewrite Mplus_comm with (A:= ∣1⟩⟨1∣
 ⊗ ((V2) † × (I 2 ⊗ (P1) †) × U1 × (V4) †)) in V3_way1.
 repeat rewrite <- Mplus_assoc in V3_way1.
-assert (ne20: 2%nat <> 0%nat). lia.
-assert (v3_decomp:= @block_decomp_general 2 V3 ne20 WF_v3).
+assert (v3_decomp:= @block_decomp 2 V3 WF_v3).
 destruct v3_decomp as [Q00 [Q01 [Q10 [Q11 [WF_Q00 [WF_Q01 [WF_Q10 [WF_Q11 v3_decomp]]]]]]]].
 assert (V3_way2: acgate V3 = swapbc × abgate V3 × swapbc). unfold acgate. reflexivity.
 unfold abgate in V3_way2.
@@ -184,7 +183,7 @@ rewrite kron_assoc in V3_way2. 2,3,4: solve_WF_matrix.
 rewrite kron_assoc in V3_way2. 2,3,4: solve_WF_matrix.
 rewrite kron_assoc in V3_way2. 2,3,4: solve_WF_matrix.
 rewrite kron_assoc in V3_way2. 2,3,4: solve_WF_matrix.
-assert (block_eq := @block_equalities_general 4 (acgate V3) (acgate V3)
+assert (block_eq := @block_equalities 4 (acgate V3) (acgate V3)
 ((V2) † × (I 2 ⊗ (P0) †) × U0 × (V4) †) (@Zero 4 4) (@Zero 4 4) ((V2) † × (I 2 ⊗ (P1) †) × U1 × (V4) †)
 (I 2 ⊗ Q00) (I 2 ⊗ Q01) (I 2 ⊗ Q10) (I 2 ⊗ Q11)).
 assert (eq: (V2) † × (I 2 ⊗ (P0) †) × U0 × (V4) † = I 2 ⊗ Q00 /\
@@ -235,7 +234,7 @@ repeat rewrite Mmult_0_r in block_unit.
 repeat rewrite Mmult_0_l in block_unit.
 repeat rewrite Mplus_0_r in block_unit.
 repeat rewrite Mplus_0_l in block_unit.
-assert (block_eq_2 := @block_equalities_general 2 (∣0⟩⟨0∣ ⊗ ((Q00) † × Q00) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero
+assert (block_eq_2 := @block_equalities 2 (∣0⟩⟨0∣ ⊗ ((Q00) † × Q00) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero
 .+ ∣1⟩⟨1∣ ⊗ ((Q11) † × Q11)) (∣0⟩⟨0∣ ⊗ I 2 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ I 2)
 ((Q00) † × Q00) (Zero) (Zero) ((Q11) † × Q11) (I 2) (Zero) (Zero) (I 2)).
 assert (unit_eq: (Q00) † × Q00 = I 2 /\

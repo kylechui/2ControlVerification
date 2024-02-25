@@ -423,7 +423,7 @@ assert (block_decomp: ∣0⟩⟨0∣ ⊗ (P00 × P00†) .+ ∣0⟩⟨1∣ ⊗ (
 clear V_unitary Vadj_unitary lr_mult rl_mult.
 assert (P00_decomp: P00 × P00† = P00† × P00 .+ P10† × P10).
 {
-    apply block_equalities_general with (P00:= P00 × (P00) †) (P01 := P00 × (P10) †) (P10:= P10 × (P00) †) (P11 := P10 × (P10) † .+ P11 × (P11) †)
+    apply block_equalities with (P00:= P00 × (P00) †) (P01 := P00 × (P10) †) (P10:= P10 × (P00) †) (P11 := P10 × (P10) † .+ P11 × (P11) †)
     (Q00:= (P00) † × P00 .+ (P10) † × P10) (Q01 := (P10) † × P11) (Q10:= (P11) † × P10) (Q11 := (P11) † × P11) in block_decomp.
     2: lia.
     2,3,4,5,6,7,8,9,10,11: solve_WF_matrix.

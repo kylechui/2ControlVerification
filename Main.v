@@ -36,7 +36,7 @@ Proof.
         U = ∣0⟩⟨0∣ ⊗ V00 .+ ∣0⟩⟨1∣ ⊗ V01 .+ ∣1⟩⟨0∣ ⊗ V10 .+ ∣1⟩⟨1∣ ⊗ V11
       ).
       {
-        apply block_decomp_general; auto.
+        apply block_decomp.
         destruct Unitary_U; assumption.
       }
       destruct block_matrices_U as [V00 [V01 [V10 [V11 block_matrices_U]]]].
@@ -86,7 +86,7 @@ Proof.
           reflexivity.
       }
       rewrite UW, WU in H; clear UW WU W_eq_blocks.
-      apply (@block_equalities_general
+      apply (@block_equalities
         4%nat
         (∣0⟩⟨0∣ ⊗ (u0 .* V00) .+ ∣0⟩⟨1∣ ⊗ (u1 .* V01) .+ ∣1⟩⟨0∣ ⊗ (u0 .* V10) .+ ∣1⟩⟨1∣ ⊗ (u1 .* V11))
         (∣0⟩⟨0∣ ⊗ (u0 .* V00) .+ ∣0⟩⟨1∣ ⊗ (u0 .* V01) .+ ∣1⟩⟨0∣ ⊗ (u1 .* V10) .+ ∣1⟩⟨1∣ ⊗ (u1 .* V11))
@@ -158,7 +158,7 @@ Proof.
         repeat rewrite Mplus_0_l in Unitary_U.
         repeat rewrite Mplus_0_r in Unitary_U.
         apply (
-        @block_equalities_general
+        @block_equalities
         4%nat
         (∣0⟩⟨0∣ ⊗ ((V00) † × V00) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ ((V11) † × V11))
         (∣0⟩⟨0∣ ⊗ I 4 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ I 4)

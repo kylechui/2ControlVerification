@@ -640,7 +640,7 @@ intros.
 lca.
 Qed.
 
-Lemma block_equalities_general {n}: forall (U V: Square (n+n)) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square n),
+Lemma block_equalities {n}: forall (U V: Square (n+n)) (P00 P01 P10 P11 Q00 Q01 Q10 Q11: Square n),
 n <> 0%nat ->  
 WF_Matrix P00 -> WF_Matrix P01 -> WF_Matrix P10 -> WF_Matrix P11 ->
 WF_Matrix Q00 -> WF_Matrix Q01 -> WF_Matrix Q10 -> WF_Matrix Q11 ->
@@ -1184,12 +1184,25 @@ rewrite <- Cconj_0.
 apply Cconj_simplify. do 2 rewrite Cconj_involutive. assumption.
 Qed.
 
-Lemma block_decomp_general {n}: forall (U: Square (2*n)), n <> 0%nat -> WF_Matrix U -> 
+Lemma block_decomp {n}: forall (U: Square (2*n)), WF_Matrix U ->
 exists (TL TR BL BR : Square n), 
 WF_Matrix TL /\ WF_Matrix TR /\ WF_Matrix BL /\ WF_Matrix BR /\
 U = ∣0⟩⟨0∣ ⊗ TL .+ ∣0⟩⟨1∣ ⊗ TR .+ ∣1⟩⟨0∣ ⊗ BL .+ ∣1⟩⟨1∣ ⊗ BR.
 Proof.
-intros U nn0 WF_U.
+intros U WF_U.
+destruct (Nat.eq_dec n 0%nat) as [n0 | nn0].
+{
+  exists Zero, Zero, Zero, Zero.
+  split. apply WF_Zero.
+  split. apply WF_Zero.
+  split. apply WF_Zero.
+  split. apply WF_Zero.
+  Msimpl.
+  apply WF0_Zero.
+  unfold WF_Matrix in WF_U.
+  rewrite n0 in WF_U.
+  assumption.
+}
 set (TL := (fun x y => if (x <? n) && (y <? n) then U x y else 0 ): Square n).
 assert (WF_TL: WF_Matrix TL).
 {
