@@ -449,34 +449,6 @@ Proof.
   all: solve_WF_matrix.
 Qed.
 
-Lemma nat_tight_bound: forall (i j: nat), 
-(i <= j -> j < S i -> i = j)%nat.
-Proof.
-intros i j lb up.
-apply Nat.le_antisymm.
-assumption.
-apply le_S_n. apply up.
-Qed.
-
-Lemma sub_mod_equiv: forall (i j: nat), 
-(i < j * 2 -> j <= i -> (i mod j) = i - j)%nat.
-Proof.
-intros.
-assert ((i - j) = ((i - j) mod j))%nat.
-{
-  symmetry.
-  apply Nat.mod_small.
-  lia.
-}
-rewrite H1.
-symmetry.
-rewrite <- Nat.mul_1_l with (n := j) at 1.
-apply sub_mul_mod.
-rewrite Nat.mul_1_l.
-assumption.
-Qed.
-
-
 Lemma upper_left_block_entries {n}: forall (A : Square n) (i j: nat), 
 (i < n /\ j < n)%nat -> (∣0⟩⟨0∣ ⊗ A) i j = A i j.
 Proof.
@@ -1226,7 +1198,7 @@ assert (WF_TL: WF_Matrix TL).
   unfold TL.
   destruct H.
   replace (x <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
-rewrite andb_false_l. reflexivity.
+  rewrite andb_false_l. reflexivity.
   replace (y <? n) with false by (symmetry; rewrite Nat.ltb_ge; lia).
   rewrite andb_false_r. reflexivity.
 }
@@ -1364,132 +1336,6 @@ destruct (le_lt_dec n x).
     split. lia. lia. 
   }
 }
-Qed.
-
-Lemma block_decomp_4: forall (U: Square 4), WF_Matrix U ->
-exists (P00 P01 P10 P11: Square 2), 
-WF_Matrix P00 /\ WF_Matrix P01 /\ WF_Matrix P10 /\ WF_Matrix P11 /\
-U = ∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11.
-Proof.
-intros U WF_U.
-set (P00 := (fun x y =>
-match (x,y) with
-| (0,0) => (U 0 0)%nat
-| (0,1) => (U 0 1)%nat
-| (1,0) => (U 1 0)%nat
-| (1,1) => (U 1 1)%nat
-| _ => C0
-end) : (Square 2)).
-set (P01 := (fun x y =>
-match (x,y) with
-| (0,0) => (U 0 2)%nat
-| (0,1) => (U 0 3)%nat
-| (1,0) => (U 1 2)%nat
-| (1,1) => (U 1 3)%nat
-| _ => C0
-end) : (Square 2)).
-set (P10 := (fun x y =>
-match (x,y) with
-| (0,0) => (U 2 0)%nat
-| (0,1) => (U 2 1)%nat
-| (1,0) => (U 3 0)%nat
-| (1,1) => (U 3 1)%nat
-| _ => C0
-end) : (Square 2)).
-set (P11 := (fun x y =>
-match (x,y) with
-| (0,0) => (U 2 2)%nat
-| (0,1) => (U 2 3)%nat
-| (1,0) => (U 3 2)%nat
-| (1,1) => (U 3 3)%nat
-| _ => C0
-end) : (Square 2)).
-exists P00, P01, P10, P11.
-assert (WF_P00: WF_Matrix P00). 
-{
-    unfold WF_Matrix. intros.
-    unfold P00.
-    destruct H.
-    destruct x as [|x']. contradict H. lia.
-    destruct x' as [| x'']. contradict H. lia. 
-    reflexivity.
-    destruct x as [|x'].
-    destruct y as [|y']. contradict H. lia.
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    destruct x' as [| x''].
-    destruct y as [| y']. contradict H. lia. 
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    reflexivity.
-}
-split. assumption.
-assert (WF_P01: WF_Matrix P01). 
-{
-    unfold WF_Matrix. intros.
-    unfold P01.
-    destruct H.
-    destruct x as [|x']. contradict H. lia.
-    destruct x' as [| x'']. contradict H. lia. 
-    reflexivity.
-    destruct x as [|x'].
-    destruct y as [|y']. contradict H. lia.
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    destruct x' as [| x''].
-    destruct y as [| y']. contradict H. lia. 
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    reflexivity.
-}
-split. assumption.
-assert (WF_P10: WF_Matrix P10). 
-{
-    unfold WF_Matrix. intros.
-    unfold P10.
-    destruct H.
-    destruct x as [|x']. contradict H. lia.
-    destruct x' as [| x'']. contradict H. lia. 
-    reflexivity.
-    destruct x as [|x'].
-    destruct y as [|y']. contradict H. lia.
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    destruct x' as [| x''].
-    destruct y as [| y']. contradict H. lia. 
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    reflexivity.
-}
-split. assumption.
-assert (WF_P11: WF_Matrix P11). 
-{
-    unfold WF_Matrix. intros.
-    unfold P11.
-    destruct H.
-    destruct x as [|x']. contradict H. lia.
-    destruct x' as [| x'']. contradict H. lia. 
-    reflexivity.
-    destruct x as [|x'].
-    destruct y as [|y']. contradict H. lia.
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    destruct x' as [| x''].
-    destruct y as [| y']. contradict H. lia. 
-    destruct y' as [| y'']. contradict H. lia.
-    reflexivity.
-    reflexivity.
-}
-split. assumption.
-lma'. apply (@WF_blockmatrix 2). 1,2,3,4: assumption.
-all: unfold Mplus, kron, "∣0⟩⟨0∣", "∣0⟩⟨1∣", "∣1⟩⟨0∣", "∣1⟩⟨1∣", Mmult, adjoint.
-all: simpl.
-all: Csimpl.
-1,2,5,6: unfold P00.
-5,6,7,8: unfold P01.
-9,10,13,14: unfold P10.
-13,14,15,16: unfold P11.
-all: lca.
 Qed.
 
 Lemma element_equiv_vec_element {m n}: forall (A: Matrix m n), 
@@ -2369,4 +2215,44 @@ Proof.
       }
     }
   }
+Qed.
+
+Lemma vector2_inner_prod_decomp: forall (a b : Vector 2), 
+(⟨ a, b ⟩ = (a 0%nat 0%nat)^* * (b 0%nat 0%nat) + (a 1%nat 0%nat)^* * (b 1%nat 0%nat)).
+Proof.
+intros.
+lca.
+Qed.
+
+Lemma Mmult_square2_explicit: forall (A B: Square 2), 
+WF_Matrix A -> WF_Matrix B -> 
+(A × B) = (fun x y => A x 0%nat * B 0%nat y + A x 1%nat * B 1%nat y).
+Proof.
+intros. lma'.
+unfold WF_Matrix.
+intros.
+destruct H1.
+repeat rewrite H. lca. 1,2: lia.
+repeat rewrite H0. lca. 1,2: lia.
+Qed.
+
+Lemma Mv_prod_21_explicit: forall (A: Square 2) (v : Vector 2),
+WF_Matrix A -> WF_Matrix v ->
+(A × v) = ((fun x y => 
+match (x,y) with 
+| (0,0) => (A 0 0)%nat * (v 0 0)%nat + (A 0 1)%nat * (v 1 0)%nat
+| (1,0) => (A 1 0)%nat * (v 0 0)%nat + (A 1 1)%nat * (v 1 0)%nat
+| _ => C0
+end): Square 2). 
+Proof.
+intros.
+lma'.
+unfold WF_Matrix.
+intros.
+destruct H1.
+destruct x as [|a]. contradict H. lia.
+destruct a as [|x]. contradict H. lia. reflexivity.
+destruct x as [|a]. destruct y as [|b]. contradict H. lia.
+reflexivity.
+destruct a as [|x]. destruct y as [|b]. contradict H. lia. reflexivity. reflexivity.
 Qed.

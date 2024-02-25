@@ -2,7 +2,6 @@ Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
 From Proof Require Import MatrixHelpers.
 From Proof Require Import AlgebraHelpers.
-From Proof Require Import ExplicitDecompositions.
 
 Definition WF_Qubit {n} (q: Vector n) := (exists m: nat, (2 ^ m = n)%nat) /\ WF_Matrix q /\ ⟨ q, q ⟩ = 1.
 
@@ -606,6 +605,59 @@ split.
 }
 Qed.
 
+Lemma exists_unitary_mapping_qubit_to_1: forall (a : Vector 2), 
+WF_Qubit a -> exists (P : Square 2), WF_Unitary P /\ P × a = ∣1⟩.
+Proof.
+intros a a_qubit.
+assert (temp: WF_Qubit a). assumption.
+destruct temp as [_ [WF_a a_unit]].
+set (P := (fun x y => 
+match (x,y) with 
+| (0,0) => - (a 1%nat 0%nat)
+| (0,1) => (a 0%nat 0%nat)
+| (1,0) => (a 0%nat 0%nat)^* 
+| (1,1) => (a 1%nat 0%nat)^*
+| _ => C0
+end) : Square 2).
+assert (WF_P: WF_Matrix P).
+{
+    unfold WF_Matrix.
+    intros.
+    unfold P.
+    destruct H.
+    destruct x as [|b]. contradict H. lia.
+    destruct b as [|x]. contradict H. lia. reflexivity.
+    destruct x as [|b]. destruct y as [|c]. contradict H. lia.
+    destruct c as [|y]. contradict H. lia. reflexivity.
+    destruct b as [|x]. destruct y as [|c]. contradict H. lia.
+    destruct c as [|y]. contradict H. lia.
+    reflexivity. reflexivity.   
+}
+exists P.
+split.
+{
+    unfold WF_Unitary.
+    split. assumption.
+    lma'.
+    all: rewrite Mmult_square2_explicit.
+    2,3,5,6,8,9,11,12: solve_WF_matrix.
+    all: repeat rewrite Madj_explicit_decomp.
+    all: unfold P,I.
+    all: simpl.
+    2,3: lca.
+    all: rewrite <- a_unit. 
+    all: lca.
+}
+{
+    lma'.
+    all: rewrite Mv_prod_21_explicit.
+    2,3,5,6: assumption.
+    all: unfold P.
+    lca.
+    rewrite <- a_unit. lca.
+}
+Qed.
+
 Lemma orth_qubit_unitary: forall (a b: Vector 2), 
 WF_Qubit a -> WF_Qubit b -> ⟨ a, b ⟩ = 0 -> 
 WF_Unitary (a × ⟨0∣ .+ b × ⟨1∣).
@@ -684,4 +736,51 @@ apply C1_neq_C0.
 rewrite <- H.
 rewrite <- q_unit.
 reflexivity.
+Qed.
+
+Lemma qubit_not_0tens {n}: forall (x : Vector (2*n)),
+n <> 0%nat -> WF_Matrix x -> 
+(exists i: nat, (n <= i)%nat /\ x i 0%nat <> 0) -> 
+forall (y : Vector n), WF_Matrix y -> x <> ∣0⟩ ⊗ y.
+Proof.
+intros x nn0 WF_x eln0 y.
+destruct eln0 as [i [ibound x0]].
+unfold not. 
+intros.
+apply x0.
+rewrite H0.
+unfold kron.
+rewrite <- Nat.mul_1_r with (n:= n) in ibound.
+apply Nat.div_le_lower_bound in ibound. 2: assumption.
+assert (iub : (i < n * 2)%nat).
+{
+    destruct (le_lt_dec (n*2) i).
+    {
+        contradict x0.
+        rewrite WF_x.
+        reflexivity.
+        left. lia.
+    }
+    assumption.   
+}
+apply Nat.div_lt_upper_bound in iub. 2: assumption.
+assert (ind_val:= nat_tight_bound 1 (i/n)%nat ibound iub).
+rewrite <- ind_val.
+lca.
+Qed.
+
+Lemma qubit_not_1tens {n}: forall (x : Vector (2*n)),
+n <> 0%nat -> WF_Matrix x -> 
+(exists i: nat, (i < n)%nat /\ x i 0%nat <> 0) -> 
+forall (y : Vector n), WF_Matrix y -> x <> ∣1⟩ ⊗ y.
+Proof.
+intros x nn0 WF_x eln0 y.
+destruct eln0 as [i [ibound x0]].
+unfold not. 
+intros.
+apply x0.
+rewrite H0.
+unfold kron.
+rewrite Nat.div_small.
+lca. assumption.
 Qed.

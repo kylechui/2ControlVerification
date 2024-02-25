@@ -80,7 +80,8 @@ assert (prod_decomp_1 : forall (w : Vector 2), WF_Matrix w -> U × (I 2 ⊗ Q) �
     rewrite U_beta at 1. rewrite U_beta_p at 1.
     lma'.
 }
-destruct (block_decomp_4 U) as [P00 [P01 [P10 [P11 [WF_P00 [WF_P01 [WF_P10 [WF_P11 U_block_decomp]]]]]]]]. apply U_unitary.
+destruct (@block_decomp_general 2 U) as [P00 [P01 [P10 [P11 [WF_P00 [WF_P01 [WF_P10 [WF_P11 U_block_decomp]]]]]]]]. lia.
+apply U_unitary.
 assert (prod_decomp_2: forall (w : Vector 2), WF_Matrix w -> U × (I 2 ⊗ Q) × (∣0⟩ ⊗ w) = ∣0⟩ ⊗ (P00 × Q × w) .+ ∣1⟩ ⊗ (P10 × Q × w)).
 {
     intros w WF_w.

@@ -1,4 +1,7 @@
 Require Import QuantumLib.Complex.
+(* @Kyle: this Matrix dependency is for just 1 thing. Maybe better to rewrite the sub_mul_mod
+proof in here *)
+Require Import QuantumLib.Matrix.
 Lemma conj_mult_re_is_nonneg: forall (a: C),
 Re (a^* * a) >= 0.
 Proof.
@@ -772,4 +775,31 @@ lca.
 8,9: assumption.
 all: apply RtoC_neq.
 all: lra.
+Qed.
+
+Lemma nat_tight_bound: forall (i j: nat), 
+(i <= j -> j < S i -> i = j)%nat.
+Proof.
+intros i j lb up.
+apply Nat.le_antisymm.
+assumption.
+apply le_S_n. apply up.
+Qed.
+
+Lemma sub_mod_equiv: forall (i j: nat), 
+(i < j * 2 -> j <= i -> (i mod j) = i - j)%nat.
+Proof.
+intros.
+assert ((i - j) = ((i - j) mod j))%nat.
+{
+  symmetry.
+  apply Nat.mod_small.
+  lia.
+}
+rewrite H1.
+symmetry.
+rewrite <- Nat.mul_1_l with (n := j) at 1.
+apply sub_mul_mod.
+rewrite Nat.mul_1_l.
+assumption.
 Qed.
