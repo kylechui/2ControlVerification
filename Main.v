@@ -9,6 +9,251 @@ Require Import QuantumLib.Eigenvectors.
 Require Import QuantumLib.Matrix.
 
 
+Lemma m3_1 : forall (u0 u1 : C),
+  Cmod u0 = 1 -> Cmod u1 = 1 ->
+  forall (U : Square 8), WF_Unitary U ->
+    (U × ((diag2 u0 u1) ⊗ (I 2) ⊗ (I 2)) = ((diag2 u0 u1) ⊗ (I 2) ⊗ (I 2)) × U <->
+    u0 = u1 \/ (exists (V00 V11 : Square 4),
+      WF_Unitary V00 /\ WF_Unitary V11 /\
+      U = ∣0⟩⟨0∣ ⊗ V00 .+ ∣1⟩⟨1∣ ⊗ V11)).
+Proof.
+  intros u0 u1 unit_u0 unit_u1 U Unitary_U.
+  split.
+  {
+    intro H.
+    destruct (Ceq_dec u0 u1) as [u0_eq_u1 | u0_neq_u1].
+    {
+      left.
+      exact u0_eq_u1.
+    }
+    {
+      right.
+      assert (block_matrices_U : exists V00 V01 V10 V11 : Square 4,
+        WF_Matrix V00 /\
+        WF_Matrix V01 /\
+        WF_Matrix V10 /\
+        WF_Matrix V11 /\
+        U = ∣0⟩⟨0∣ ⊗ V00 .+ ∣0⟩⟨1∣ ⊗ V01 .+ ∣1⟩⟨0∣ ⊗ V10 .+ ∣1⟩⟨1∣ ⊗ V11
+      ).
+      {
+        apply block_decomp_general; auto.
+        destruct Unitary_U; assumption.
+      }
+      destruct block_matrices_U as [V00 [V01 [V10 [V11 block_matrices_U]]]].
+      destruct block_matrices_U as [WF_V00 [WF_V01 [WF_V10 [WF_V11 U_eq_blocks]]]].
+      exists V00, V11.
+      assert (W_eq_blocks : (diag2 u0 u1) ⊗ (I 2) ⊗ (I 2) = ∣0⟩⟨0∣ ⊗ (u0 .*(I 4)) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* (I 4))).
+      {
+        unfold diag2.
+        lma'.
+        solve_WF_matrix; apply WF_diag2.
+        solve_WF_matrix.
+      }
+      assert (UW : U × (diag2 u0 u1 ⊗ I 2 ⊗ I 2) = ∣0⟩⟨0∣ ⊗ (u0 .* V00) .+ ∣0⟩⟨1∣ ⊗ (u1 .* V01) .+ ∣1⟩⟨0∣ ⊗ (u0 .* V10) .+ ∣1⟩⟨1∣ ⊗ (u1 .* V11)).
+      {
+        rewrite U_eq_blocks, W_eq_blocks; clear U_eq_blocks W_eq_blocks.
+        rewrite block_multiply with
+          (P00 := V00)
+          (P01 := V01)
+          (P10 := V10)
+          (P11 := V11)
+          (Q00 := u0 .* I 4)
+          (Q01 := Zero)
+          (Q10 := Zero)
+          (Q11 := u1 .* I 4)
+          (U := (∣0⟩⟨0∣ ⊗ V00 .+ ∣0⟩⟨1∣ ⊗ V01 .+ ∣1⟩⟨0∣ ⊗ V10 .+ ∣1⟩⟨1∣ ⊗ V11))
+          (V := (∣0⟩⟨0∣ ⊗ (u0 .* I 4) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* I 4))) at 1; try solve_WF_matrix.
+        repeat rewrite Mscale_mult_dist_r.
+        Msimpl.
+        reflexivity.
+      }
+      assert (WU : (diag2 u0 u1 ⊗ I 2 ⊗ I 2) × U = ∣0⟩⟨0∣ ⊗ (u0 .* V00) .+ ∣0⟩⟨1∣ ⊗ (u0 .* V01) .+ ∣1⟩⟨0∣ ⊗ (u1 .* V10) .+ ∣1⟩⟨1∣ ⊗ (u1 .* V11)).
+      {
+        rewrite U_eq_blocks, W_eq_blocks; clear U_eq_blocks W_eq_blocks.
+        rewrite block_multiply with
+          (P00 := u0 .* I 4)
+          (P01 := Zero)
+          (P10 := Zero)
+          (P11 := u1 .* I 4)
+          (Q00 := V00)
+          (Q01 := V01)
+          (Q10 := V10)
+          (Q11 := V11)
+          (U := (∣0⟩⟨0∣ ⊗ (u0 .* I 4) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* I 4)))
+          (V := (∣0⟩⟨0∣ ⊗ V00 .+ ∣0⟩⟨1∣ ⊗ V01 .+ ∣1⟩⟨0∣ ⊗ V10 .+ ∣1⟩⟨1∣ ⊗ V11)) at 1; try solve_WF_matrix.
+          repeat rewrite Mscale_mult_dist_l.
+          Msimpl.
+          reflexivity.
+      }
+      rewrite UW, WU in H; clear UW WU W_eq_blocks.
+      apply (@block_equalities_general
+        4%nat
+        (∣0⟩⟨0∣ ⊗ (u0 .* V00) .+ ∣0⟩⟨1∣ ⊗ (u1 .* V01) .+ ∣1⟩⟨0∣ ⊗ (u0 .* V10) .+ ∣1⟩⟨1∣ ⊗ (u1 .* V11))
+        (∣0⟩⟨0∣ ⊗ (u0 .* V00) .+ ∣0⟩⟨1∣ ⊗ (u0 .* V01) .+ ∣1⟩⟨0∣ ⊗ (u1 .* V10) .+ ∣1⟩⟨1∣ ⊗ (u1 .* V11))
+        (u0 .* V00)
+        (u1 .* V01)
+        (u0 .* V10)
+        (u1 .* V11)
+        (u0 .* V00)
+        (u0 .* V01)
+        (u1 .* V10)
+        (u1 .* V11)
+      ) in H; try solve_WF_matrix; try lia.
+      destruct H as [_ [V01_mult [V10_mult _]]].
+      assert (H : forall {m n} (a b : C) (M : Matrix m n),
+        WF_Matrix M -> a <> b -> a .* M = b .* M -> M = Zero).
+      {
+        intros.
+        assert (H2 : a - b <> C0).
+        {
+          intro H2.
+          apply H0.
+          rewrite <- Cplus_0_l.
+          rewrite <- H2.
+          lca.
+        }
+        apply Mscale_cancel_l with (c := a - b); auto.
+        unfold Cminus.
+        rewrite Mscale_plus_distr_l.
+        rewrite H1.
+        lma'.
+      }
+      assert (Zero_V01 : V01 = Zero).
+      {
+        apply (H 4%nat 4%nat u1 u0); auto.
+      }
+      assert (Zero_V10 : V10 = Zero).
+      {
+        apply (H 4%nat 4%nat u0 u1); auto.
+      }
+      destruct Unitary_U as [WF_U Unitary_U].
+      rewrite U_eq_blocks in Unitary_U.
+      repeat rewrite Mplus_adjoint in Unitary_U.
+      repeat rewrite kron_adjoint in Unitary_U.
+      rewrite adjoint00, adjoint01, adjoint10, adjoint11 in Unitary_U.
+      rewrite block_multiply with
+        (P00 := V00†)
+        (P01 := V10†)
+        (P10 := V01†)
+        (P11 := V11†)
+        (Q00 := V00)
+        (Q01 := V01)
+        (Q10 := V10)
+        (Q11 := V11)
+        (U := (∣0⟩⟨0∣ ⊗ (V00) † .+ ∣1⟩⟨0∣ ⊗ (V01) † .+ ∣0⟩⟨1∣ ⊗ (V10) † .+ ∣1⟩⟨1∣ ⊗ (V11) †))
+        (V := (∣0⟩⟨0∣ ⊗ V00 .+ ∣0⟩⟨1∣ ⊗ V01 .+ ∣1⟩⟨0∣ ⊗ V10 .+ ∣1⟩⟨1∣ ⊗ V11)) in Unitary_U at 1; solve_WF_matrix.
+      {
+        assert (H0 : I 8 = ∣0⟩⟨0∣ ⊗ I 4 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ I 4).
+        {
+          Msimpl.
+          rewrite <- kron_plus_distr_r, Mplus01, id_kron.
+          replace (2 * 4)%nat with 8%nat by lia.
+          reflexivity.
+        }
+        rewrite H0 in Unitary_U; clear H0.
+        rewrite Zero_V01, Zero_V10 in Unitary_U.
+        repeat rewrite zero_adjoint_eq in Unitary_U.
+        repeat rewrite Mmult_0_l in Unitary_U.
+        repeat rewrite Mmult_0_r in Unitary_U.
+        repeat rewrite Mplus_0_l in Unitary_U.
+        repeat rewrite Mplus_0_r in Unitary_U.
+        apply (
+        @block_equalities_general
+        4%nat
+        (∣0⟩⟨0∣ ⊗ ((V00) † × V00) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ ((V11) † × V11))
+        (∣0⟩⟨0∣ ⊗ I 4 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ I 4)
+        (V00† × V00)
+        Zero
+        Zero
+        (V11† × V11)
+        (I 4)
+        Zero
+        Zero
+        (I 4)
+        ) in Unitary_U; try solve_WF_matrix; try lia.
+        destruct Unitary_U as [Unitary_V00 [_ [_ Unitary_V11]]].
+        split.
+        {
+          split; auto.
+        }
+        split.
+        {
+          split; auto.
+        }
+        {
+          revert U_eq_blocks; rewrite Zero_V01, Zero_V10; Msimpl; intro U_eq_blocks.
+          exact U_eq_blocks.
+        }
+      }
+      {
+        rewrite Zero_V01, Zero_V10; Msimpl.
+        reflexivity.
+      }
+    }
+  }
+  {
+    intro H.
+    destruct H as [u0_eq_u1 | H].
+    {
+      rewrite u0_eq_u1.
+      assert (diag_scale : diag2 u1 u1 = u1 .* I 2).
+      {
+        unfold diag2.
+        lma'.
+        apply WF_diag2.
+      }
+      rewrite diag_scale; clear diag_scale.
+      repeat rewrite Mscale_kron_dist_l.
+      replace (I 2 ⊗ I 2 ⊗ I 2) with (I 8) by lma'.
+      rewrite Mscale_mult_dist_l.
+      rewrite Mscale_mult_dist_r.
+      destruct Unitary_U as [WF_U _].
+      Msimpl; auto.
+    }
+    {
+      destruct H as [V00 [V11 [[WF_V00 Unitary_V00] [[WF_V01 Unitary_V01] U_eq_blocks]]]].
+      rewrite U_eq_blocks; clear U_eq_blocks.
+      assert (H0 : ∣0⟩⟨0∣ ⊗ V00 .+ ∣1⟩⟨1∣ ⊗ V11 = ∣0⟩⟨0∣ ⊗ V00 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ V11).
+      {
+        Msimpl.
+        reflexivity.
+      }
+      assert (H1 : diag2 u0 u1 ⊗ I 2 ⊗ I 2 = ∣0⟩⟨0∣ ⊗ (u0 .* I 4) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* I 4)).
+      {
+        unfold diag2; Msimpl; lma'.
+        solve_WF_matrix; apply WF_diag2.
+      }
+      rewrite H0, H1; clear H0 H1.
+      rewrite block_multiply with
+        (P00 := V00)
+        (P01 := Zero)
+        (P10 := Zero)
+        (P11 := V11)
+        (Q00 := u0 .* I 4)
+        (Q01 := Zero)
+        (Q10 := Zero)
+        (Q11 := u1 .* I 4)
+        (U := (∣0⟩⟨0∣ ⊗ V00 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ V11))
+        (V := (∣0⟩⟨0∣ ⊗ (u0 .* I 4) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* I 4))) at 1; try solve_WF_matrix.
+      rewrite block_multiply with
+        (P00 := u0 .* I 4)
+        (P01 := Zero)
+        (P10 := Zero)
+        (P11 := u1 .* I 4)
+        (Q00 := V00)
+        (Q01 := Zero)
+        (Q10 := Zero)
+        (Q11 := V11)
+        (U := (∣0⟩⟨0∣ ⊗ (u0 .* I 4) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* I 4)))
+        (V := (∣0⟩⟨0∣ ⊗ V00 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ V11)) at 1; try solve_WF_matrix.
+      repeat rewrite Mscale_mult_dist_l.
+      repeat rewrite Mscale_mult_dist_r.
+      Msimpl.
+      reflexivity.
+    }
+  }
+Qed.
+
 Lemma m3_2 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
   (exists (P Q : Square 2),
