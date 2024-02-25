@@ -641,8 +641,8 @@ abgate U = ∣0⟩⟨0∣ ⊗ TL .+ ∣0⟩⟨1∣ ⊗ TR .+ ∣1⟩⟨1∣ ⊗ 
 Proof.
 intros U U_unitary zeropassthrough.
 destruct zeropassthrough as [y [WF_y zeropassthrough]].
-destruct (@block_decomp_general 2 U) as [TL [TR [BL [BR [WF_TL [WF_TR [WF_BL [WF_BR decomp]]]]]]]].
-lia. apply U_unitary.
+destruct (@block_decomp 2 U) as [TL [TR [BL [BR [WF_TL [WF_TR [WF_BL [WF_BR decomp]]]]]]]].
+apply U_unitary.
 exists (TL ⊗ I 2), (TR ⊗ I 2), (BR ⊗ I 2).
 split. solve_WF_matrix.
 split. solve_WF_matrix.
@@ -1265,7 +1265,7 @@ assert (WF_BL_block: WF_Matrix ((TR0) † × TL0)). solve_WF_matrix.
 assert (WF_BR_block: WF_Matrix ((TR0) † × TR0 .+ (BR0) † × BR0)). solve_WF_matrix.
 assert (self_eq: (abgate U) † × abgate U = (abgate U) † × abgate U). reflexivity.
 assert (neq40: 4%nat <> 0%nat). lia.
-assert (block_eq:= @block_equalities_general 4%nat ((abgate U) † × abgate U) ((abgate U) † × abgate U) 
+assert (block_eq:= @block_equalities 4%nat ((abgate U) † × abgate U) ((abgate U) † × abgate U) 
 ((TL0) † × TL0) ((TL0) † × TR0) ((TR0) † × TL0) ((TR0) † × TR0 .+ (BR0) † × BR0) (I 4) Zero Zero (I 4) neq40 
 WF_TL0_inv WF_TR_block WF_BL_block WF_BR_block
 (@WF_I 4) (@WF_Zero 4 4) (@WF_Zero 4 4) (@WF_I 4) block_mult abU_inv self_eq).
