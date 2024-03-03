@@ -844,6 +844,104 @@ Proof.
   }
 Qed.
 
+Lemma m3_3 : forall (u0 u1 : C),
+  Cmod u0 = 1 -> Cmod u1 = 1 ->
+    (exists (P : Square 2), WF_Unitary P /\
+      exists (c d : C) (v1 v2 v3 v4 : Vector 4),
+        (* This might not be right since we could have v1 == v2*)
+        Eigenpair (((I 2) ⊗ P) × control (diag2 u0 u1)) (v1, c) /\
+        Eigenpair (((I 2) ⊗ P) × control (diag2 u0 u1)) (v2, c) /\
+        Eigenpair (((I 2) ⊗ P) × control (diag2 u0 u1)) (v3, d) /\
+        Eigenpair (((I 2) ⊗ P) × control (diag2 u0 u1)) (v4, d))
+    <-> u0 = u1 \/ u0 * u1 = C1.
+Proof.
+  intros u0 u1 unit_u0 unit_u1.
+  split.
+  {
+    admit.
+  }
+  {
+    intro.
+    destruct H as [u0_is_u1 | u0u1_is_1].
+    {
+      exists (I 2).
+      split.
+      {
+        apply id_unitary.
+      }
+      {
+        exists C1, u0.
+        rewrite id_kron; Msimpl.
+        {
+          exists ∣0,0⟩, ∣0,1⟩, ∣1,0⟩, ∣1,1⟩.
+          assert (H : control (diag2 u0 u1) = diag4 C1 C1 u0 u1).
+          {
+            lma'.
+            {
+              apply WF_control, WF_diag2.
+            }
+            {
+              apply WF_diag4.
+            }
+            {
+              unfold diag4, diag2, control; simpl.
+              reflexivity.
+            }
+            {
+              unfold diag4, diag2, control; simpl.
+              reflexivity.
+            }
+          }
+          rewrite H, <- u0_is_u1.
+          apply diag4_eigenpairs.
+        }
+        {
+          apply WF_control, WF_diag2.
+        }
+      }
+    }
+    {
+      exists (diag2 C1 u0).
+      split.
+      {
+        admit.
+      }
+      {
+        exists C1, u0.
+        exists ∣1,1⟩, ∣0,0⟩, ∣0,1⟩, ∣1,0⟩.
+        assert (H : I 2 ⊗ diag2 C1 u0 × control (diag2 u0 u1) = diag4 C1 u0 u0 (u0 * u1)).
+        {
+          lma'.
+          {
+            solve_WF_matrix; apply WF_diag2.
+          }
+          {
+            apply WF_diag4.
+          }
+          {
+            unfold diag4, diag2, kron, Mmult; simpl; Csimpl.
+            reflexivity.
+          }
+          {
+            unfold diag4, diag2, kron, Mmult; simpl; Csimpl.
+            reflexivity.
+          }
+          {
+            unfold diag4, diag2, kron, Mmult; simpl; Csimpl.
+            reflexivity.
+          }
+        }
+        rewrite H; clear H.
+        rewrite u0u1_is_1.
+        (* rewrite A /\ B to B /\ A *)
+        rewrite and_comm.
+        repeat rewrite and_assoc.
+        apply diag4_eigenpairs.
+      }
+    }
+  }
+Qed.
+
 Lemma m4_1 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
     (exists (U V : Square 4) (P0 P1 Q0 Q1: Square 2),

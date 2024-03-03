@@ -10,6 +10,7 @@ QubitHelpers.v
 ExplicitDecompositions.v
 EigenvalueHelpers.v
 TraceoutHelpers.v
+Permutations.v
 
 # Appendix of proof
 SquareMatrices.v
