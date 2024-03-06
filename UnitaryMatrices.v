@@ -19,7 +19,6 @@ Lemma a4: forall {n} (v: Vector n) (c: C) (U V : Square n),
     WF_Matrix v -> WF_Unitary U -> WF_Unitary V ->
     Eigenpair V (v, c) <-> Eigenpair (U × V × U†) (U × v, c).
 Proof.
-  (* TODO: Proof is adapted from QuantumLib.Eigenvectors to step through the proof. Replace with application.*)
   intros.
   destruct H0 as [H0 H2].
   unfold Eigenpair in *; simpl in *.
