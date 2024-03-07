@@ -427,6 +427,7 @@ WF_Unitary V1 -> WF_Unitary V2 -> WF_Unitary V3 -> WF_Unitary V4 ->
 WF_Unitary W1 /\ WF_Unitary W2 /\ WF_Unitary W4 /\ WF_Unitary P2 /\
 (acgate V1) × (bcgate V2) × (acgate V3) × (bcgate V4) = (acgate W1) × (bcgate W2) × (acgate V3) × (bcgate W4)
 /\ W2 = I 2 ⊗ ∣0⟩⟨0∣ .+ P2 ⊗ ∣1⟩⟨1∣).
+Proof.
 intros V1 V2 V3 V4 V1_unitary V2_unitary V3_unitary V4_unitary v2_prop.
 assert (temp: WF_Unitary V2). assumption.
 destruct temp as [WF_V2 V2_inv].
