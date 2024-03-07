@@ -328,6 +328,7 @@ WF_Unitary V1 -> WF_Unitary V2 -> WF_Unitary V3 -> WF_Unitary V4 ->
 WF_Unitary U -> (acgate V1) × (bcgate V2) × (acgate V3) × (bcgate V4) = ccu U -> 
 V2 × (∣0⟩ ⊗ ∣0⟩) = ∣0⟩ ⊗ ∣0⟩ -> (forall (x: Vector 2), WF_Qubit x -> 
 (bcgate V4)† × (acgate V3)† × (x ⊗ ∣0⟩ ⊗ ∣0⟩)  = (acgate V1) × (x ⊗ ∣0⟩ ⊗ ∣0⟩)).
+Proof.
 intros V1 V2 V3 V4 U V1_unitary V2_unitary V3_unitary V4_unitary U_unitary cc_prop v2_prop x x_qubit.
 assert (temp: WF_Unitary V1). assumption.
 destruct temp as [WF_V1 V1_inv].
