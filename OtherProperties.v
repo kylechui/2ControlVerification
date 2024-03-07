@@ -7,15 +7,6 @@ From Proof Require Import GateHelpers.
 From Proof Require Import ControlledUnitaries.
 From Proof Require Import TensorProducts.
 
-Lemma id_tens_equiv_block_diag {n}: forall (A : Square n),
-I 2 ⊗ A = ∣0⟩⟨0∣ ⊗ A .+ ∣1⟩⟨1∣ ⊗ A.
-Proof.
-intros.
-assert (I 2 = ∣0⟩⟨0∣ .+ ∣1⟩⟨1∣). lma'.
-rewrite H.
-apply kron_plus_distr_r.
-Qed.
-
 Lemma a27: forall (V1 V2 V3 V4 U0 U1 : Square 4) (P0 P1: Square 2), 
 WF_Unitary V1 -> WF_Unitary V2 -> WF_Unitary V3 -> WF_Unitary V4 -> 
 WF_Unitary U0 -> WF_Unitary U1 -> WF_Unitary P0 -> WF_Unitary P1 -> 

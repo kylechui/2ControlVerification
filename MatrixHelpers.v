@@ -2256,3 +2256,12 @@ destruct x as [|a]. destruct y as [|b]. contradict H. lia.
 reflexivity.
 destruct a as [|x]. destruct y as [|b]. contradict H. lia. reflexivity. reflexivity.
 Qed.
+
+Lemma id_tens_equiv_block_diag {n}: forall (A : Square n),
+I 2 ⊗ A = ∣0⟩⟨0∣ ⊗ A .+ ∣1⟩⟨1∣ ⊗ A.
+Proof.
+intros.
+assert (I 2 = ∣0⟩⟨0∣ .+ ∣1⟩⟨1∣). lma'.
+rewrite H.
+apply kron_plus_distr_r.
+Qed.
