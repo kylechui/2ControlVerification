@@ -35,7 +35,7 @@ assert (temp: WF_Unitary (acgate V1)). apply acgate_unitary. assumption.
 destruct temp as [WF_acv1 acv1_inv].
 assert (temp: WF_Unitary (bcgate V2)). apply bcgate_unitary. assumption.
 destruct temp as [WF_bcv2 bcv2_inv].
-assert (temp: WF_Unitary (bcgate V4)†). apply transpose_unitary. apply bcgate_unitary. assumption.
+assert (temp: WF_Unitary (bcgate V4)†). apply adjoint_unitary. apply bcgate_unitary. assumption.
 destruct temp as [WF_bcv4dag bcv4dag_inv].
 rewrite adjoint_involutive in bcv4dag_inv.
 assert (acV1_decomp: acgate V1 = ∣0⟩⟨0∣ ⊗ I 2 ⊗ P0 .+ ∣1⟩⟨1∣ ⊗ I 2 ⊗ P1).
@@ -288,7 +288,7 @@ assert (acv3_id: acgate V3 × (∣0⟩ ⊗ x ⊗ ∣0⟩) = ∣0⟩ ⊗ x ⊗ �
 }
 rewrite <- acv3_id at 1.
 rewrite <- Mmult_1_r with (A := acgate V3). 2: apply WF_acgate. 2: assumption.
-assert (temp: WF_Unitary (bcgate V4)†). apply transpose_unitary. apply bcgate_unitary. assumption.
+assert (temp: WF_Unitary (bcgate V4)†). apply adjoint_unitary. apply bcgate_unitary. assumption.
 destruct temp as [WF_bcv4dag bcv4dag_inv].
 replace (2*2)%nat with 4%nat by lia.
 rewrite <- bcv4dag_inv.
@@ -395,7 +395,7 @@ acgate (V4) † × bcgate (V3) † × (∣0⟩ ⊗ x ⊗ ∣0⟩) =
 (bcgate (V1) †) † × (∣0⟩ ⊗ x ⊗ ∣0⟩)).
 {
     apply a28_partial.
-    1,2,3,4,5: apply transpose_unitary; assumption.
+    1,2,3,4,5: apply adjoint_unitary; assumption.
     symmetry. assumption.
     assumption.
 }
@@ -467,7 +467,7 @@ assert (P_unitary: WF_Unitary P).
 }
 assert (temp: WF_Unitary P). assumption.
 destruct temp as [WF_P P_inv].
-assert (temp: WF_Unitary P †). apply transpose_unitary. assumption.
+assert (temp: WF_Unitary P †). apply adjoint_unitary. assumption.
 destruct temp as [_ Pdag_inv].
 rewrite adjoint_involutive in Pdag_inv.
 set (Q:= w0 × ⟨0∣ .+ w1 × ⟨1∣).
@@ -478,7 +478,7 @@ assert (Q_unitary: WF_Unitary Q).
 }
 assert (temp: WF_Unitary Q). assumption.
 destruct temp as [WF_Q Q_inv].
-assert (temp: WF_Unitary Q †). apply transpose_unitary. assumption.
+assert (temp: WF_Unitary Q †). apply adjoint_unitary. assumption.
 destruct temp as [_ Qdag_inv].
 rewrite adjoint_involutive in Qdag_inv.
 set (W1:= V1 × (I 2 ⊗ P)).
@@ -495,11 +495,11 @@ assert (W2_unitary: WF_Unitary W2).
 {
     apply Mmult_unitary.
     apply Mmult_unitary.
-    apply transpose_unitary.
+    apply adjoint_unitary.
     apply kron_unitary.
     apply id_unitary.
     assumption. assumption.
-    apply transpose_unitary.
+    apply adjoint_unitary.
     apply kron_unitary.
     assumption.
     apply id_unitary.
@@ -696,7 +696,7 @@ acgate W4t × bcgate W3t × acgate (V2) † × bcgate W1t /\
 W3t = I 2 ⊗ ∣0⟩⟨0∣ .+ P3t ⊗ ∣1⟩⟨1∣).
 {
     apply a30_partial.
-    1,2,3,4: apply transpose_unitary.
+    1,2,3,4: apply adjoint_unitary.
     all: assumption.
 }
 destruct el_exist as [W4t [W3t [W1t [P3t [W4t_unitary [W3t_unitary [W1t_unitary [P3t_unitary [tprod t_form]]]]]]]]].
@@ -735,10 +735,10 @@ rewrite <- Mmult_assoc with (A := swapab × bcgate (W3t) †) in tprod.
 rewrite <- acgate_alt_def in tprod. 2: solve_WF_matrix.
 repeat rewrite <- Mmult_assoc in tprod.
 exists (W1t) †, (W3t) †, (W4t) †, (P3t) †.
-split. apply transpose_unitary. assumption.
-split. apply transpose_unitary. assumption.
-split. apply transpose_unitary. assumption.
-split. apply transpose_unitary. assumption.
+split. apply adjoint_unitary. assumption.
+split. apply adjoint_unitary. assumption.
+split. apply adjoint_unitary. assumption.
+split. apply adjoint_unitary. assumption.
 split. assumption.
 rewrite t_form.
 rewrite Mplus_adjoint.
@@ -801,19 +801,19 @@ set (W0 := psi × ⟨0∣ .+ psip × ⟨1∣).
 assert (W0_unitary: WF_Unitary W0). apply orth_qubit_unitary. 1,2,3: assumption.
 assert (temp: WF_Unitary W0). assumption. 
 destruct temp as [WF_W0 W0_inv].
-assert (temp: WF_Unitary W0†). apply transpose_unitary. assumption. 
+assert (temp: WF_Unitary W0†). apply adjoint_unitary. assumption. 
 destruct temp as [WF_W0dag W0dag_inv].
 rewrite adjoint_involutive in W0dag_inv.
 set (W1 := phi × ⟨0∣ .+ phip × ⟨1∣).
 assert (W1_unitary: WF_Unitary W1). apply orth_qubit_unitary. 1,2,3: assumption.
-assert (temp: WF_Unitary W1†). apply transpose_unitary. assumption. 
+assert (temp: WF_Unitary W1†). apply adjoint_unitary. assumption. 
 destruct temp as [WF_W1dag W1dag_inv].
 rewrite adjoint_involutive in W1dag_inv.
 assert (temp: WF_Unitary W1). assumption. 
 destruct temp as [WF_W1 W1_inv].
 set (W2 := w × ⟨0∣ .+ wp × ⟨1∣).
 assert (W2_unitary: WF_Unitary W2). apply orth_qubit_unitary. 1,2,3: assumption.
-assert (temp: WF_Unitary W2†). apply transpose_unitary. assumption. 
+assert (temp: WF_Unitary W2†). apply adjoint_unitary. assumption. 
 destruct temp as [WF_W2dag W2dag_inv].
 rewrite adjoint_involutive in W2dag_inv.
 assert (temp: WF_Unitary W2). assumption. 
@@ -841,7 +841,7 @@ assert (V3_unitary: WF_Unitary V3).
 {
     apply Mmult_unitary.
     apply Mmult_unitary.
-    apply transpose_unitary.
+    apply adjoint_unitary.
     apply kron_unitary.
     1,2,3: assumption.
     apply kron_unitary.
@@ -852,7 +852,7 @@ set (V4 := (I 2 ⊗ W2)† × U4).
 assert (V4_unitary: WF_Unitary V4).
 {
     apply Mmult_unitary.
-    apply transpose_unitary.
+    apply adjoint_unitary.
     apply kron_unitary.
     apply id_unitary.
     all: assumption.
@@ -1101,13 +1101,13 @@ assert (v4_tens: forall (x: Vector 2), WF_Qubit x ->
     apply Mmult_qubit. 1,2: assumption.
     apply qubit0_qubit.
     apply Mmult_qubit.
-    apply transpose_unitary. assumption.
+    apply adjoint_unitary. assumption.
     apply (@kron_qubit 2).
     assumption. apply qubit0_qubit.
     apply intermediary_step.
     assumption.
 }   
-assert (V4t_unitary: WF_Unitary (V4) †). apply transpose_unitary. assumption.
+assert (V4t_unitary: WF_Unitary (V4) †). apply adjoint_unitary. assumption.
 assert (a25_partial_2:= a25 V4† psi V4t_unitary psi_qubit v4_tens).
 destruct a25_partial_2 as [Q1 [Q1_unitary v4tq1_prop]].
 assert (temp: WF_Unitary Q1). assumption.

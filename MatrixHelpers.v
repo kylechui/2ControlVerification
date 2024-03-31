@@ -20,8 +20,8 @@ Ltac solve_WF_matrix :=
       try apply WF_bra1;
       try apply WF_qubit0;
       try apply WF_qubit1;
-      try apply WF_braqubit0;
-      try apply WF_braqubit1;
+      try apply WF_braket0;
+      try apply WF_braket1;
       try apply WF_swap;
       try apply WF_control;
       try apply WF_cnot;
@@ -223,9 +223,9 @@ Proof.
     apply Nat.ltb_lt in L2.
     - repeat rewrite Nat.div_add_l by lia.
       repeat rewrite Nat.div_small; auto.
-      rewrite Nat.add_mod with (n := o) by lia.
-      rewrite Nat.add_mod with (n := p) by lia.
-      repeat rewrite Nat.mod_mul by lia.
+      rewrite Nat.Div0.add_mod with (n := o) by lia.
+      rewrite Nat.Div0.add_mod with (n := p) by lia.
+      repeat rewrite Nat.Div0.mod_mul by lia.
       repeat rewrite Nat.mod_small; auto.
       repeat rewrite Nat.add_0_l.
       repeat rewrite Nat.add_0_r.
@@ -261,9 +261,9 @@ Proof.
     + revert H2.
       repeat rewrite Nat.div_add_l by lia.
       repeat rewrite Nat.div_small; auto.
-      rewrite Nat.add_mod with (n := o) by lia.
-      rewrite Nat.add_mod with (n := p) by lia.
-      repeat rewrite Nat.mod_mul by lia.
+      rewrite Nat.Div0.add_mod with (n := o) by lia.
+      rewrite Nat.Div0.add_mod with (n := p) by lia.
+      repeat rewrite Nat.Div0.mod_mul by lia.
       repeat rewrite Nat.mod_small; auto.
       intros.
       apply Cmult_cancel_l with (a := A i j); auto.
@@ -302,9 +302,9 @@ Proof.
         -- revert H3.
            repeat rewrite Nat.div_add_l by lia.
            repeat rewrite Nat.div_small; auto.
-           rewrite Nat.add_mod with (n := o) by lia.
-           rewrite Nat.add_mod with (n := p) by lia.
-           repeat rewrite Nat.mod_mul by lia.
+           rewrite Nat.Div0.add_mod with (n := o) by lia.
+           rewrite Nat.Div0.add_mod with (n := p) by lia.
+           repeat rewrite Nat.Div0.mod_mul by lia.
            repeat rewrite Nat.mod_small; auto.
            repeat rewrite Nat.add_0_l.
            repeat rewrite Nat.add_0_r.
@@ -472,7 +472,7 @@ destruct ij_bound.
   rewrite <- Nat.mul_1_r with (n:=n) in H.
   apply Nat.div_le_lower_bound in H. 2: assumption.
   destruct (le_lt_dec (n*2)%nat i). rewrite WF_block. reflexivity. left. lia.
-  apply Nat.div_lt_upper_bound in l. 2: lia.
+  apply Nat.Div0.div_lt_upper_bound in l.
   assert (ind_val:= nat_tight_bound 1 (i/n)%nat H l).
   unfold kron.
   rewrite <- ind_val.
@@ -482,7 +482,7 @@ destruct ij_bound.
   rewrite <- Nat.mul_1_r with (n:=n) in H.
   apply Nat.div_le_lower_bound in H. 2: assumption.
   destruct (le_lt_dec (n*2)%nat j). rewrite WF_block. reflexivity. right. lia.
-  apply Nat.div_lt_upper_bound in l. 2: lia.
+  apply Nat.Div0.div_lt_upper_bound in l.
   assert (ind_val:= nat_tight_bound 1 (j/n)%nat H l).
   unfold kron.
   rewrite <- ind_val.
@@ -503,7 +503,7 @@ rewrite <- Nat.mul_1_r with (n:=n) in H1.
 assert (ilb :  (n <= i)%nat). assumption.
 apply Nat.div_le_lower_bound in H1. 2: assumption.
 assert (iub : (i < n * 2)%nat). assumption.
-apply Nat.div_lt_upper_bound in l. 2: lia.
+apply Nat.Div0.div_lt_upper_bound in l.
 assert (ind_val:= nat_tight_bound 1 (i/n)%nat H1 l).
 rewrite <- ind_val.
 rewrite Nat.div_small with (a:= j). 2: assumption.
@@ -529,7 +529,7 @@ destruct ij_bound.
   rewrite <- Nat.mul_1_r with (n:=n) in H.
   apply Nat.div_le_lower_bound in H. 2: assumption.
   destruct (le_lt_dec (n*2)%nat j). rewrite WF_block. reflexivity. right. lia.
-  apply Nat.div_lt_upper_bound in l. 2: lia.
+  apply Nat.Div0.div_lt_upper_bound in l.
   assert (ind_val:= nat_tight_bound 1 (j/n)%nat H l).
   unfold kron.
   rewrite <- ind_val.
@@ -550,7 +550,7 @@ rewrite <- Nat.mul_1_r with (n:=n) in H1.
 assert (jlb :  (n <= j)%nat). assumption.
 apply Nat.div_le_lower_bound in H1. 2: assumption.
 assert (jub : (j < n * 2)%nat). assumption.
-apply Nat.div_lt_upper_bound in l. 2: lia.
+apply Nat.Div0.div_lt_upper_bound in l.
 assert (ind_val:= nat_tight_bound 1 (j/n)%nat H1 l).
 rewrite <- ind_val.
 rewrite Nat.div_small with (a:= i). 2: assumption.
@@ -571,7 +571,7 @@ destruct ij_bound.
   rewrite <- Nat.mul_1_r with (n:=n) in H.
   apply Nat.div_le_lower_bound in H. 2: assumption.
   destruct (le_lt_dec (n*2)%nat i). rewrite WF_block. reflexivity. left. lia.
-  apply Nat.div_lt_upper_bound in l. 2: lia.
+  apply Nat.Div0.div_lt_upper_bound in l.
   assert (ind_val:= nat_tight_bound 1 (i/n)%nat H l).
   unfold kron.
   rewrite <- ind_val.
@@ -598,7 +598,7 @@ rewrite <- Nat.mul_1_r with (n:=n) in H1.
 assert (jlb :  (n <= j)%nat). assumption.
 apply Nat.div_le_lower_bound in H1. 2: assumption.
 assert (jub : (j < n * 2)%nat). assumption.
-apply Nat.div_lt_upper_bound in l. 2: lia.
+apply Nat.Div0.div_lt_upper_bound in l.
 assert (ind_val:= nat_tight_bound 1 (j/n)%nat H1 l).
 rewrite <- ind_val.
 assert (n <= i)%nat. lia.
@@ -606,7 +606,7 @@ rewrite <- Nat.mul_1_r with (n:=n) in H2.
 assert (ilb :  (n <= i)%nat). assumption.
 apply Nat.div_le_lower_bound in H2. 2: assumption.
 assert (iub : (i < n * 2)%nat). assumption.
-apply Nat.div_lt_upper_bound in l0. 2: lia.
+apply Nat.Div0.div_lt_upper_bound in l0.
 assert (ind_val_i:= nat_tight_bound 1 (i/n)%nat H2 l0).
 rewrite <- ind_val_i.
 assert (sub_mod:= sub_mod_equiv j n jub jlb).
@@ -1341,17 +1341,17 @@ Qed.
 Lemma element_equiv_vec_element {m n}: forall (A: Matrix m n), 
 WF_Matrix A -> 
 forall (i j: nat), 
-A i j = (get_vec j A) i 0%nat.
+A i j = (get_col A j) i 0%nat.
 Proof. 
 intros.
-unfold get_vec.
+unfold get_col.
 simpl.
 reflexivity.
 Qed.
 
 Lemma column_equal_implies_equal {m n}: forall (A B: Matrix m n),
 WF_Matrix A -> WF_Matrix B ->
-(forall (j: nat), get_vec j A = get_vec j B) -> A = B.
+(forall (j: nat), get_col A j = get_col B j) -> A = B.
 intros.
 lma'.
 rewrite element_equiv_vec_element. 2: assumption.
@@ -1371,7 +1371,7 @@ intros.
 destruct (PeanoNat.Nat.lt_total j n).
 rewrite matrix_by_basis. rewrite matrix_by_basis. 2,3: assumption.
 apply H1. apply WF_e_i.
-unfold get_vec.
+unfold get_col.
 apply functional_extensionality. intros.
 apply functional_extensionality. intros y.
 destruct (y =? 0). 2: reflexivity.
@@ -1394,7 +1394,7 @@ WF_Matrix A -> WF_Unitary B -> A × B = Zero -> A = Zero.
 Proof.
 intros A B WF_a b_unitary prod_zero.
 apply (f_equal (fun f => f × B†)) in prod_zero.
-apply transpose_unitary in b_unitary.
+apply adjoint_unitary in b_unitary.
 destruct b_unitary as [WF_Bdag Bdag_I].
 rewrite adjoint_involutive in Bdag_I.
 rewrite Mmult_assoc in prod_zero.

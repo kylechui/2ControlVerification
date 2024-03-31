@@ -123,7 +123,7 @@ assert (gamma_qubit: WF_Qubit gamma).
   unfold inner_product.
   rewrite Mmult00, Mmult01, Mmult10, Mmult11. 
   Csimpl.
-  apply transpose_unitary in unitary_V.
+  apply adjoint_unitary in unitary_V.
   destruct unitary_V as [WF_Vdag Vdag_unit_prop].
   rewrite adjoint_involutive in Vdag_unit_prop.
   assert (mat_element_decomp: (V 0%nat 0%nat) ^* * V 0%nat 0%nat + (V 0%nat 1%nat) ^* * V 0%nat 1%nat = 
@@ -143,7 +143,7 @@ assert (gamma_p_qubit: WF_Qubit gamma_p).
   unfold inner_product.
   rewrite Mmult00, Mmult01, Mmult10, Mmult11. 
   Csimpl.
-  apply transpose_unitary in unitary_V.
+  apply adjoint_unitary in unitary_V.
   destruct unitary_V as [WF_Vdag Vdag_unit_prop].
   rewrite adjoint_involutive in Vdag_unit_prop.
   assert (mat_element_decomp: (V 1%nat 0%nat) ^* * V 1%nat 0%nat + (V 1%nat 1%nat) ^* * V 1%nat 1%nat = 
@@ -175,7 +175,7 @@ assert (gamma_orth : ⟨ gamma, gamma_p ⟩ = 0).
   unfold inner_product.
   rewrite Mmult00, Mmult01, Mmult10, Mmult11. 
   Csimpl.
-  apply transpose_unitary in unitary_V.
+  apply adjoint_unitary in unitary_V.
   destruct unitary_V as [WF_Vdag Vdag_unit_prop].
   rewrite adjoint_involutive in Vdag_unit_prop.
   assert (mat_element_decomp: (V 0%nat 0%nat) ^* * V 1%nat 0%nat + (V 0%nat 1%nat) ^* * V 1%nat 1%nat = 
@@ -213,7 +213,7 @@ C1).
     assert (V_norm_helper: ((V 0%nat 0%nat) ^* * V 0%nat 0%nat + (V 0%nat 1%nat) ^* * V 0%nat 1%nat) = (V × (V) †) 0%nat 0%nat). lca.
     rewrite U_norm_helper, V_norm_helper. clear U_norm_helper V_norm_helper.
     destruct unitary_U as [_ unit_prop_U]. rewrite unit_prop_U.
-    apply transpose_unitary in unitary_V. destruct unitary_V as [_ unit_prop_Vadj]. rewrite adjoint_involutive in unit_prop_Vadj.
+    apply adjoint_unitary in unitary_V. destruct unitary_V as [_ unit_prop_Vadj]. rewrite adjoint_involutive in unit_prop_Vadj.
     rewrite unit_prop_Vadj. lca.
   }
   {
@@ -230,7 +230,7 @@ C1).
     assert (V_norm_helper: ((V 1%nat 0%nat) ^* * V 1%nat 0%nat + (V 1%nat 1%nat) ^* * V 1%nat 1%nat) = (V × (V) †) 1%nat 1%nat). lca.
     rewrite U_norm_helper, V_norm_helper. clear U_norm_helper V_norm_helper.
     destruct unitary_U as [_ unit_prop_U]. rewrite unit_prop_U.
-    apply transpose_unitary in unitary_V. destruct unitary_V as [_ unit_prop_Vadj]. rewrite adjoint_involutive in unit_prop_Vadj.
+    apply adjoint_unitary in unitary_V. destruct unitary_V as [_ unit_prop_Vadj]. rewrite adjoint_involutive in unit_prop_Vadj.
     rewrite unit_prop_Vadj. lca.
   }
   {
@@ -414,7 +414,7 @@ rewrite <- HQ.
 rewrite <- Mmult_assoc.
 assert (WF_QI : WF_Unitary (Q ⊗ I 2)†).
 {
-  apply transpose_unitary.
+  apply adjoint_unitary.
   apply kron_unitary.
   apply WF_Q.
   apply id_unitary.

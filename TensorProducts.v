@@ -1054,7 +1054,7 @@ rewrite acgate_condense in ac_0pass_cor.
 assert (ac_inner_unitary: WF_Unitary (U × ((M0) † ⊗ I 2))). 
 {
     apply Mmult_unitary. apply U_unitary.
-    apply kron_unitary. apply transpose_unitary. assumption.
+    apply kron_unitary. apply adjoint_unitary. assumption.
     apply id_unitary.
 }
 assert (acgate_diagblock_partial := acgate_diagblock (U × ((M0) † ⊗ I 2)) ac_inner_unitary).
@@ -1279,11 +1279,11 @@ assert (temp: WF_Qubit ∣+⟩).
     rewrite <- RtoC_inv.
     rewrite RtoC_conj.
     rewrite <- RtoC_mult.
-    rewrite <- Rinv_mult_distr.
+    rewrite <- Rinv_mult.
     rewrite sqrt_sqrt.
     lca.
     lra.
-    all: apply sqrt2_neq_0.
+    apply sqrt2_neq_0.
 }
 apply all_q_tensor in temp.
 destruct temp as [bp [bp_qubit bp_def]].
