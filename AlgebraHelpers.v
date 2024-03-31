@@ -698,7 +698,7 @@ b <> 0 -> d <> 0 -> (a/b * (c/d) = (a*c)/(b*d))%R.
 Proof.
 intros.
 unfold Rdiv.
-rewrite Rinv_mult_distr. 2,3: assumption.
+rewrite Rinv_mult.
 lra.
 Qed.
 
