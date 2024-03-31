@@ -364,13 +364,13 @@ Proof.
   rewrite Mmult_1_l.
   assert (Q_adjoint_unitary : WF_Unitary (Q†)).
   {
-    apply transpose_unitary.
+    apply adjoint_unitary.
     assumption.
   }
   destruct Q_adjoint_unitary.
   rewrite adjoint_involutive in H1.
   assumption.
-  apply transpose_unitary.
+  apply adjoint_unitary.
   assumption.
 Qed.
 
@@ -408,7 +408,7 @@ assert (lr_mult: V† × V = ∣0⟩⟨0∣ ⊗ ((P00) † × P00 .+ (P10) † �
 clear V_def P01_Zero Vblock_adjoint.
 assert (Vadj_unitary: WF_Unitary V†).
 {
-    apply transpose_unitary. apply V_unitary.
+    apply adjoint_unitary. apply V_unitary.
 }
 assert (block_decomp: ∣0⟩⟨0∣ ⊗ (P00 × P00†) .+ ∣0⟩⟨1∣ ⊗ (P00× P10†) .+ ∣1⟩⟨0∣ ⊗ (P10× P00†) .+ ∣1⟩⟨1∣ ⊗ (P10× P10† .+ P11× P11†)
 = ∣0⟩⟨0∣ ⊗ (P00† × P00 .+ P10† × P10) .+ ∣0⟩⟨1∣ ⊗ (P10† × P11) .+ ∣1⟩⟨0∣ ⊗ (P11† × P10) .+ ∣1⟩⟨1∣ ⊗ (P11† × P11)).
@@ -481,7 +481,7 @@ assert (P10_adj_zero: P10 † = Zero).
 }
 apply a9_right with (V := V†) (P00 := P00 †) (P01 := P10 †) (P10 := P01 †) (P11 := P11 †).
 7: apply P10_adj_zero. 6: trivial. 5: solve_WF_matrix. 4: solve_WF_matrix. 3: solve_WF_matrix. 2: solve_WF_matrix.
-apply transpose_unitary.
+apply adjoint_unitary.
 apply V_unitary.
 rewrite V_def. lma.
 Qed.
