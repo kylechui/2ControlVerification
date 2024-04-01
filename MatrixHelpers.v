@@ -814,15 +814,6 @@ split.
 }
 Qed.
 
-Definition WF_Nonnegative {m n} (A : Matrix m n) :=
-WF_Matrix A /\ forall (i j: nat), Re (A i j) >= 0 /\ Im (A i j) = 0.
-
-Lemma SVD_2: forall (A : Square 2), 
-exists (U L V: Square 2), 
-WF_Unitary U /\ WF_Unitary V /\ WF_Diagonal L /\ WF_Nonnegative L /\ A = U × L × V.
-Proof. 
-Admitted.
-
 Lemma amplitudes_of_unit {n}: forall (a b : C) (u v w: Vector n), 
 u = a .* v .+ b .* w -> ⟨ u , u ⟩ = C1 -> ⟨ v , v ⟩ = C1 -> ⟨ w , w ⟩ = C1 -> 
 ⟨ v , w ⟩ = C0 -> a ^* * a + b ^* * b = C1.

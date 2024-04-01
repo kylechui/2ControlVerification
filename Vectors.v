@@ -28,8 +28,24 @@ match (x,y) with
 | (1,1) => (psi 3 0)%nat
 | _ => C0
 end) : (Square 2)).
-assert (exists_svd_A: exists (U L V: Square 2), WF_Unitary U /\ WF_Unitary V /\ WF_Diagonal L /\ WF_Nonnegative L /\ A = U × L × V). apply SVD_2.
-destruct exists_svd_A as [U [L [V [unitary_U [unitary_V [diag_L [nonneg_L A_decomp]]]]]]].
+assert (WF_A : WF_Matrix A).
+{
+  unfold WF_Matrix.
+  intros.
+  unfold A.
+  destruct H.
+  destruct x as [|a]. contradict H. lia.
+  destruct a as [|x]. contradict H. lia. reflexivity. 
+  destruct x as [|a].
+  destruct y as [|x]. contradict H. lia.
+  destruct x as [|a]. contradict H. lia. reflexivity.
+  destruct a as [|x]. destruct y as [|a]. contradict H. lia.
+  destruct a as [|x]. contradict H. lia. reflexivity. reflexivity.
+}
+destruct (SVD A WF_A) as [U [L [Vt [unitary_U [unitary_Vt [diag_L [nonneg_L A_decomp]]]]]]].
+set (V := Vt †).
+assert (unitary_V: WF_Unitary V). apply adjoint_unitary. assumption.
+fold V in A_decomp.
 assert (A_elem_decomp: forall (j k: nat), A j k = U j 0%nat * L 0%nat 0%nat * V 0%nat k + U j 1%nat * L 1%nat 1%nat * V 1%nat k).
 {
   intros.
@@ -61,7 +77,7 @@ U 1%nat 1%nat * L 1%nat 1%nat * V 1%nat 1%nat) .* ∣ 1, 1 ⟩).
   rewrite psi_0. rewrite psi_1. rewrite psi_2. rewrite psi_3.
   apply psi_decomp.
 }
-clear psi_decomp A_elem_decomp A.
+clear WF_A psi_decomp A_elem_decomp A.
 assert (tensor_decomp: psi = L 0%nat 0%nat .* ((U 0%nat 0%nat .* ∣0⟩ .+ U 1%nat 0%nat .* ∣1⟩) ⊗ (V 0%nat 0%nat .* ∣0⟩ .+ V 0%nat 1%nat .* ∣1⟩))
 .+ L 1%nat 1%nat .* ((U 0%nat 1%nat .* ∣0⟩ .+ U 1%nat 1%nat .* ∣1⟩) ⊗ (V 1%nat 0%nat .* ∣0⟩ .+ V 1%nat 1%nat .* ∣1⟩))).
 {
