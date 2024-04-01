@@ -7,7 +7,6 @@
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
       coq-quantumlib-version = "v1.4.0";
-      coq-lsp-version = "v8.18";
     in let
       coq-quantumlib = pkgs.coqPackages.mkCoqDerivation {
         pname = "quantumlib";
