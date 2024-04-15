@@ -1,7 +1,9 @@
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
+Require Import QuantumLib.CauchySchwarz.
 From Proof Require Import MatrixHelpers.
 From Proof Require Import AlgebraHelpers.
+
 
 Definition WF_Qubit {n} (q: Vector n) := (exists m: nat, (2 ^ m = n)%nat) /\ WF_Matrix q /\ ⟨ q, q ⟩ = 1.
 
@@ -105,7 +107,7 @@ Proof.
   repeat rewrite Mmult_plus_distr_r.
   rewrite (kron_mixed_product a† ∣0⟩ a ⟨0∣).
   rewrite WF_a.
-  rewrite kron_1_l with (A := ∣0⟩⟨0∣). 2: apply WF_braqubit0.
+  rewrite kron_1_l with (A := ∣0⟩⟨0∣). 2: apply WF_braket0.
   rewrite (kron_mixed_product b† ∣1⟩ a ⟨0∣).
   unfold inner_product in H2.
   assert (Main1 : a† × b = b† × a).
@@ -139,9 +141,52 @@ Qed.
 
 Lemma cauchy_schwarz_corollary: 
 forall (a b : Vector 2), 
-WF_Qubit a -> WF_Qubit b -> linearly_independent_2vec a b <-> Cmod (⟨ a, b ⟩) < 1.
+WF_Qubit a -> WF_Qubit b -> linearly_independent_2vec a b -> Cmod (⟨ a, b ⟩) < 1.
 Proof.
-Admitted.
+intros a b a_qubit b_qubit ab_indep.
+apply Rsqr_incrst_0. 2: apply Cmod_ge_0. 2: lra.
+unfold Rsqr at 2.
+assert (a_1: 1 = fst ⟨ a, a ⟩).
+{
+    destruct a_qubit as [_ [WF_a a_unit]].
+    rewrite a_unit.
+    simpl. reflexivity.
+}
+rewrite a_1 at 1.
+assert (b_1: 1 = fst ⟨ b, b ⟩).
+{
+    destruct b_qubit as [_ [WF_b b_unit]].
+    rewrite b_unit.
+    simpl. reflexivity.
+}
+rewrite b_1.
+rewrite Rsqr_pow2.
+apply Cauchy_Schwartz_strict_ver1.
+apply a_qubit.
+apply b_qubit.
+unfold linearly_independent_2vec in ab_indep.
+intros c d nz_cond.
+apply Coq.Logic.Classical_Prop.or_not_and in nz_cond.
+unfold not.
+intro eq.
+apply nz_cond.
+assert (neg: d = 0 <-> -d = 0). 
+{
+    split.
+    intro. rewrite H. lca.
+    intro.
+    apply (f_equal (fun f => - f)) in H.
+    rewrite Copp_involutive in H.
+    rewrite Copp_0 in H.
+    assumption.
+}
+rewrite neg.
+apply ab_indep.
+rewrite eq.
+lma'.
+solve_WF_matrix.
+all: apply b_qubit.
+Qed.
 
 Lemma qubit_01_lin_indep: linearly_independent_2vec ∣0⟩ ∣1⟩.
 Proof.
@@ -763,7 +808,7 @@ assert (iub : (i < n * 2)%nat).
     }
     assumption.   
 }
-apply Nat.div_lt_upper_bound in iub. 2: assumption.
+apply Nat.Div0.div_lt_upper_bound in iub.
 assert (ind_val:= nat_tight_bound 1 (i/n)%nat ibound iub).
 rewrite <- ind_val.
 lca.
