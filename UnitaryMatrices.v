@@ -8,12 +8,39 @@ From Proof Require Import SquareMatrices.
 Require Import List.
 Import ListNotations.
 
-Theorem a3: forall {n} (A : Square n), WF_Unitary A -> WF_Diagonalizable A.
+Theorem a3 : forall {n} (U : Square n),
+  WF_Unitary U -> exists (V D : Square n),
+    (WF_Unitary V /\ WF_Diagonal D /\ U = V × D × V†).
 Proof.
-  intros.
-  apply unit_implies_diagble.
-  apply H.
+  intros n U Unitary_U.
+  pose proof (Spectral_Theorem U).
+  destruct H.
+  {
+    apply Unitary_U.
+  }
+  {
+    pose proof (adjoint_unitary n U Unitary_U).
+    destruct Unitary_U, H.
+    rewrite H1, <- H2.
+    rewrite adjoint_involutive.
+    reflexivity.
+  }
+  {
+    destruct H.
+    exists x, ((x) † × U × x).
+    split; try exact H.
+    split; try exact H0.
+    pose proof (adjoint_unitary n x H).
+    destruct H1.
+    rewrite adjoint_involutive in H2.
+    repeat rewrite <- Mmult_assoc.
+    rewrite H2.
+    repeat rewrite Mmult_assoc.
+    rewrite H2.
+    Msimpl; auto; try apply Unitary_U.
+  }
 Qed.
+
 
 Lemma a4: forall {n} (v: Vector n) (c: C) (U V : Square n),
     WF_Matrix v -> WF_Unitary U -> WF_Unitary V ->
