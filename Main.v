@@ -299,7 +299,12 @@ Proof.
       rewrite Mmult_assoc.
       reflexivity.
     }
-    assert (H2 : WF_Unitary ((V) † × (VP ⊗ VQ))) by admit.
+    assert (H2 : WF_Unitary ((V) † × (VP ⊗ VQ))).
+    {
+      apply Mmult_unitary.
+      apply adjoint_unitary; auto.
+      apply kron_unitary; auto.
+    }
     pose proof (
       perm_eigenvalues (V† × (VP ⊗ VQ)) (DP ⊗ DQ) (diag4 1 1 u0 u1) H2
       (diag_kron DP DQ Diagonal_DP Diagonal_DQ) (Diag_diag4 C1 C1 u0 u1)
