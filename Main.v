@@ -8,6 +8,9 @@ Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Permutations.
+Require Import Coq.Sets.Ensembles.
+Require Import Coq.Logic.Classical_Pred_Type.
+Require Import Coq.Logic.Classical_Prop.
 
 Lemma m3_1 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
@@ -268,6 +271,38 @@ Lemma m3_2 : forall (u0 u1 : C),
     P ⊗ Q = V × diag4 1 1 u0 u1 × V†)
   <-> u0 = u1 \/ u0 * u1 = C1.
 Proof.
+  assert (perm_values : forall {n} (σ : nat -> nat),
+    permutation n σ ->
+      let zero_to_n : Ensemble nat := (fun x => x < n)%nat in
+      forall (i : nat),
+        (i < n)%nat ->
+          let Image := (fun x => exists (j : nat), (j < i)%nat /\ σ j = x) in
+          In nat (Setminus nat zero_to_n Image) (σ i)).
+  {
+    intros n σ permutation_σ zero_to_n i i_lt_n Image.
+    unfold Setminus, In, zero_to_n, Image.
+    split.
+    {
+      destruct permutation_σ as [σ_inv H].
+      specialize (H i).
+      apply H.
+      assumption.
+    }
+    {
+      apply all_not_not_ex.
+      intros m.
+      unfold not.
+      intro.
+      destruct H as [m_lt_i σm_eq_σi].
+      assert (m_lt_n : (m < n)%nat) by lia.
+      pose proof (
+      permutation_is_injective n σ permutation_σ m i m_lt_n i_lt_n σm_eq_σi
+      ) as m_eq_i.
+      rewrite m_eq_i in m_lt_i.
+      apply Nat.lt_irrefl in m_lt_i.
+      contradiction.
+    }
+  }
   intros u0 u1 unit_u0 unit_u1.
   split.
   {
@@ -305,14 +340,439 @@ Proof.
       apply adjoint_unitary; auto.
       apply kron_unitary; auto.
     }
+    assert (case_A : forall (a b p q u0 u1 : C),
+      a * p = C1 -> a * q = C1 -> b * p = u0 -> b * q = u1 -> u0 = u1).
+    {
+      intros.
+      rewrite <- H4, <- H5; clear H4 H5.
+      rewrite <- Cmult_1_l, <- H3 at 1.
+      rewrite <- Cmult_1_l, <- H1.
+      lca.
+    }
+    assert (case_B : forall (a b p q u0 u1 : C),
+      a * p = u0 -> a * q = C1 -> b * p = C1 -> b * q = u1 -> u0 * u1 = C1).
+    {
+      intros.
+      rewrite <- H1, <- H5; clear H1 H5.
+      rewrite <- Cmult_1_l with (x := C1), <- H3, <- H4 at 1.
+      lca.
+    }
     pose proof (
       perm_eigenvalues (V† × (VP ⊗ VQ)) (DP ⊗ DQ) (diag4 1 1 u0 u1) H2
       (diag_kron DP DQ Diagonal_DP Diagonal_DQ) (Diag_diag4 C1 C1 u0 u1)
       H0
-    ) as [σ [perm H1]].
-    (* TODO: How can I break this up into 24 cases??? We know that σ is a
-       permutation, but I want to iterate through each possible permutation. *)
-    admit.
+    ) as [σ [permutation_σ H1]].
+
+    (* All of this is just to take our permutation and concretely get the 24
+       possibilities out. *)
+    specialize (H1 0%nat) as H1_0; simpl in H1_0.
+    specialize (H1 1%nat) as H1_1; simpl in H1_1.
+    specialize (H1 2%nat) as H1_2; simpl in H1_2.
+    specialize (H1 3%nat) as H1_3; simpl in H1_3.
+    unfold kron, diag4 in H1_0, H1_1, H1_2, H1_3.
+
+    pose proof (perm_values 4%nat σ permutation_σ) as perm_helper.
+
+    specialize (perm_helper 0%nat) as perm_helper_0.
+    destruct perm_helper_0 as [σ0_lt_4 _]; auto; unfold In in σ0_lt_4.
+
+    specialize (perm_helper 1%nat) as perm_helper_1.
+    destruct perm_helper_1 as [σ1_lt_4 help0]; auto; unfold In in σ1_lt_4.
+    unfold In in help0.
+    pose proof (not_ex_all_not _ _ help0) as helper0; clear help0.
+    specialize (helper0 0%nat) as σ0_neq_σ1; clear helper0.
+    revert σ0_neq_σ1; simpl; intro σ0_neq_σ1.
+    apply not_and_or in σ0_neq_σ1.
+    destruct σ0_neq_σ1 as [absurd | σ0_neq_σ1]; try lia.
+
+    specialize (perm_helper 2%nat) as perm_helper_2.
+    destruct perm_helper_2 as [σ2_lt_4 help1]; auto; unfold In in σ2_lt_4.
+    unfold In in help1.
+    pose proof (not_ex_all_not _ _ help1) as helper1; clear help1.
+    specialize (helper1 0%nat) as σ0_neq_σ2.
+    specialize (helper1 1%nat) as σ1_neq_σ2; clear helper1.
+    revert σ0_neq_σ2 σ1_neq_σ2. simpl. intros σ0_neq_σ2 σ1_neq_σ2.
+    apply not_and_or in σ0_neq_σ2, σ1_neq_σ2.
+    destruct σ0_neq_σ2 as [absurd | σ0_neq_σ2]; try lia.
+    destruct σ1_neq_σ2 as [absurd | σ1_neq_σ2]; try lia.
+
+    specialize (perm_helper 3%nat) as perm_helper_3.
+    destruct perm_helper_3 as [σ3_lt_4 help2]; auto; unfold In in σ3_lt_4.
+    unfold In in help2.
+    pose proof (not_ex_all_not _ _ help2) as helper2; clear help2.
+    specialize (helper2 0%nat) as σ0_neq_σ3.
+    specialize (helper2 1%nat) as σ1_neq_σ3.
+    specialize (helper2 2%nat) as σ2_neq_σ3; clear helper2.
+    revert σ0_neq_σ3 σ1_neq_σ3 σ2_neq_σ3. simpl. intros σ0_neq_σ3 σ1_neq_σ3 σ2_neq_σ3.
+    apply not_and_or in σ0_neq_σ3, σ1_neq_σ3, σ2_neq_σ3.
+    destruct σ0_neq_σ3 as [absurd | σ0_neq_σ3]; try lia.
+    destruct σ1_neq_σ3 as [absurd | σ1_neq_σ3]; try lia.
+    destruct σ2_neq_σ3 as [absurd | σ2_neq_σ3]; try lia.
+
+    destruct (σ 0%nat).
+    {
+      destruct (σ 1%nat); try contradiction.
+      destruct n.
+      {
+        destruct (σ 2%nat); try contradiction.
+        destruct n; try contradiction.
+        destruct n.
+        {
+          destruct (σ 3%nat); try contradiction.
+          destruct n; try contradiction.
+          destruct n; try contradiction.
+          destruct n; try lia.
+          simpl in H1_0, H1_1, H1_2, H1_3.
+          pose proof (
+            case_A (DP 0 0) (DP 1 1) (DQ 0 0) (DQ 1 1) u0 u1
+            H1_0 H1_1 H1_2 H1_3
+          )%nat.
+          left; auto.
+        }
+        {
+          destruct n; try lia.
+          destruct (σ 3%nat); try contradiction.
+          destruct n; try contradiction.
+          destruct n; try lia.
+          simpl in H1_0, H1_1, H1_2, H1_3.
+          pose proof (
+            case_A (DP 0 0) (DP 1 1) (DQ 0 0) (DQ 1 1) u1 u0
+            H1_0 H1_1 H1_2 H1_3
+          )%nat.
+          left; auto.
+        }
+      }
+      {
+        destruct n.
+        {
+          destruct (σ 2%nat); try contradiction.
+          destruct n.
+          {
+            destruct (σ 3%nat); try contradiction.
+            destruct n; try contradiction.
+            destruct n; try contradiction.
+            destruct n; try lia.
+            simpl in H1_0, H1_1, H1_2, H1_3.
+            rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+            pose proof (
+              case_A (DQ 0 0) (DQ 1 1) (DP 0 0) (DP 1 1) u0 u1
+              H1_0 H1_2 H1_1 H1_3
+            )%nat.
+            left; auto.
+          }
+          {
+            destruct n; try contradiction.
+            destruct n; try lia.
+            destruct (σ 3%nat); try contradiction.
+            destruct n; try lia.
+            simpl in H1_0, H1_1, H1_2, H1_3.
+            rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+            pose proof (
+              case_B (DQ 1 1) (DQ 0 0)  (DP 0 0) (DP 1 1) u0 u1 
+              H1_1 H1_3 H1_0 H1_2
+            )%nat.
+            right; auto.
+          }
+        }
+        {
+          destruct n; try lia.
+          destruct (σ 2%nat); try contradiction.
+          destruct n.
+          {
+            destruct (σ 3%nat); try contradiction.
+            destruct n; try contradiction.
+            destruct n; try lia.
+            simpl in H1_0, H1_1, H1_2, H1_3.
+            rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+            pose proof (
+              case_A (DQ 0 0) (DQ 1 1) (DP 1 1) (DP 0 0) u0 u1
+              H1_2 H1_0 H1_3 H1_1
+            )%nat.
+            left; auto.
+          }
+          {
+            destruct n; try lia.
+            destruct (σ 3%nat); try contradiction.
+            destruct n; try lia.
+            pose proof (
+              case_B (DP 0 0) (DP 1 1) (DQ 1 1) (DQ 0 0) u1 u0
+              H1_1 H1_0 H1_3 H1_2
+            )%nat.
+            right; rewrite Cmult_comm; auto.
+          }
+        }
+      }
+    }
+    {
+      destruct n.
+      {
+        destruct (σ 1%nat).
+        {
+          destruct (σ 2%nat); try contradiction.
+          destruct n; try contradiction.
+          destruct n.
+          {
+            destruct (σ 3%nat); try contradiction.
+            destruct n; try contradiction.
+            destruct n; try contradiction.
+            destruct n; try lia.
+            simpl in H1_0, H1_1, H1_2, H1_3.
+            pose proof (
+            case_A (DP 0 0) (DP 1 1) (DQ 0 0) (DQ 1 1) u0 u1
+            H1_0 H1_1 H1_2 H1_3
+            )%nat.
+            left; auto.
+          }
+          {
+            destruct n; try lia.
+            destruct (σ 3%nat); try contradiction.
+            destruct n; try contradiction.
+            destruct n; try lia.
+            simpl in H1_0, H1_1, H1_2, H1_3.
+            pose proof (
+            case_A (DP 0 0) (DP 1 1) (DQ 0 0) (DQ 1 1) u1 u0
+            H1_0 H1_1 H1_2 H1_3
+            )%nat.
+            left; auto.
+          }
+        }
+        {
+          destruct n; try contradiction.
+          destruct n.
+          {
+            destruct (σ 2%nat); try contradiction.
+            {
+              destruct (σ 3%nat); try contradiction.
+              destruct n; try contradiction.
+              destruct n; try contradiction.
+              destruct n; try lia.
+              simpl in H1_0, H1_1, H1_2, H1_3.
+              rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+              pose proof (
+              case_A (DQ 0 0) (DQ 1 1) (DP 0 0) (DP 1 1) u0 u1
+              H1_0 H1_2 H1_1 H1_3
+              )%nat.
+              left; auto.
+            }
+            {
+              destruct n; try contradiction.
+              destruct n; try contradiction.
+              destruct n; try lia.
+              destruct (σ 3%nat); try lia.
+              simpl in H1_0, H1_1, H1_2, H1_3.
+              rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+              pose proof (
+              case_B (DQ 1 1) (DQ 0 0)  (DP 0 0) (DP 1 1) u0 u1 
+              H1_1 H1_3 H1_0 H1_2
+              )%nat.
+              right; auto.
+            }
+          }
+          {
+            destruct n; try lia.
+            destruct (σ 2%nat).
+            {
+              destruct (σ 3%nat); try contradiction.
+              destruct n; try contradiction.
+              destruct n; try lia.
+              simpl in H1_0, H1_1, H1_2, H1_3.
+              rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+              pose proof (
+              case_A (DQ 0 0) (DQ 1 1) (DP 1 1) (DP 0 0) u0 u1
+              H1_2 H1_0 H1_3 H1_1
+              )%nat.
+              left; auto.
+            }
+            {
+              destruct n; try contradiction.
+              destruct n; try lia.
+              destruct (σ 3%nat); try lia.
+              simpl in H1_0, H1_1, H1_2, H1_3.
+              pose proof (
+              case_B (DP 0 0) (DP 1 1) (DQ 1 1) (DQ 0 0) u1 u0
+              H1_1 H1_0 H1_3 H1_2
+              )%nat.
+              right; rewrite Cmult_comm; auto.
+            }
+          }
+        }
+      }
+      {
+        destruct n.
+        {
+          destruct (σ 1%nat).
+          {
+            destruct (σ 2%nat); try contradiction.
+            destruct n.
+            {
+              destruct (σ 3%nat); try contradiction.
+              destruct n; try contradiction.
+              destruct n; try contradiction.
+              destruct n; try lia.
+              simpl in H1_0, H1_1, H1_2, H1_3.
+              pose proof (
+                case_B (DP 0 0) (DP 1 1) (DQ 0 0) (DQ 1 1) u0 u1
+                H1_0 H1_1 H1_2 H1_3
+              )%nat.
+              right; auto.
+            }
+            {
+              destruct n; try contradiction.
+              destruct n; try lia.
+              destruct (σ 3%nat); try contradiction.
+              destruct n; try lia.
+              simpl in H1_0, H1_1, H1_2, H1_3.
+              rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+              pose proof (
+                case_A (DQ 1 1) (DQ 0 0) (DP 0 0) (DP 1 1) u0 u1
+                H1_1 H1_3 H1_0 H1_2
+              )%nat.
+              left; auto.
+            }
+          }
+          {
+            destruct n.
+            {
+              destruct (σ 2%nat).
+              {
+                destruct (σ 3%nat); try contradiction.
+                destruct n; try contradiction.
+                destruct n; try contradiction.
+                destruct n; try lia.
+                simpl in H1_0, H1_1, H1_2, H1_3.
+                pose proof (
+                  case_B (DP 0 0) (DP 1 1) (DQ 0 0) (DQ 1 1) u0 u1
+                  H1_0 H1_1 H1_2 H1_3
+                )%nat.
+                right; auto.
+              }
+              {
+                destruct n; try contradiction.
+                destruct n; try contradiction.
+                destruct n; try lia.
+                destruct (σ 3%nat); try lia.
+                simpl in H1_0, H1_1, H1_2, H1_3.
+                rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+                pose proof (
+                  case_A (DQ 1 1) (DQ 0 0) (DP 0 0) (DP 1 1) u0 u1
+                  H1_1 H1_3 H1_0 H1_2
+                )%nat.
+                left; auto.
+              }
+            }
+            {
+              destruct n; try contradiction.
+              destruct n; try lia.
+              destruct (σ 2%nat).
+              {
+                destruct (σ 3%nat); try contradiction.
+                destruct n; try lia.
+                simpl in H1_0, H1_1, H1_2, H1_3.
+                pose proof (
+                  case_A (DP 1 1) (DP 0 0) (DQ 0 0) (DQ 1 1) u0 u1
+                  H1_2 H1_3 H1_0 H1_1
+                )%nat.
+                left; auto.
+              }
+              {
+                destruct n; try lia.
+                destruct (σ 3%nat); try lia.
+                simpl in H1_0, H1_1, H1_2, H1_3.
+                pose proof (
+                  case_A (DP 1 1) (DP 0 0) (DQ 0 0) (DQ 1 1) u0 u1
+                  H1_2 H1_3 H1_0 H1_1
+                )%nat.
+                left; auto.
+              }
+            }
+          }
+        }
+        {
+          destruct n; try lia.
+          destruct (σ 1%nat).
+          {
+            destruct (σ 2%nat); try contradiction.
+            destruct n.
+            {
+              destruct (σ 3%nat); try contradiction.
+              destruct n; try contradiction.
+              destruct n; try lia.
+              simpl in H1_0, H1_1, H1_2, H1_3.
+              pose proof (
+                case_B (DP 1 1) (DP 0 0) (DQ 1 1) (DQ 0 0) u0 u1
+                H1_3 H1_2 H1_1 H1_0 
+              )%nat.
+              right; auto.
+            }
+            {
+              destruct n; try lia.
+              destruct (σ 3%nat); try contradiction.
+              destruct n; try lia.
+              simpl in H1_0, H1_1, H1_2, H1_3.
+              rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+              pose proof (
+                case_A (DQ 1 1) (DQ 0 0) (DP 1 1) (DP 0 0) u0 u1
+                H1_3 H1_1 H1_2 H1_0
+              )%nat.
+              left; auto.
+            }
+          }
+          {
+            destruct n.
+            {
+              destruct (σ 2%nat).
+              {
+                destruct (σ 3%nat); try contradiction.
+                destruct n; try contradiction.
+                destruct n; try lia.
+                simpl in H1_0, H1_1, H1_2, H1_3.
+                pose proof (
+                  case_B (DP 1 1) (DP 0 0) (DQ 1 1) (DQ 0 0) u0 u1
+                  H1_3 H1_2 H1_1 H1_0
+                )%nat.
+                right; auto.
+              }
+              {
+                destruct n; try contradiction.
+                destruct n; try lia.
+                destruct (σ 3%nat); try lia.
+                simpl in H1_0, H1_1, H1_2, H1_3.
+                rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+                pose proof (
+                  case_A (DQ 1 1) (DQ 0 0) (DP 1 1) (DP 0 0) u0 u1
+                  H1_3 H1_1 H1_2 H1_0
+                )%nat.
+                left; auto.
+              }
+            }
+            {
+              destruct n; try lia.
+              destruct (σ 2%nat).
+              {
+                destruct (σ 3%nat); try contradiction.
+                destruct n; try lia.
+                simpl in H1_0, H1_1, H1_2, H1_3.
+                pose proof (
+                  case_A (DP 1 1) (DP 0 0) (DQ 1 1) (DQ 0 0) u0 u1
+                  H1_3 H1_2 H1_1 H1_0
+                )%nat.
+                left; auto.
+              }
+              {
+                destruct n; try lia.
+                destruct (σ 3%nat); try lia.
+                simpl in H1_0, H1_1, H1_2, H1_3.
+                pose proof (
+                  case_A (DP 1 1) (DP 0 0) (DQ 1 1) (DQ 0 0) u0 u1
+                  H1_3 H1_2 H1_1 H1_0
+                )%nat.
+                left; auto.
+              }
+            }
+          }
+        }
+      }
+    }
   }
   {
     intro.
@@ -382,7 +842,7 @@ Proof.
       }
     }
   }
-Admitted.
+Qed.
 
 Lemma m4_1 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
