@@ -529,100 +529,79 @@ Qed.
 Lemma m3_3 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
     (exists (P : Square 2), WF_Unitary P /\
-      exists (c d : C) (v1 v2 v3 v4 : Vector 4),
-        (* This might not be right since we could have v1 == v2*)
-        Eigenpair (((I 2) ⊗ P) × control (diag2 u0 u1)) (v1, c) /\
-        Eigenpair (((I 2) ⊗ P) × control (diag2 u0 u1)) (v2, c) /\
-        Eigenpair (((I 2) ⊗ P) × control (diag2 u0 u1)) (v3, d) /\
-        Eigenpair (((I 2) ⊗ P) × control (diag2 u0 u1)) (v4, d))
+      exists (U : Square 4), WF_Unitary U /\
+        exists (c d : C),
+          ((I 2) ⊗ P) × control (diag2 u0 u1) = U × diag4 c c d d × U†)
     <-> u0 = u1 \/ u0 * u1 = C1.
 Proof.
   intros u0 u1 unit_u0 unit_u1.
   split.
   {
+    intro.
+    destruct H as [P [Unitary_P [U [Unitary_U [c [d H]]]]]].
     admit.
   }
   {
     intro.
     destruct H as [u0_is_u1 | u0u1_is_1].
     {
+      rewrite <- u0_is_u1.
       exists (I 2).
-      split.
+      split; try apply id_unitary.
+      exists (I 4).
+      split; try apply id_unitary.
+      exists C1, u0.
+      rewrite id_kron; Msimpl; try apply WF_diag4.
       {
-        apply id_unitary.
+        lma'; solve_WF_matrix.
+        apply WF_diag2.
+        apply WF_diag4.
       }
       {
-        exists C1, u0.
-        rewrite id_kron; Msimpl.
-        {
-          exists ∣0,0⟩, ∣0,1⟩, ∣1,0⟩, ∣1,1⟩.
-          assert (H : control (diag2 u0 u1) = diag4 C1 C1 u0 u1).
-          {
-            lma'.
-            {
-              apply WF_control, WF_diag2.
-            }
-            {
-              apply WF_diag4.
-            }
-            {
-              unfold diag4, diag2, control; simpl.
-              reflexivity.
-            }
-            {
-              unfold diag4, diag2, control; simpl.
-              reflexivity.
-            }
-          }
-          rewrite H, <- u0_is_u1.
-          apply diag4_eigenpairs.
-        }
-        {
-          apply WF_control, WF_diag2.
-        }
+        apply WF_control, WF_diag2.
       }
     }
     {
       exists (diag2 C1 u0).
       split.
       {
-        admit.
+        unfold WF_Unitary; split; try apply WF_diag2.
+        lma'; try solve_WF_matrix; try apply WF_diag2.
+        unfold adjoint, diag2, Mmult, I; simpl; Csimpl.
+        rewrite <- Cmod_sqr, unit_u0; lca.
       }
       {
-        exists C1, u0.
-        exists ∣1,1⟩, ∣0,0⟩, ∣0,1⟩, ∣1,0⟩.
-        assert (H : I 2 ⊗ diag2 C1 u0 × control (diag2 u0 u1) = diag4 C1 u0 u0 (u0 * u1)).
+        exists (swap × cnot × swap).
+        split.
         {
-          lma'.
+          repeat apply Mmult_unitary.
+          exact swap_unitary.
+          exact cnot_unitary.
+          exact swap_unitary.
+        }
+        {
+          exists C1, u0.
+          assert (H : I 2 ⊗ diag2 C1 u0 × control (diag2 u0 u1) = diag4 C1 u0 u0 (u0 * u1)).
           {
-            solve_WF_matrix; apply WF_diag2.
+            lma'; solve_WF_matrix; try apply WF_diag2; try apply WF_diag4.
+            all: unfold diag4, diag2, kron, Mmult; simpl; Csimpl; reflexivity.
           }
+          rewrite H; clear H.
+          rewrite u0u1_is_1; clear u0u1_is_1.
+          lma'.
           {
             apply WF_diag4.
           }
           {
-            unfold diag4, diag2, kron, Mmult; simpl; Csimpl.
-            reflexivity.
+            repeat apply WF_mult; try apply WF_swap; try apply WF_cnot; try apply WF_diag4.
+            show_wf.
           }
-          {
-            unfold diag4, diag2, kron, Mmult; simpl; Csimpl.
-            reflexivity.
-          }
-          {
-            unfold diag4, diag2, kron, Mmult; simpl; Csimpl.
-            reflexivity.
-          }
+          all: unfold diag4, swap, cnot, Mmult, adjoint; simpl; Csimpl; reflexivity.
         }
-        rewrite H; clear H.
-        rewrite u0u1_is_1.
-        (* rewrite A /\ B to B /\ A *)
-        rewrite and_comm.
-        repeat rewrite and_assoc.
-        apply diag4_eigenpairs.
       }
     }
   }
-Qed.
+Admitted.
 
 Lemma m4_1 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
