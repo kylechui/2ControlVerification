@@ -160,105 +160,35 @@ Lemma direct_sum_diagonal : forall {n : nat} (P Q : Square n),
   WF_Diagonal P -> WF_Diagonal Q -> WF_Diagonal (P .⊕ Q).
 Proof.
   intros n P Q [WF_P Diagonal_P] [WF_Q Diagonal_Q].
-  rewrite direct_sum_decomp; auto.
   split.
   {
-    replace (n + n)%nat with (2 * n)%nat by lia.
-    solve_WF_matrix.
+    apply WF_direct_sum; try lia; assumption.
   }
   {
-    assert (WF_sum : WF_Matrix (∣0⟩⟨0∣ ⊗ P .+ ∣1⟩⟨1∣ ⊗ Q)) by solve_WF_matrix.
-    destruct n.
+    intros i j i_neq_j.
+    specialize (Diagonal_P i j i_neq_j).
+    specialize (Diagonal_Q (i - n) (j - n))%nat.
+    unfold direct_sum.
+    destruct (i <? n) eqn:L1.
     {
-      intros.
-      unfold kron, Mplus; simpl.
-      rewrite WF_P, WF_Q; try lia.
-      lca.
+      simpl; exact Diagonal_P.
     }
     {
-      unfold WF_Matrix in WF_sum.
-      intros.
-      destruct (i <? 2 * (S n)) eqn:L1.
+      destruct (j <? n) eqn:L2.
       {
-        apply Nat.ltb_lt in L1.
-        destruct (j <? 2 * (S n)) eqn:L2.
-        {
-          apply Nat.ltb_lt in L2.
-          unfold kron, Mplus.
-          destruct (i <? (S n)) eqn:L3.
-          {
-            apply Nat.ltb_lt in L3.
-            destruct (j <? (S n)) eqn:L4.
-            {
-              apply Nat.ltb_lt in L4.
-              repeat rewrite Nat.mod_small; auto.
-              specialize (Diagonal_P i j).
-              specialize (Diagonal_Q i j).
-              rewrite Diagonal_P, Diagonal_Q; auto; lca.
-            }
-            {
-              apply Nat.ltb_ge in L4.
-              assert (step : (i / (S n) < 1)%nat).
-              {
-                apply Nat.Div0.div_lt_upper_bound; lia.
-              }
-              replace (i / (S n))%nat with 0%nat by lia; clear step.
-              assert (step1 : (j / (S n) < 2)%nat).
-              {
-                apply Nat.Div0.div_lt_upper_bound; lia.
-              }
-              assert (step2 : (j / (S n) >= 1)%nat).
-              {
-                rewrite <- (Nat.div_same (S n)); try lia.
-                apply Nat.Div0.div_le_mono; auto.
-              }
-              replace (j / (S n))%nat with 1%nat by lia; clear step1 step2.
-              lca.
-            }
-          }
-          {
-            apply Nat.ltb_ge in L3.
-            destruct (j <? (S n)) eqn:L4.
-            {
-              apply Nat.ltb_lt in L4.
-              assert (step : (j / (S n) < 1)%nat).
-              {
-                apply Nat.Div0.div_lt_upper_bound; lia.
-              }
-              replace (j / (S n))%nat with 0%nat by lia; clear step.
-              assert (step1 : (i / (S n) < 2)%nat).
-              {
-                apply Nat.Div0.div_lt_upper_bound; lia.
-              }
-              assert (step2 : (i / (S n) >= 1)%nat).
-              {
-                rewrite <- (Nat.div_same (S n)); try lia.
-                apply Nat.Div0.div_le_mono; auto.
-              }
-              replace (i / (S n))%nat with 1%nat by lia; clear step1 step2.
-              lca.
-            }
-            {
-              apply Nat.ltb_ge in L4.
-              assert (H0 : i mod (S n) <> j mod (S n)) by admit.
-              specialize (Diagonal_P (i mod (S n)) (j mod (S n)) H0).
-              specialize (Diagonal_Q (i mod (S n)) (j mod (S n)) H0).
-              rewrite Diagonal_P, Diagonal_Q; lca.
-            }
-          }
-        }
-        {
-          apply Nat.ltb_ge in L2.
-          apply WF_sum; auto.
-        }
+        simpl; exact Diagonal_P.
       }
       {
-        apply Nat.ltb_ge in L1.
-        apply WF_sum; auto.
+        apply Nat.ltb_ge in L1, L2.
+        simpl; apply Diagonal_Q.
+        intro in_eq_jn.
+        apply i_neq_j.
+        apply (f_equal (fun x => x + n)%nat) in in_eq_jn.
+        do 2 rewrite Nat.sub_add in in_eq_jn; auto.
       }
     }
   }
-Admitted.
+Qed.
 
 Lemma a6 : forall (P Q VP DP VQ DQ : Square 2) (V D : Square 4),
   WF_Unitary VP -> WF_Diagonal DP -> WF_Unitary VQ -> WF_Diagonal DQ ->
