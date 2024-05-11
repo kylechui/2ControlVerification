@@ -1,10 +1,12 @@
+Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
-Require Import QuantumLib.Matrix.
+Require Import QuantumLib.Permutations.
 From Proof Require Import MatrixHelpers.
 From Proof Require Import PartialTraceDefinitions.
 From Proof Require Import AlgebraHelpers.
 From Proof Require Import SquareMatrices.
+From Proof Require Import Permutations.
 Require Import List.
 Import ListNotations.
 
@@ -127,6 +129,253 @@ rewrite <- Mscale_kron_dist_l at 2.
 
 intros H3.
 rewrite kron_mixed_product' in H3. *)
+
+Lemma direct_sum_unitary : forall {n : nat} (P Q : Square n),
+  WF_Unitary P -> WF_Unitary Q -> WF_Unitary (P .⊕ Q).
+Proof.
+  intros n P Q [WF_P Unitary_P] [WF_Q Unitary_Q].
+  unfold WF_Unitary.
+  split; try apply WF_direct_sum; auto.
+  repeat rewrite direct_sum_decomp; auto.
+  replace (n + n)%nat with (2 * n)%nat by lia.
+  rewrite Mplus_adjoint.
+  repeat rewrite Mmult_plus_distr_r.
+  repeat rewrite Mmult_plus_distr_l.
+  repeat rewrite kron_adjoint.
+  repeat rewrite kron_mixed_product.
+  replace ∣0⟩⟨0∣† with ∣0⟩⟨0∣ by lma'.
+  replace ∣1⟩⟨1∣† with ∣1⟩⟨1∣ by lma'.
+  repeat rewrite cancel00; auto with wf_db.
+  repeat rewrite cancel11; auto with wf_db.
+  repeat rewrite cancel01; Msimpl_light.
+  repeat rewrite cancel10; Msimpl_light.
+  rewrite Unitary_P, Unitary_Q.
+  rewrite <- kron_plus_distr_r.
+  rewrite Mplus01.
+  rewrite id_kron.
+  reflexivity.
+Qed.
+
+Lemma direct_sum_diagonal : forall {n : nat} (P Q : Square n),
+  WF_Diagonal P -> WF_Diagonal Q -> WF_Diagonal (P .⊕ Q).
+Proof.
+  intros n P Q [WF_P Diagonal_P] [WF_Q Diagonal_Q].
+  rewrite direct_sum_decomp; auto.
+  split.
+  {
+    replace (n + n)%nat with (2 * n)%nat by lia.
+    solve_WF_matrix.
+  }
+  {
+    assert (WF_sum : WF_Matrix (∣0⟩⟨0∣ ⊗ P .+ ∣1⟩⟨1∣ ⊗ Q)) by solve_WF_matrix.
+    destruct n.
+    {
+      intros.
+      unfold kron, Mplus; simpl.
+      rewrite WF_P, WF_Q; try lia.
+      lca.
+    }
+    {
+      unfold WF_Matrix in WF_sum.
+      intros.
+      destruct (i <? 2 * (S n)) eqn:L1.
+      {
+        apply Nat.ltb_lt in L1.
+        destruct (j <? 2 * (S n)) eqn:L2.
+        {
+          apply Nat.ltb_lt in L2.
+          unfold kron, Mplus.
+          destruct (i <? (S n)) eqn:L3.
+          {
+            apply Nat.ltb_lt in L3.
+            destruct (j <? (S n)) eqn:L4.
+            {
+              apply Nat.ltb_lt in L4.
+              repeat rewrite Nat.mod_small; auto.
+              specialize (Diagonal_P i j).
+              specialize (Diagonal_Q i j).
+              rewrite Diagonal_P, Diagonal_Q; auto; lca.
+            }
+            {
+              apply Nat.ltb_ge in L4.
+              assert (step : (i / (S n) < 1)%nat).
+              {
+                apply Nat.Div0.div_lt_upper_bound; lia.
+              }
+              replace (i / (S n))%nat with 0%nat by lia; clear step.
+              assert (step1 : (j / (S n) < 2)%nat).
+              {
+                apply Nat.Div0.div_lt_upper_bound; lia.
+              }
+              assert (step2 : (j / (S n) >= 1)%nat).
+              {
+                rewrite <- (Nat.div_same (S n)); try lia.
+                apply Nat.Div0.div_le_mono; auto.
+              }
+              replace (j / (S n))%nat with 1%nat by lia; clear step1 step2.
+              lca.
+            }
+          }
+          {
+            apply Nat.ltb_ge in L3.
+            destruct (j <? (S n)) eqn:L4.
+            {
+              apply Nat.ltb_lt in L4.
+              assert (step : (j / (S n) < 1)%nat).
+              {
+                apply Nat.Div0.div_lt_upper_bound; lia.
+              }
+              replace (j / (S n))%nat with 0%nat by lia; clear step.
+              assert (step1 : (i / (S n) < 2)%nat).
+              {
+                apply Nat.Div0.div_lt_upper_bound; lia.
+              }
+              assert (step2 : (i / (S n) >= 1)%nat).
+              {
+                rewrite <- (Nat.div_same (S n)); try lia.
+                apply Nat.Div0.div_le_mono; auto.
+              }
+              replace (i / (S n))%nat with 1%nat by lia; clear step1 step2.
+              lca.
+            }
+            {
+              apply Nat.ltb_ge in L4.
+              assert (H0 : i mod (S n) <> j mod (S n)) by admit.
+              specialize (Diagonal_P (i mod (S n)) (j mod (S n)) H0).
+              specialize (Diagonal_Q (i mod (S n)) (j mod (S n)) H0).
+              rewrite Diagonal_P, Diagonal_Q; lca.
+            }
+          }
+        }
+        {
+          apply Nat.ltb_ge in L2.
+          apply WF_sum; auto.
+        }
+      }
+      {
+        apply Nat.ltb_ge in L1.
+        apply WF_sum; auto.
+      }
+    }
+  }
+Admitted.
+
+Lemma a6 : forall (P Q VP DP VQ DQ : Square 2) (V D : Square 4),
+  WF_Unitary VP -> WF_Diagonal DP -> WF_Unitary VQ -> WF_Diagonal DQ ->
+  WF_Unitary V -> WF_Diagonal D ->
+  P = VP × DP × VP† -> Q = VQ × DQ × VQ† ->
+  P .⊕ Q = V × D × V† ->
+  exists (σ : nat -> nat), permutation 4%nat σ /\
+  forall (i : nat), (DP .⊕ DQ) i i = D (σ i) (σ i).
+Proof.
+  intros P Q VP DP VQ DQ V D.
+  intros Unitary_VP Diagonal_DP Unitary_VQ Diagonal_DQ Unitary_V Diagonal_D HP HQ.
+  assert (step : P .⊕ Q = (VP .⊕ VQ) × (DP .⊕ DQ) × (VP .⊕ VQ)†).
+  {
+    repeat rewrite (direct_sum_decomp 2 2 2 2)%nat.
+    rewrite HP, HQ; clear HP HQ.
+    repeat rewrite Mmult_plus_distr_r.
+    repeat rewrite Mmult_plus_distr_l.
+    repeat rewrite kron_mixed_product.
+    repeat rewrite cancel00; auto with wf_db.
+    repeat rewrite cancel11; auto with wf_db.
+    repeat rewrite cancel01; Msimpl.
+    repeat rewrite cancel10; Msimpl.
+    repeat rewrite Mmult_plus_distr_l.
+    repeat rewrite kron_mixed_product.
+    repeat rewrite cancel00; auto with wf_db.
+    repeat rewrite cancel11; auto with wf_db.
+    repeat rewrite cancel01; Msimpl.
+    repeat rewrite cancel10; Msimpl.
+    reflexivity.
+    apply Diagonal_DP.
+    apply Diagonal_DQ.
+    apply Unitary_VP.
+    apply Unitary_VQ.
+    rewrite HP; repeat apply WF_mult.
+    apply Unitary_VP.
+    apply Diagonal_DP.
+    apply WF_adjoint, Unitary_VP.
+    rewrite HQ; repeat apply WF_mult.
+    apply Unitary_VQ.
+    apply Diagonal_DQ.
+    apply WF_adjoint, Unitary_VQ.
+  }
+  rewrite step; clear step.
+  assert (Unitary_VP_plus_VQ : WF_Unitary (VP .⊕ VQ)).
+  {
+    apply  direct_sum_unitary; auto.
+  }
+  pose proof Unitary_VP_plus_VQ.
+  destruct H as [WF_VP_plus_VQ VPVQ_Equation].
+  intro H.
+  apply (f_equal (fun f => (VP .⊕ VQ)† × f × (VP .⊕ VQ))) in H.
+  revert H.
+  repeat rewrite <- Mmult_assoc.
+  rewrite VPVQ_Equation; Msimpl_light.
+  repeat rewrite Mmult_assoc.
+  rewrite VPVQ_Equation; Msimpl_light.
+  intro H.
+  assert (step : exists (U : Square 4), WF_Unitary U /\ U × DP .⊕ DQ × U† = D).
+  {
+    exists (V† × (VP .⊕ VQ)).
+    split.
+    {
+      apply Mmult_unitary.
+      apply adjoint_unitary.
+      assumption.
+      split; assumption.
+    }
+    {
+      rewrite H, Mmult_adjoint.
+      repeat rewrite <- Mmult_assoc.
+      assert (get_other_dagger : forall {n : nat} (U : Square n), WF_Unitary U -> U × U† = I n).
+      {
+        intros.
+        destruct Unitary_V.
+        assert (step : WF_Unitary U†).
+        {
+          apply adjoint_unitary; assumption.
+        }
+        destruct step as [_ step].
+        rewrite <- step, adjoint_involutive.
+        reflexivity.
+      }
+      repeat rewrite Mmult_assoc.
+      rewrite <- Mmult_assoc with (A := VP .⊕ VQ).
+      replace 4%nat with (2 + 2)%nat by reflexivity.
+      rewrite get_other_dagger; auto.
+      rewrite <- Mmult_assoc with (A := VP .⊕ VQ).
+      rewrite get_other_dagger; auto.
+      rewrite adjoint_involutive.
+      Msimpl_light; auto.
+      destruct Unitary_V as [_ Unitary_V].
+      rewrite Unitary_V.
+      repeat rewrite <- Mmult_assoc.
+      rewrite Unitary_V.
+      Msimpl_light.
+      reflexivity.
+      apply Diagonal_D.
+      apply Diagonal_D.
+      apply Diagonal_D.
+      apply Unitary_V.
+      apply WF_mult.
+      apply Unitary_V.
+      apply WF_mult.
+      apply Diagonal_D.
+      apply WF_mult.
+      apply WF_adjoint, Unitary_V.
+      apply WF_mult.
+      apply WF_I.
+      apply Unitary_V.
+    }
+  }
+  destruct step as [U [Unitary_U step]].
+  apply (perm_eigenvalues U); auto.
+  apply (direct_sum_diagonal DP); auto.
+  apply (direct_sum_diagonal DP); auto.
+  apply (direct_sum_diagonal DP); auto.
+Qed.
 
 (* Attempting to prove equality using sets *)
 Lemma a6_leftP: forall (c: C) (psi: Vector 2) (P Q: Square 2),

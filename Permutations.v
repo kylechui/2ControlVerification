@@ -1,8 +1,18 @@
 Require Import Lia.
 Require Import QuantumLib.Permutations.
+Require Import QuantumLib.Matrix.
+Require Import QuantumLib.Quantum.
+Require Import QuantumLib.Eigenvectors.
 Require Import Coq.Sets.Ensembles.
 Require Import Coq.Logic.Classical_Pred_Type.
 Require Import Coq.Logic.Classical_Prop.
+
+Lemma perm_eigenvalues : forall {n} (U D D' : Square n),
+  WF_Unitary U -> WF_Diagonal D -> WF_Diagonal D' -> U × D × U† = D' ->
+  exists (σ : nat -> nat),
+    permutation n σ /\ forall (i : nat), D i i = D' (σ i) (σ i).
+Proof.
+Admitted.
 
 (* To equate the eigenvalues of two matrices, we often need equality of matrices
    up to some permutation. This lemma allows us to take the existence of a

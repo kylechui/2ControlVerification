@@ -258,13 +258,6 @@ Proof.
   }
 Qed.
 
-Lemma perm_eigenvalues : forall {n} (U D D' : Square n),
-  WF_Unitary U -> WF_Diagonal D -> WF_Diagonal D' -> U × D × U† = D' ->
-  exists (σ : nat -> nat),
-    permutation n σ /\ forall (i : nat), D i i = D' (σ i) (σ i).
-Proof.
-Admitted.
-
 Ltac destruct_disjunctions name :=
   match goal with
   | [ H : _ \/ _ |- _ ] => destruct H as [name | H]; destruct_disjunctions name
