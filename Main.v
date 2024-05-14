@@ -1,4 +1,6 @@
 Require Import Proof.UnitaryMatrices.
+Require Import Proof.Permutations.
+Require Import Proof.SquareMatrices.
 Require Import Proof.AlgebraHelpers.
 Require Import Proof.MatrixHelpers.
 Require Import Proof.GateHelpers.
@@ -8,11 +10,8 @@ Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Permutations.
-Require Import Coq.Sets.Ensembles.
-Require Import Coq.Logic.Classical_Pred_Type.
-Require Import Coq.Logic.Classical_Prop.
 
-Lemma m3_1 : forall (u0 u1 : C),
+(* Lemma m3_1 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
   forall (U : Square 8), WF_Unitary U ->
     (U × ((diag2 u0 u1) ⊗ (I 2) ⊗ (I 2)) = ((diag2 u0 u1) ⊗ (I 2) ⊗ (I 2)) × U <->
@@ -39,7 +38,7 @@ Proof.
         U = ∣0⟩⟨0∣ ⊗ V00 .+ ∣0⟩⟨1∣ ⊗ V01 .+ ∣1⟩⟨0∣ ⊗ V10 .+ ∣1⟩⟨1∣ ⊗ V11
       ).
       {
-        apply block_decomp_general; auto.
+        apply block_decomp.
         destruct Unitary_U; assumption.
       }
       destruct block_matrices_U as [V00 [V01 [V10 [V11 block_matrices_U]]]].
@@ -89,7 +88,7 @@ Proof.
           reflexivity.
       }
       rewrite UW, WU in H; clear UW WU W_eq_blocks.
-      apply (@block_equalities_general
+      apply (@block_equalities
         4%nat
         (∣0⟩⟨0∣ ⊗ (u0 .* V00) .+ ∣0⟩⟨1∣ ⊗ (u1 .* V01) .+ ∣1⟩⟨0∣ ⊗ (u0 .* V10) .+ ∣1⟩⟨1∣ ⊗ (u1 .* V11))
         (∣0⟩⟨0∣ ⊗ (u0 .* V00) .+ ∣0⟩⟨1∣ ⊗ (u0 .* V01) .+ ∣1⟩⟨0∣ ⊗ (u1 .* V10) .+ ∣1⟩⟨1∣ ⊗ (u1 .* V11))
@@ -161,7 +160,7 @@ Proof.
         repeat rewrite Mplus_0_l in Unitary_U.
         repeat rewrite Mplus_0_r in Unitary_U.
         apply (
-        @block_equalities_general
+        @block_equalities
         4%nat
         (∣0⟩⟨0∣ ⊗ ((V00) † × V00) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ ((V11) † × V11))
         (∣0⟩⟨0∣ ⊗ I 4 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ I 4)
@@ -255,14 +254,7 @@ Proof.
       reflexivity.
     }
   }
-Qed.
-
-Lemma perm_eigenvalues : forall {n} (U D D' : Square n),
-  WF_Unitary U -> WF_Diagonal D -> WF_Diagonal D' -> U × D × U† = D' ->
-  exists (σ : nat -> nat),
-    permutation n σ /\ forall (i : nat), D i i = D' (σ i) (σ i).
-Proof.
-Admitted.
+Qed. *)
 
 Lemma m3_2 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
@@ -271,38 +263,6 @@ Lemma m3_2 : forall (u0 u1 : C),
     P ⊗ Q = V × diag4 1 1 u0 u1 × V†)
   <-> u0 = u1 \/ u0 * u1 = C1.
 Proof.
-  assert (perm_values : forall {n} (σ : nat -> nat),
-    permutation n σ ->
-      let zero_to_n : Ensemble nat := (fun x => x < n)%nat in
-      forall (i : nat),
-        (i < n)%nat ->
-          let Image := (fun x => exists (j : nat), (j < i)%nat /\ σ j = x) in
-          In nat (Setminus nat zero_to_n Image) (σ i)).
-  {
-    intros n σ permutation_σ zero_to_n i i_lt_n Image.
-    unfold Setminus, In, zero_to_n, Image.
-    split.
-    {
-      destruct permutation_σ as [σ_inv H].
-      specialize (H i).
-      apply H.
-      assumption.
-    }
-    {
-      apply all_not_not_ex.
-      intros m.
-      unfold not.
-      intro.
-      destruct H as [m_lt_i σm_eq_σi].
-      assert (m_lt_n : (m < n)%nat) by lia.
-      pose proof (
-      permutation_is_injective n σ permutation_σ m i m_lt_n i_lt_n σm_eq_σi
-      ) as m_eq_i.
-      rewrite m_eq_i in m_lt_i.
-      apply Nat.lt_irrefl in m_lt_i.
-      contradiction.
-    }
-  }
   intros u0 u1 unit_u0 unit_u1.
   split.
   {
@@ -363,415 +323,122 @@ Proof.
       H0
     ) as [σ [permutation_σ H1]].
 
-    (* All of this is just to take our permutation and concretely get the 24
-       possibilities out. *)
     specialize (H1 0%nat) as H1_0; simpl in H1_0.
     specialize (H1 1%nat) as H1_1; simpl in H1_1.
     specialize (H1 2%nat) as H1_2; simpl in H1_2.
     specialize (H1 3%nat) as H1_3; simpl in H1_3.
     unfold kron, diag4 in H1_0, H1_1, H1_2, H1_3.
 
-    pose proof (perm_values 4%nat σ permutation_σ) as perm_helper.
-
-    specialize (perm_helper 0%nat) as perm_helper_0.
-    destruct perm_helper_0 as [σ0_lt_4 _]; auto; unfold In in σ0_lt_4.
-
-    specialize (perm_helper 1%nat) as perm_helper_1.
-    destruct perm_helper_1 as [σ1_lt_4 help0]; auto; unfold In in σ1_lt_4.
-    unfold In in help0.
-    pose proof (not_ex_all_not _ _ help0) as helper0; clear help0.
-    specialize (helper0 0%nat) as σ0_neq_σ1; clear helper0.
-    revert σ0_neq_σ1; simpl; intro σ0_neq_σ1.
-    apply not_and_or in σ0_neq_σ1.
-    destruct σ0_neq_σ1 as [absurd | σ0_neq_σ1]; try lia.
-
-    specialize (perm_helper 2%nat) as perm_helper_2.
-    destruct perm_helper_2 as [σ2_lt_4 help1]; auto; unfold In in σ2_lt_4.
-    unfold In in help1.
-    pose proof (not_ex_all_not _ _ help1) as helper1; clear help1.
-    specialize (helper1 0%nat) as σ0_neq_σ2.
-    specialize (helper1 1%nat) as σ1_neq_σ2; clear helper1.
-    revert σ0_neq_σ2 σ1_neq_σ2. simpl. intros σ0_neq_σ2 σ1_neq_σ2.
-    apply not_and_or in σ0_neq_σ2, σ1_neq_σ2.
-    destruct σ0_neq_σ2 as [absurd | σ0_neq_σ2]; try lia.
-    destruct σ1_neq_σ2 as [absurd | σ1_neq_σ2]; try lia.
-
-    specialize (perm_helper 3%nat) as perm_helper_3.
-    destruct perm_helper_3 as [σ3_lt_4 help2]; auto; unfold In in σ3_lt_4.
-    unfold In in help2.
-    pose proof (not_ex_all_not _ _ help2) as helper2; clear help2.
-    specialize (helper2 0%nat) as σ0_neq_σ3.
-    specialize (helper2 1%nat) as σ1_neq_σ3.
-    specialize (helper2 2%nat) as σ2_neq_σ3; clear helper2.
-    revert σ0_neq_σ3 σ1_neq_σ3 σ2_neq_σ3. simpl. intros σ0_neq_σ3 σ1_neq_σ3 σ2_neq_σ3.
-    apply not_and_or in σ0_neq_σ3, σ1_neq_σ3, σ2_neq_σ3.
-    destruct σ0_neq_σ3 as [absurd | σ0_neq_σ3]; try lia.
-    destruct σ1_neq_σ3 as [absurd | σ1_neq_σ3]; try lia.
-    destruct σ2_neq_σ3 as [absurd | σ2_neq_σ3]; try lia.
-
-    destruct (σ 0%nat).
+    pose proof (permutation_4_decomp σ permutation_σ) as perm.
+    destruct_disjunctions perm.
+    all: destruct perm as [σ0 [σ1 [σ2 σ3]]].
+    all: rewrite σ0 in H1_0; simpl in H1_0; clear σ0.
+    all: rewrite σ1 in H1_1; simpl in H1_1; clear σ1.
+    all: rewrite σ2 in H1_2; simpl in H1_2; clear σ2.
+    all: rewrite σ3 in H1_3; simpl in H1_3; clear σ3.
     {
-      destruct (σ 1%nat); try contradiction.
-      destruct n.
-      {
-        destruct (σ 2%nat); try contradiction.
-        destruct n; try contradiction.
-        destruct n.
-        {
-          destruct (σ 3%nat); try contradiction.
-          destruct n; try contradiction.
-          destruct n; try contradiction.
-          destruct n; try lia.
-          simpl in H1_0, H1_1, H1_2, H1_3.
-          pose proof (
-            case_A (DP 0 0) (DP 1 1) (DQ 0 0) (DQ 1 1) u0 u1
-            H1_0 H1_1 H1_2 H1_3
-          )%nat.
-          left; auto.
-        }
-        {
-          destruct n; try lia.
-          destruct (σ 3%nat); try contradiction.
-          destruct n; try contradiction.
-          destruct n; try lia.
-          simpl in H1_0, H1_1, H1_2, H1_3.
-          pose proof (
-            case_A (DP 0 0) (DP 1 1) (DQ 0 0) (DQ 1 1) u1 u0
-            H1_0 H1_1 H1_2 H1_3
-          )%nat.
-          left; auto.
-        }
-      }
-      {
-        destruct n.
-        {
-          destruct (σ 2%nat); try contradiction.
-          destruct n.
-          {
-            destruct (σ 3%nat); try contradiction.
-            destruct n; try contradiction.
-            destruct n; try contradiction.
-            destruct n; try lia.
-            simpl in H1_0, H1_1, H1_2, H1_3.
-            rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
-            pose proof (
-              case_A (DQ 0 0) (DQ 1 1) (DP 0 0) (DP 1 1) u0 u1
-              H1_0 H1_2 H1_1 H1_3
-            )%nat.
-            left; auto.
-          }
-          {
-            destruct n; try contradiction.
-            destruct n; try lia.
-            destruct (σ 3%nat); try contradiction.
-            destruct n; try lia.
-            simpl in H1_0, H1_1, H1_2, H1_3.
-            rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
-            pose proof (
-              case_B (DQ 1 1) (DQ 0 0)  (DP 0 0) (DP 1 1) u0 u1 
-              H1_1 H1_3 H1_0 H1_2
-            )%nat.
-            right; auto.
-          }
-        }
-        {
-          destruct n; try lia.
-          destruct (σ 2%nat); try contradiction.
-          destruct n.
-          {
-            destruct (σ 3%nat); try contradiction.
-            destruct n; try contradiction.
-            destruct n; try lia.
-            simpl in H1_0, H1_1, H1_2, H1_3.
-            rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
-            pose proof (
-              case_A (DQ 0 0) (DQ 1 1) (DP 1 1) (DP 0 0) u0 u1
-              H1_2 H1_0 H1_3 H1_1
-            )%nat.
-            left; auto.
-          }
-          {
-            destruct n; try lia.
-            destruct (σ 3%nat); try contradiction.
-            destruct n; try lia.
-            pose proof (
-              case_B (DP 0 0) (DP 1 1) (DQ 1 1) (DQ 0 0) u1 u0
-              H1_1 H1_0 H1_3 H1_2
-            )%nat.
-            right; rewrite Cmult_comm; auto.
-          }
-        }
-      }
+      left.
+      apply (case_A (DP 0 0) (DP 1 1) (DQ 0 0) (DQ 1 1))%nat; assumption.
     }
     {
-      destruct n.
-      {
-        destruct (σ 1%nat).
-        {
-          destruct (σ 2%nat); try contradiction.
-          destruct n; try contradiction.
-          destruct n.
-          {
-            destruct (σ 3%nat); try contradiction.
-            destruct n; try contradiction.
-            destruct n; try contradiction.
-            destruct n; try lia.
-            simpl in H1_0, H1_1, H1_2, H1_3.
-            pose proof (
-            case_A (DP 0 0) (DP 1 1) (DQ 0 0) (DQ 1 1) u0 u1
-            H1_0 H1_1 H1_2 H1_3
-            )%nat.
-            left; auto.
-          }
-          {
-            destruct n; try lia.
-            destruct (σ 3%nat); try contradiction.
-            destruct n; try contradiction.
-            destruct n; try lia.
-            simpl in H1_0, H1_1, H1_2, H1_3.
-            pose proof (
-            case_A (DP 0 0) (DP 1 1) (DQ 0 0) (DQ 1 1) u1 u0
-            H1_0 H1_1 H1_2 H1_3
-            )%nat.
-            left; auto.
-          }
-        }
-        {
-          destruct n; try contradiction.
-          destruct n.
-          {
-            destruct (σ 2%nat); try contradiction.
-            {
-              destruct (σ 3%nat); try contradiction.
-              destruct n; try contradiction.
-              destruct n; try contradiction.
-              destruct n; try lia.
-              simpl in H1_0, H1_1, H1_2, H1_3.
-              rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
-              pose proof (
-              case_A (DQ 0 0) (DQ 1 1) (DP 0 0) (DP 1 1) u0 u1
-              H1_0 H1_2 H1_1 H1_3
-              )%nat.
-              left; auto.
-            }
-            {
-              destruct n; try contradiction.
-              destruct n; try contradiction.
-              destruct n; try lia.
-              destruct (σ 3%nat); try lia.
-              simpl in H1_0, H1_1, H1_2, H1_3.
-              rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
-              pose proof (
-              case_B (DQ 1 1) (DQ 0 0)  (DP 0 0) (DP 1 1) u0 u1 
-              H1_1 H1_3 H1_0 H1_2
-              )%nat.
-              right; auto.
-            }
-          }
-          {
-            destruct n; try lia.
-            destruct (σ 2%nat).
-            {
-              destruct (σ 3%nat); try contradiction.
-              destruct n; try contradiction.
-              destruct n; try lia.
-              simpl in H1_0, H1_1, H1_2, H1_3.
-              rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
-              pose proof (
-              case_A (DQ 0 0) (DQ 1 1) (DP 1 1) (DP 0 0) u0 u1
-              H1_2 H1_0 H1_3 H1_1
-              )%nat.
-              left; auto.
-            }
-            {
-              destruct n; try contradiction.
-              destruct n; try lia.
-              destruct (σ 3%nat); try lia.
-              simpl in H1_0, H1_1, H1_2, H1_3.
-              pose proof (
-              case_B (DP 0 0) (DP 1 1) (DQ 1 1) (DQ 0 0) u1 u0
-              H1_1 H1_0 H1_3 H1_2
-              )%nat.
-              right; rewrite Cmult_comm; auto.
-            }
-          }
-        }
-      }
-      {
-        destruct n.
-        {
-          destruct (σ 1%nat).
-          {
-            destruct (σ 2%nat); try contradiction.
-            destruct n.
-            {
-              destruct (σ 3%nat); try contradiction.
-              destruct n; try contradiction.
-              destruct n; try contradiction.
-              destruct n; try lia.
-              simpl in H1_0, H1_1, H1_2, H1_3.
-              pose proof (
-                case_B (DP 0 0) (DP 1 1) (DQ 0 0) (DQ 1 1) u0 u1
-                H1_0 H1_1 H1_2 H1_3
-              )%nat.
-              right; auto.
-            }
-            {
-              destruct n; try contradiction.
-              destruct n; try lia.
-              destruct (σ 3%nat); try contradiction.
-              destruct n; try lia.
-              simpl in H1_0, H1_1, H1_2, H1_3.
-              rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
-              pose proof (
-                case_A (DQ 1 1) (DQ 0 0) (DP 0 0) (DP 1 1) u0 u1
-                H1_1 H1_3 H1_0 H1_2
-              )%nat.
-              left; auto.
-            }
-          }
-          {
-            destruct n.
-            {
-              destruct (σ 2%nat).
-              {
-                destruct (σ 3%nat); try contradiction.
-                destruct n; try contradiction.
-                destruct n; try contradiction.
-                destruct n; try lia.
-                simpl in H1_0, H1_1, H1_2, H1_3.
-                pose proof (
-                  case_B (DP 0 0) (DP 1 1) (DQ 0 0) (DQ 1 1) u0 u1
-                  H1_0 H1_1 H1_2 H1_3
-                )%nat.
-                right; auto.
-              }
-              {
-                destruct n; try contradiction.
-                destruct n; try contradiction.
-                destruct n; try lia.
-                destruct (σ 3%nat); try lia.
-                simpl in H1_0, H1_1, H1_2, H1_3.
-                rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
-                pose proof (
-                  case_A (DQ 1 1) (DQ 0 0) (DP 0 0) (DP 1 1) u0 u1
-                  H1_1 H1_3 H1_0 H1_2
-                )%nat.
-                left; auto.
-              }
-            }
-            {
-              destruct n; try contradiction.
-              destruct n; try lia.
-              destruct (σ 2%nat).
-              {
-                destruct (σ 3%nat); try contradiction.
-                destruct n; try lia.
-                simpl in H1_0, H1_1, H1_2, H1_3.
-                pose proof (
-                  case_A (DP 1 1) (DP 0 0) (DQ 0 0) (DQ 1 1) u0 u1
-                  H1_2 H1_3 H1_0 H1_1
-                )%nat.
-                left; auto.
-              }
-              {
-                destruct n; try lia.
-                destruct (σ 3%nat); try lia.
-                simpl in H1_0, H1_1, H1_2, H1_3.
-                pose proof (
-                  case_A (DP 1 1) (DP 0 0) (DQ 0 0) (DQ 1 1) u0 u1
-                  H1_2 H1_3 H1_0 H1_1
-                )%nat.
-                left; auto.
-              }
-            }
-          }
-        }
-        {
-          destruct n; try lia.
-          destruct (σ 1%nat).
-          {
-            destruct (σ 2%nat); try contradiction.
-            destruct n.
-            {
-              destruct (σ 3%nat); try contradiction.
-              destruct n; try contradiction.
-              destruct n; try lia.
-              simpl in H1_0, H1_1, H1_2, H1_3.
-              pose proof (
-                case_B (DP 1 1) (DP 0 0) (DQ 1 1) (DQ 0 0) u0 u1
-                H1_3 H1_2 H1_1 H1_0 
-              )%nat.
-              right; auto.
-            }
-            {
-              destruct n; try lia.
-              destruct (σ 3%nat); try contradiction.
-              destruct n; try lia.
-              simpl in H1_0, H1_1, H1_2, H1_3.
-              rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
-              pose proof (
-                case_A (DQ 1 1) (DQ 0 0) (DP 1 1) (DP 0 0) u0 u1
-                H1_3 H1_1 H1_2 H1_0
-              )%nat.
-              left; auto.
-            }
-          }
-          {
-            destruct n.
-            {
-              destruct (σ 2%nat).
-              {
-                destruct (σ 3%nat); try contradiction.
-                destruct n; try contradiction.
-                destruct n; try lia.
-                simpl in H1_0, H1_1, H1_2, H1_3.
-                pose proof (
-                  case_B (DP 1 1) (DP 0 0) (DQ 1 1) (DQ 0 0) u0 u1
-                  H1_3 H1_2 H1_1 H1_0
-                )%nat.
-                right; auto.
-              }
-              {
-                destruct n; try contradiction.
-                destruct n; try lia.
-                destruct (σ 3%nat); try lia.
-                simpl in H1_0, H1_1, H1_2, H1_3.
-                rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
-                pose proof (
-                  case_A (DQ 1 1) (DQ 0 0) (DP 1 1) (DP 0 0) u0 u1
-                  H1_3 H1_1 H1_2 H1_0
-                )%nat.
-                left; auto.
-              }
-            }
-            {
-              destruct n; try lia.
-              destruct (σ 2%nat).
-              {
-                destruct (σ 3%nat); try contradiction.
-                destruct n; try lia.
-                simpl in H1_0, H1_1, H1_2, H1_3.
-                pose proof (
-                  case_A (DP 1 1) (DP 0 0) (DQ 1 1) (DQ 0 0) u0 u1
-                  H1_3 H1_2 H1_1 H1_0
-                )%nat.
-                left; auto.
-              }
-              {
-                destruct n; try lia.
-                destruct (σ 3%nat); try lia.
-                simpl in H1_0, H1_1, H1_2, H1_3.
-                pose proof (
-                  case_A (DP 1 1) (DP 0 0) (DQ 1 1) (DQ 0 0) u0 u1
-                  H1_3 H1_2 H1_1 H1_0
-                )%nat.
-                left; auto.
-              }
-            }
-          }
-        }
-      }
+      left.
+      apply (case_A (DP 0 0) (DP 1 1) (DQ 1 1) (DQ 0 0))%nat; assumption.
+    }
+    {
+      left.
+      rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+      apply (case_A (DQ 0 0) (DQ 1 1) (DP 0 0) (DP 1 1))%nat; assumption.
+    }
+    {
+      right.
+      apply (case_B (DP 0 0) (DP 1 1) (DQ 1 1) (DQ 0 0))%nat; assumption.
+    }
+    {
+      left.
+      rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+      apply (case_A (DQ 0 0) (DQ 1 1) (DP 1 1) (DP 0 0))%nat; assumption.
+    }
+    {
+      right.
+      apply (case_B (DP 1 1) (DP 0 0) (DQ 0 0) (DQ 1 1))%nat; assumption.
+    }
+    {
+      left.
+      apply (case_A (DP 0 0) (DP 1 1) (DQ 0 0) (DQ 1 1))%nat; assumption.
+    }
+    {
+      left.
+      apply (case_A (DP 0 0) (DP 1 1) (DQ 1 1) (DQ 0 0))%nat; assumption.
+    }
+    {
+      left.
+      rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+      apply (case_A (DQ 0 0) (DQ 1 1) (DP 0 0) (DP 1 1))%nat; assumption.
+    }
+    {
+      right.
+      apply (case_B (DP 0 0) (DP 1 1) (DQ 1 1) (DQ 0 0))%nat; assumption.
+    }
+    {
+      left.
+      rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+      apply (case_A (DQ 0 0) (DQ 1 1) (DP 1 1) (DP 0 0))%nat; assumption.
+    }
+    {
+      right.
+      apply (case_B (DP 1 1) (DP 0 0) (DQ 0 0) (DQ 1 1))%nat; assumption.
+    }
+    {
+      right.
+      apply (case_B (DP 0 0) (DP 1 1) (DQ 0 0) (DQ 1 1))%nat; assumption.
+    }
+    {
+      left.
+      rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+      apply (case_A (DQ 1 1) (DQ 0 0) (DP 0 0) (DP 1 1))%nat; assumption.
+    }
+    {
+      right.
+      apply (case_B (DP 0 0) (DP 1 1) (DQ 0 0) (DQ 1 1))%nat; assumption.
+    }
+    {
+      left.
+      rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+      apply (case_A (DQ 1 1) (DQ 0 0) (DP 0 0) (DP 1 1))%nat; assumption.
+    }
+    {
+      left.
+      apply (case_A (DP 1 1) (DP 0 0) (DQ 0 0) (DQ 1 1))%nat; assumption.
+    }
+    {
+      left.
+      apply (case_A (DP 1 1) (DP 0 0) (DQ 0 0) (DQ 1 1))%nat; assumption.
+    }
+    {
+      right.
+      apply (case_B (DP 1 1) (DP 0 0) (DQ 1 1) (DQ 0 0))%nat; assumption.
+    }
+    {
+      left.
+      rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+      apply (case_A (DQ 1 1) (DQ 0 0) (DP 1 1) (DP 0 0))%nat; assumption.
+    }
+    {
+      right.
+      apply (case_B (DP 1 1) (DP 0 0) (DQ 1 1) (DQ 0 0))%nat; assumption.
+    }
+    {
+      left.
+      rewrite Cmult_comm in H1_0, H1_1, H1_2, H1_3.
+      apply (case_A (DQ 1 1) (DQ 0 0) (DP 1 1) (DP 0 0))%nat; assumption.
+    }
+    {
+      left.
+      apply (case_A (DP 1 1) (DP 0 0) (DQ 1 1) (DQ 0 0))%nat; assumption.
+    }
+    {
+      left.
+      apply (case_A (DP 1 1) (DP 0 0) (DQ 1 1) (DQ 0 0))%nat; assumption.
     }
   }
   {
@@ -803,7 +470,7 @@ Proof.
       }
     }
     {
-      exists (diag2 C1 u0), (diag2 C1 u1), (swap × cnot × swap).
+      exists (diag2 C1 u0), (diag2 C1 u1), notc.
       split.
       {
         unfold WF_Unitary; split; try apply WF_diag2.
@@ -820,25 +487,546 @@ Proof.
       }
       split.
       {
-        repeat apply Mmult_unitary.
-        exact swap_unitary.
-        exact cnot_unitary.
-        exact swap_unitary.
+        exact notc_unitary.
       }
       {
         lma'.
         solve_WF_matrix; try apply WF_diag2.
-        try apply WF_diag4.
-        repeat try apply WF_mult.
-        apply WF_swap.
-        apply WF_cnot.
-        apply WF_swap.
+        repeat apply WF_mult.
+        apply WF_notc.
         apply WF_diag4.
-        apply WF_adjoint, WF_mult, WF_swap; apply WF_mult, WF_cnot; apply WF_swap.
-        unfold diag2, diag4, swap, cnot, Mmult, kron, adjoint; lca.
-        unfold diag2, diag4, swap, cnot, Mmult, kron, adjoint; lca.
-        unfold diag2, diag4, swap, cnot, Mmult, kron, adjoint; simpl; Csimpl.
+        apply WF_adjoint, WF_notc.
+        unfold diag2, diag4; lca.
+        unfold diag2, diag4; lca.
+        unfold notc, Mmult, adjoint; simpl; Csimpl.
         exact u0u1_eq_1.
+      }
+    }
+  }
+Qed.
+
+Lemma m3_3 : forall (u0 u1 : C),
+  Cmod u0 = 1 -> Cmod u1 = 1 ->
+    (exists (P : Square 2), WF_Unitary P /\
+      exists (U : Square 4), WF_Unitary U /\
+        exists (c d : C), c <> C0 /\ d <> C0 /\
+          ((I 2) ⊗ P) × control (diag2 u0 u1) = U × diag4 c c d d × U†)
+    <-> u0 = u1 \/ u0 * u1 = C1.
+Proof.
+  intros u0 u1 unit_u0 unit_u1.
+  split.
+  {
+    intro.
+    destruct H as [P [Unitary_P [U [Unitary_U [c [d [c_neq_0 [d_neq_0 H]]]]]]]].
+    set (PD := P × diag2 u0 u1).
+    assert (Unitary_PD : WF_Unitary (P × diag2 u0 u1)).
+    {
+      apply Mmult_unitary; auto.
+      unfold WF_Unitary; split; try apply WF_diag2.
+      lma'; try solve_WF_matrix; try apply WF_diag2.
+      unfold adjoint, diag2, Mmult, I; simpl; Csimpl.
+      rewrite <- Cmod_sqr, unit_u0; lca.
+      unfold adjoint, diag2, Mmult, I; simpl; Csimpl.
+      rewrite <- Cmod_sqr, unit_u1; lca.
+    }
+    assert (step : control (diag2 u0 u1) = I 2 .⊕ diag2 u0 u1).
+    {
+      rewrite (direct_sum_decomp _ _ 2 2)%nat; auto.
+      lma'.
+      apply WF_control, WF_diag2.
+      solve_WF_matrix; apply WF_diag2.
+      unfold control, diag2, adjoint, I, kron, Mmult, Mplus; simpl; lca.
+      unfold control, diag2, adjoint, I, kron, Mmult, Mplus; simpl; lca.
+      apply WF_I.
+      apply WF_diag2.
+    }
+    assert (step2 : (I 2 ⊗ P) × control (diag2 u0 u1) = P .⊕ PD).
+    {
+      rewrite step.
+      repeat rewrite (direct_sum_decomp _ _ 2 2)%nat; auto.
+      rewrite Mmult_plus_distr_l.
+      repeat rewrite kron_mixed_product; Msimpl_light.
+      reflexivity.
+      apply Unitary_P.
+      apply Unitary_P.
+      apply Unitary_PD.
+      apply WF_I.
+      apply WF_diag2.
+    }
+    pose proof (a3 P Unitary_P) as [VP [DP [Unitary_VP [Diagonal_DP P_decomp]]]].
+    pose proof (a3 PD Unitary_PD) as [VPD [DPD [Unitary_VPD [Diagonal_DPD PD_decomp]]]].
+    assert (step3 : exists σ : nat -> nat,
+      permutation 4 σ /\ (forall i : nat, (DP .⊕ DPD) i i = diag4 c c d d (σ i) (σ i))).
+    {
+      apply (a6 P PD VP DP VPD DPD U); auto.
+      apply Diag_diag4.
+      rewrite H in step2.
+      symmetry; exact step2.
+    }
+    destruct step3 as [σ [permutation_σ step3]].
+
+    all: specialize (step3 0%nat) as eigen0.
+    all: specialize (step3 1%nat) as eigen1.
+    all: specialize (step3 2%nat) as eigen2.
+    all: specialize (step3 3%nat) as eigen3.
+
+    assert (case_A : forall (c d : C), (c <> C0 -> DP 0 0 = c -> DP 1 1 = c ->
+      DPD 0 0 = d -> DPD 1 1 = d -> u0 = u1)%nat).
+    {
+      intros.
+      assert (DP_cI : DP = c0 .* I 2).
+      {
+        lma'.
+        {
+          apply Diagonal_DP.
+        }
+        {
+          unfold scale, I; simpl.
+          rewrite H1; lca.
+        }
+        {
+          unfold scale, I; simpl.
+          destruct Diagonal_DP as [_ DP_0].
+          specialize (DP_0 0 1)%nat.
+          rewrite DP_0; auto.
+          lca.
+        }
+        {
+          unfold scale, I; simpl.
+          destruct Diagonal_DP as [_ DP_0].
+          specialize (DP_0 1 0)%nat.
+          rewrite DP_0; auto.
+          lca.
+        }
+        {
+          unfold scale, I; simpl.
+          rewrite H2; lca.
+        }
+      }
+      assert (DPD_dI : DPD = d0 .* I 2).
+      {
+        lma'.
+        {
+          apply Diagonal_DPD.
+        }
+        {
+          unfold scale, I; simpl.
+          rewrite H3; lca.
+        }
+        {
+          destruct Diagonal_DPD as [_ DPD_0].
+          specialize (DPD_0 0 1)%nat.
+          rewrite DPD_0; auto.
+          lca.
+        }
+        {
+          destruct Diagonal_DPD as [_ DPD_0].
+          specialize (DPD_0 1 0)%nat.
+          rewrite DPD_0; auto.
+          lca.
+        }
+        {
+          unfold scale, I; simpl.
+          rewrite H4; lca.
+        }
+      }
+      rewrite DP_cI in P_decomp; clear DP_cI.
+      rewrite DPD_dI in PD_decomp; clear DPD_dI.
+      clear H1 H2.
+      assert (diag2_decomp : forall (x : C), diag2 x x = x .* I 2).
+      {
+        intros.
+        lma'.
+        apply WF_diag2.
+        unfold diag2; lca.
+        unfold diag2; lca.
+      }
+      assert (P_cI : P = c0 .* I 2).
+      {
+        rewrite P_decomp.
+        rewrite Mscale_mult_dist_r.
+        rewrite Mmult_1_r; try apply Unitary_VP.
+        rewrite Mscale_mult_dist_l.
+        rewrite other_unitary_decomp; auto.
+      }
+      assert (PD_dI : PD = d0 .* I 2).
+      {
+        rewrite PD_decomp.
+        rewrite Mscale_mult_dist_r.
+        rewrite Mmult_1_r; try apply Unitary_VPD.
+        rewrite Mscale_mult_dist_l.
+        rewrite other_unitary_decomp; auto.
+      }
+      unfold PD in PD_dI.
+      rewrite P_cI in PD_dI; clear P_cI.
+      rewrite Mscale_mult_dist_l in PD_dI.
+      rewrite Mmult_1_l in PD_dI; try apply WF_diag2.
+      assert (cu0_d : c0 * u0 = d0).
+      {
+        apply (f_equal (fun f => f 0 0)%nat) in PD_dI.
+        unfold scale, diag2, I in PD_dI; simpl in PD_dI.
+        rewrite PD_dI; lca.
+      }
+      assert (cu1_d : c0 * u1 = d0).
+      {
+        apply (f_equal (fun f => f 1 1)%nat) in PD_dI.
+        unfold scale, diag2, I in PD_dI; simpl in PD_dI.
+        rewrite PD_dI; lca.
+      }
+      apply (Cmult_cancel_l c0); try apply H0.
+      rewrite cu0_d, cu1_d; reflexivity.
+    }
+    assert (case_B : forall (c d : C), c <> C0 -> d <> C0 ->
+      (DP 0 0)%nat = c -> (DP 1 1)%nat = d ->
+      (DPD 0 0)%nat = c -> (DPD 1 1)%nat = d -> u0 * u1 = C1).
+    {
+      intros.
+      assert (DP_diag : DP = diag2 c0 d0).
+      {
+        lma'.
+        {
+          apply Diagonal_DP.
+        }
+        {
+          apply WF_diag2.
+        }
+        {
+          unfold diag2; simpl.
+          rewrite H2; reflexivity.
+        }
+        {
+          destruct Diagonal_DP as [_ DP_0].
+          specialize (DP_0 0 1)%nat.
+          rewrite DP_0; auto.
+        }
+        {
+          destruct Diagonal_DP as [_ DP_0].
+          specialize (DP_0 1 0)%nat.
+          rewrite DP_0; auto.
+        }
+        {
+          unfold diag2; simpl.
+          rewrite H3; reflexivity.
+        }
+      }
+      assert (DPD_diag : DPD = diag2 c0 d0).
+      {
+        lma'.
+        {
+          apply Diagonal_DPD.
+        }
+        {
+          apply WF_diag2.
+        }
+        {
+          unfold diag2; simpl.
+          rewrite H4; reflexivity.
+        }
+        {
+          destruct Diagonal_DPD as [_ DPD_0].
+          specialize (DPD_0 0 1)%nat.
+          rewrite DPD_0; auto.
+        }
+        {
+          destruct Diagonal_DPD as [_ DPD_0].
+          specialize (DPD_0 1 0)%nat.
+          rewrite DPD_0; auto.
+        }
+        {
+          unfold diag2; simpl.
+          rewrite H5; reflexivity.
+        }
+      }
+      rewrite DP_diag in P_decomp; clear DP_diag.
+      rewrite DPD_diag in PD_decomp; clear DPD_diag.
+      assert (detP : Determinant P = c0 * d0).
+      {
+        rewrite P_decomp.
+        repeat rewrite a1.
+        rewrite Cmult_comm, Cmult_assoc.
+        rewrite <- a1.
+        destruct Unitary_VP as [_ Unitary_VP].
+        rewrite Unitary_VP.
+        rewrite Det_I, Cmult_1_l.
+        apply Det_diag2.
+      }
+      assert (detPD : Determinant PD = c0 * d0).
+      {
+        rewrite PD_decomp.
+        repeat rewrite a1.
+        rewrite Cmult_comm, Cmult_assoc.
+        rewrite <- a1.
+        destruct Unitary_VPD as [_ Unitary_VPD].
+        rewrite Unitary_VPD.
+        rewrite Det_I, Cmult_1_l.
+        rewrite Det_diag2; reflexivity.
+      }
+      unfold PD in detPD.
+      rewrite a1 in detPD.
+      rewrite detP, Det_diag2 in detPD.
+      apply (Cmult_cancel_l (c0 * d0)).
+      apply Cmult_nonzero; auto.
+      rewrite detPD; lca.
+    }
+    assert (case_C : forall (c d : C), c <> C0 -> d <> C0 ->
+      (DP 0 0)%nat = c -> (DP 1 1)%nat = d ->
+      (DPD 0 0)%nat = d -> (DPD 1 1)%nat = c -> u0 * u1 = C1).
+    {
+      intros.
+      assert (DP_diag : DP = diag2 c0 d0).
+      {
+        lma'.
+        {
+          apply Diagonal_DP.
+        }
+        {
+          apply WF_diag2.
+        }
+        {
+          unfold diag2; simpl.
+          rewrite H2; reflexivity.
+        }
+        {
+          destruct Diagonal_DP as [_ DP_0].
+          specialize (DP_0 0 1)%nat.
+          rewrite DP_0; auto.
+        }
+        {
+          destruct Diagonal_DP as [_ DP_0].
+          specialize (DP_0 1 0)%nat.
+          rewrite DP_0; auto.
+        }
+        {
+          unfold diag2; simpl.
+          rewrite H3; reflexivity.
+        }
+      }
+      assert (DPD_diag : DPD = diag2 d0 c0).
+      {
+        lma'.
+        {
+          apply Diagonal_DPD.
+        }
+        {
+          apply WF_diag2.
+        }
+        {
+          unfold diag2; simpl.
+          rewrite H4; reflexivity.
+        }
+        {
+          destruct Diagonal_DPD as [_ DPD_0].
+          specialize (DPD_0 0 1)%nat.
+          rewrite DPD_0; auto.
+        }
+        {
+          destruct Diagonal_DPD as [_ DPD_0].
+          specialize (DPD_0 1 0)%nat.
+          rewrite DPD_0; auto.
+        }
+        {
+          unfold diag2; simpl.
+          rewrite H5; reflexivity.
+        }
+      }
+      rewrite DP_diag in P_decomp; clear DP_diag.
+      rewrite DPD_diag in PD_decomp; clear DPD_diag.
+      unfold PD in PD_decomp.
+      assert (detP : Determinant P = c0 * d0).
+      {
+        rewrite P_decomp.
+        repeat rewrite a1.
+        rewrite Cmult_comm, Cmult_assoc.
+        rewrite <- a1.
+        destruct Unitary_VP as [_ Unitary_VP].
+        rewrite Unitary_VP.
+        rewrite Det_I, Cmult_1_l.
+        apply Det_diag2.
+      }
+      assert (detPD : Determinant PD = c0 * d0).
+      {
+        unfold PD.
+        rewrite PD_decomp.
+        repeat rewrite a1.
+        rewrite Cmult_comm, Cmult_assoc.
+        rewrite <- a1.
+        destruct Unitary_VPD as [_ Unitary_VPD].
+        rewrite Unitary_VPD.
+        rewrite Det_I, Cmult_1_l.
+        rewrite Det_diag2, Cmult_comm; reflexivity.
+      }
+      unfold PD in detPD.
+      rewrite a1 in detPD.
+      rewrite detP, Det_diag2 in detPD.
+      apply (Cmult_cancel_l (c0 * d0)).
+      apply Cmult_nonzero; auto.
+      rewrite detPD; lca.
+    }
+
+    pose proof (permutation_4_decomp σ permutation_σ) as perm.
+    destruct_disjunctions perm.
+    all: destruct perm as [σ0 [σ1 [σ2 σ3]]].
+    all: unfold direct_sum, diag4 in eigen0; rewrite σ0 in eigen0; simpl in eigen0; clear σ0.
+    all: unfold direct_sum, diag4 in eigen1; rewrite σ1 in eigen1; simpl in eigen1; clear σ1.
+    all: unfold direct_sum, diag4 in eigen2; rewrite σ2 in eigen2; simpl in eigen2; clear σ2.
+    all: unfold direct_sum, diag4 in eigen3; rewrite σ3 in eigen3; simpl in eigen3; clear σ3.
+    {
+      left.
+      apply (case_A c d); auto.
+    }
+    {
+      left.
+      apply (case_A c d); auto.
+    }
+    {
+      right.
+      apply (case_B c d); auto.
+    }
+    {
+      right.
+      apply (case_C c d); auto.
+    }
+    {
+      right.
+      apply (case_B c d); auto.
+    }
+    {
+      right.
+      apply (case_C c d); auto.
+    }
+    {
+      left.
+      apply (case_A c d); auto.
+    }
+    {
+      left.
+      apply (case_A c d); auto.
+    }
+    {
+      right.
+      apply (case_B c d); auto.
+    }
+    {
+      right.
+      apply (case_C c d); auto.
+    }
+    {
+      right.
+      apply (case_B c d); auto.
+    }
+    {
+      right.
+      apply (case_C c d); auto.
+    }
+    {
+      right.
+      apply (case_C d c); auto.
+    }
+    {
+      right.
+      apply (case_B d c); auto.
+    }
+    {
+      right.
+      apply (case_C d c); auto.
+    }
+    {
+      right.
+      apply (case_B d c); auto.
+    }
+    {
+      left.
+      apply (case_A d c); auto.
+    }
+    {
+      left.
+      apply (case_A d c); auto.
+    }
+    {
+      right.
+      apply (case_C d c); auto.
+    }
+    {
+      right.
+      apply (case_B d c); auto.
+    }
+    {
+      right.
+      apply (case_C d c); auto.
+    }
+    {
+      right.
+      apply (case_B d c); auto.
+    }
+    {
+      left.
+      apply (case_A d c); auto.
+    }
+    {
+      left.
+      apply (case_A d c); auto.
+    }
+  }
+  {
+    intro.
+    destruct H as [u0_is_u1 | u0u1_is_1].
+    {
+      rewrite <- u0_is_u1.
+      exists (I 2).
+      split; try apply id_unitary.
+      exists (I 4).
+      split; try apply id_unitary.
+      exists C1, u0.
+      split; try apply C1_neq_C0.
+      split. rewrite Cmod_gt_0, unit_u0; lra.
+      rewrite id_kron; Msimpl; try apply WF_diag4.
+      {
+        lma'; solve_WF_matrix.
+        apply WF_diag2.
+        apply WF_diag4.
+      }
+      {
+        apply WF_control, WF_diag2.
+      }
+    }
+    {
+      exists (diag2 C1 u0).
+      split.
+      {
+        unfold WF_Unitary; split; try apply WF_diag2.
+        lma'; try solve_WF_matrix; try apply WF_diag2.
+        unfold adjoint, diag2, Mmult, I; simpl; Csimpl.
+        rewrite <- Cmod_sqr, unit_u0; lca.
+      }
+      {
+        exists notc.
+        split.
+        {
+          exact notc_unitary.
+        }
+        {
+          exists C1, u0.
+          split; try apply C1_neq_C0.
+          split; try rewrite Cmod_gt_0, unit_u0; try lra.
+          assert (H : I 2 ⊗ diag2 C1 u0 × control (diag2 u0 u1) = diag4 C1 u0 u0 (u0 * u1)).
+          {
+            lma'; solve_WF_matrix; try apply WF_diag2; try apply WF_diag4.
+            all: unfold diag4, diag2, kron, Mmult; simpl; Csimpl; reflexivity.
+          }
+          rewrite H; clear H.
+          rewrite u0u1_is_1; clear u0u1_is_1.
+          lma'.
+          {
+            apply WF_diag4.
+          }
+          {
+            repeat apply WF_mult.
+            apply WF_notc.
+            apply WF_diag4.
+            apply WF_adjoint, WF_notc.
+          }
+          all: unfold diag4, swap, cnot, Mmult, adjoint; simpl; Csimpl; reflexivity.
+        }
       }
     }
   }

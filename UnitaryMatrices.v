@@ -1,12 +1,27 @@
+Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
-Require Import QuantumLib.Matrix.
+Require Import QuantumLib.Permutations.
 From Proof Require Import MatrixHelpers.
 From Proof Require Import PartialTraceDefinitions.
 From Proof Require Import AlgebraHelpers.
 From Proof Require Import SquareMatrices.
+From Proof Require Import Permutations.
 Require Import List.
 Import ListNotations.
+
+Lemma other_unitary_decomp : forall {n : nat} (U : Square n),
+  WF_Unitary U -> U × U† = I n.
+Proof.
+  intros n U Unitary_U.
+  assert (step : WF_Unitary U†).
+  {
+    apply adjoint_unitary, Unitary_U.
+  }
+  destruct step as [_ step].
+  rewrite <- step, adjoint_involutive.
+  reflexivity.
+Qed.
 
 Theorem a3 : forall {n} (U : Square n),
   WF_Unitary U -> exists (V D : Square n),
@@ -127,6 +142,171 @@ rewrite <- Mscale_kron_dist_l at 2.
 
 intros H3.
 rewrite kron_mixed_product' in H3. *)
+
+Lemma direct_sum_unitary : forall {n : nat} (P Q : Square n),
+  WF_Unitary P -> WF_Unitary Q -> WF_Unitary (P .⊕ Q).
+Proof.
+  intros n P Q [WF_P Unitary_P] [WF_Q Unitary_Q].
+  unfold WF_Unitary.
+  split; try apply WF_direct_sum; auto.
+  repeat rewrite direct_sum_decomp; auto.
+  replace (n + n)%nat with (2 * n)%nat by lia.
+  rewrite Mplus_adjoint.
+  repeat rewrite Mmult_plus_distr_r.
+  repeat rewrite Mmult_plus_distr_l.
+  repeat rewrite kron_adjoint.
+  repeat rewrite kron_mixed_product.
+  replace ∣0⟩⟨0∣† with ∣0⟩⟨0∣ by lma'.
+  replace ∣1⟩⟨1∣† with ∣1⟩⟨1∣ by lma'.
+  repeat rewrite cancel00; auto with wf_db.
+  repeat rewrite cancel11; auto with wf_db.
+  repeat rewrite cancel01; Msimpl_light.
+  repeat rewrite cancel10; Msimpl_light.
+  rewrite Unitary_P, Unitary_Q.
+  rewrite <- kron_plus_distr_r.
+  rewrite Mplus01.
+  rewrite id_kron.
+  reflexivity.
+Qed.
+
+Lemma direct_sum_diagonal : forall {n : nat} (P Q : Square n),
+  WF_Diagonal P -> WF_Diagonal Q -> WF_Diagonal (P .⊕ Q).
+Proof.
+  intros n P Q [WF_P Diagonal_P] [WF_Q Diagonal_Q].
+  split.
+  {
+    apply WF_direct_sum; try lia; assumption.
+  }
+  {
+    intros i j i_neq_j.
+    specialize (Diagonal_P i j i_neq_j).
+    specialize (Diagonal_Q (i - n) (j - n))%nat.
+    unfold direct_sum.
+    destruct (i <? n) eqn:L1.
+    {
+      simpl; exact Diagonal_P.
+    }
+    {
+      destruct (j <? n) eqn:L2.
+      {
+        simpl; exact Diagonal_P.
+      }
+      {
+        apply Nat.ltb_ge in L1, L2.
+        simpl; apply Diagonal_Q.
+        intro in_eq_jn.
+        apply i_neq_j.
+        apply (f_equal (fun x => x + n)%nat) in in_eq_jn.
+        do 2 rewrite Nat.sub_add in in_eq_jn; auto.
+      }
+    }
+  }
+Qed.
+
+Lemma a6 : forall (P Q VP DP VQ DQ : Square 2) (V D : Square 4),
+  WF_Unitary VP -> WF_Diagonal DP -> WF_Unitary VQ -> WF_Diagonal DQ ->
+  WF_Unitary V -> WF_Diagonal D ->
+  P = VP × DP × VP† -> Q = VQ × DQ × VQ† ->
+  P .⊕ Q = V × D × V† ->
+  exists (σ : nat -> nat), permutation 4%nat σ /\
+  forall (i : nat), (DP .⊕ DQ) i i = D (σ i) (σ i).
+Proof.
+  intros P Q VP DP VQ DQ V D.
+  intros Unitary_VP Diagonal_DP Unitary_VQ Diagonal_DQ Unitary_V Diagonal_D HP HQ.
+  assert (step : P .⊕ Q = (VP .⊕ VQ) × (DP .⊕ DQ) × (VP .⊕ VQ)†).
+  {
+    repeat rewrite (direct_sum_decomp 2 2 2 2)%nat.
+    rewrite HP, HQ; clear HP HQ.
+    repeat rewrite Mmult_plus_distr_r.
+    repeat rewrite Mmult_plus_distr_l.
+    repeat rewrite kron_mixed_product.
+    repeat rewrite cancel00; auto with wf_db.
+    repeat rewrite cancel11; auto with wf_db.
+    repeat rewrite cancel01; Msimpl.
+    repeat rewrite cancel10; Msimpl.
+    repeat rewrite Mmult_plus_distr_l.
+    repeat rewrite kron_mixed_product.
+    repeat rewrite cancel00; auto with wf_db.
+    repeat rewrite cancel11; auto with wf_db.
+    repeat rewrite cancel01; Msimpl.
+    repeat rewrite cancel10; Msimpl.
+    reflexivity.
+    apply Diagonal_DP.
+    apply Diagonal_DQ.
+    apply Unitary_VP.
+    apply Unitary_VQ.
+    rewrite HP; repeat apply WF_mult.
+    apply Unitary_VP.
+    apply Diagonal_DP.
+    apply WF_adjoint, Unitary_VP.
+    rewrite HQ; repeat apply WF_mult.
+    apply Unitary_VQ.
+    apply Diagonal_DQ.
+    apply WF_adjoint, Unitary_VQ.
+  }
+  rewrite step; clear step.
+  assert (Unitary_VP_plus_VQ : WF_Unitary (VP .⊕ VQ)).
+  {
+    apply  direct_sum_unitary; auto.
+  }
+  pose proof Unitary_VP_plus_VQ.
+  destruct H as [WF_VP_plus_VQ VPVQ_Equation].
+  intro H.
+  apply (f_equal (fun f => (VP .⊕ VQ)† × f × (VP .⊕ VQ))) in H.
+  revert H.
+  repeat rewrite <- Mmult_assoc.
+  rewrite VPVQ_Equation; Msimpl_light.
+  repeat rewrite Mmult_assoc.
+  rewrite VPVQ_Equation; Msimpl_light.
+  intro H.
+  assert (step : exists (U : Square 4), WF_Unitary U /\ U × DP .⊕ DQ × U† = D).
+  {
+    exists (V† × (VP .⊕ VQ)).
+    split.
+    {
+      apply Mmult_unitary.
+      apply adjoint_unitary.
+      assumption.
+      split; assumption.
+    }
+    {
+      rewrite H, Mmult_adjoint.
+      repeat rewrite <- Mmult_assoc.
+      repeat rewrite Mmult_assoc.
+      rewrite <- Mmult_assoc with (A := VP .⊕ VQ).
+      replace 4%nat with (2 + 2)%nat by reflexivity.
+      rewrite other_unitary_decomp; auto.
+      rewrite <- Mmult_assoc with (A := VP .⊕ VQ).
+      rewrite other_unitary_decomp; auto.
+      rewrite adjoint_involutive.
+      Msimpl_light; auto.
+      destruct Unitary_V as [_ Unitary_V].
+      rewrite Unitary_V.
+      repeat rewrite <- Mmult_assoc.
+      rewrite Unitary_V.
+      Msimpl_light.
+      reflexivity.
+      apply Diagonal_D.
+      apply Diagonal_D.
+      apply Diagonal_D.
+      apply Unitary_V.
+      apply WF_mult.
+      apply Unitary_V.
+      apply WF_mult.
+      apply Diagonal_D.
+      apply WF_mult.
+      apply WF_adjoint, Unitary_V.
+      apply WF_mult.
+      apply WF_I.
+      apply Unitary_V.
+    }
+  }
+  destruct step as [U [Unitary_U step]].
+  apply (perm_eigenvalues U); auto.
+  apply (direct_sum_diagonal DP); auto.
+  apply (direct_sum_diagonal DP); auto.
+  apply (direct_sum_diagonal DP); auto.
+Qed.
 
 (* Attempting to prove equality using sets *)
 Lemma a6_leftP: forall (c: C) (psi: Vector 2) (P Q: Square 2),
@@ -449,7 +629,7 @@ assert (block_decomp: ∣0⟩⟨0∣ ⊗ (P00 × P00†) .+ ∣0⟩⟨1∣ ⊗ (
 clear V_unitary Vadj_unitary lr_mult rl_mult.
 assert (P00_decomp: P00 × P00† = P00† × P00 .+ P10† × P10).
 {
-    apply block_equalities_general with (P00:= P00 × (P00) †) (P01 := P00 × (P10) †) (P10:= P10 × (P00) †) (P11 := P10 × (P10) † .+ P11 × (P11) †)
+    apply block_equalities with (P00:= P00 × (P00) †) (P01 := P00 × (P10) †) (P10:= P10 × (P00) †) (P11 := P10 × (P10) † .+ P11 × (P11) †)
     (Q00:= (P00) † × P00 .+ (P10) † × P10) (Q01 := (P10) † × P11) (Q10:= (P11) † × P10) (Q11 := (P11) † × P11) in block_decomp.
     2: lia.
     2,3,4,5,6,7,8,9,10,11: solve_WF_matrix.

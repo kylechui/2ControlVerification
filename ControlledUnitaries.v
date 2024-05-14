@@ -80,7 +80,7 @@ assert (prod_decomp_1 : forall (w : Vector 2), WF_Matrix w -> U × (I 2 ⊗ Q) �
     rewrite U_beta at 1. rewrite U_beta_p at 1.
     lma'.
 }
-destruct (@block_decomp_general 2 U) as [P00 [P01 [P10 [P11 [WF_P00 [WF_P01 [WF_P10 [WF_P11 U_block_decomp]]]]]]]]. lia.
+destruct (@block_decomp 2 U) as [P00 [P01 [P10 [P11 [WF_P00 [WF_P01 [WF_P10 [WF_P11 U_block_decomp]]]]]]]].
 apply U_unitary.
 assert (prod_decomp_2: forall (w : Vector 2), WF_Matrix w -> U × (I 2 ⊗ Q) × (∣0⟩ ⊗ w) = ∣0⟩ ⊗ (P00 × Q × w) .+ ∣1⟩ ⊗ (P10 × Q × w)).
 {
@@ -189,7 +189,7 @@ assert (I_4_block_decomp: I 4 = ∣0⟩⟨0∣ ⊗ I 2 .+ ∣0⟩⟨1∣ ⊗ Zer
 assert (equal_blocks: (P00) † × P00 = I 2 /\ (Zero (m:= 2) (n:=2)) = (Zero (m:= 2) (n:=2)) 
 /\ (Zero (m:= 2) (n:=2)) = (Zero (m:= 2) (n:=2)) /\ (P11) † × P11 = I 2).
 {
-    apply block_equalities_general with (U := (U) † × U) (V := I 4).
+    apply block_equalities with (U := (U) † × U) (V := I 4).
     lia.
     1,2,3,4,5,6,7,8: solve_WF_matrix.
     1,2: assumption.
