@@ -10,6 +10,19 @@ From Proof Require Import Permutations.
 Require Import List.
 Import ListNotations.
 
+Lemma other_unitary_decomp : forall {n : nat} (U : Square n),
+  WF_Unitary U -> U × U† = I n.
+Proof.
+  intros n U Unitary_U.
+  assert (step : WF_Unitary U†).
+  {
+    apply adjoint_unitary, Unitary_U.
+  }
+  destruct step as [_ step].
+  rewrite <- step, adjoint_involutive.
+  reflexivity.
+Qed.
+
 Theorem a3 : forall {n} (U : Square n),
   WF_Unitary U -> exists (V D : Square n),
     (WF_Unitary V /\ WF_Diagonal D /\ U = V × D × V†).
@@ -259,24 +272,12 @@ Proof.
     {
       rewrite H, Mmult_adjoint.
       repeat rewrite <- Mmult_assoc.
-      assert (get_other_dagger : forall {n : nat} (U : Square n), WF_Unitary U -> U × U† = I n).
-      {
-        intros.
-        destruct Unitary_V.
-        assert (step : WF_Unitary U†).
-        {
-          apply adjoint_unitary; assumption.
-        }
-        destruct step as [_ step].
-        rewrite <- step, adjoint_involutive.
-        reflexivity.
-      }
       repeat rewrite Mmult_assoc.
       rewrite <- Mmult_assoc with (A := VP .⊕ VQ).
       replace 4%nat with (2 + 2)%nat by reflexivity.
-      rewrite get_other_dagger; auto.
+      rewrite other_unitary_decomp; auto.
       rewrite <- Mmult_assoc with (A := VP .⊕ VQ).
-      rewrite get_other_dagger; auto.
+      rewrite other_unitary_decomp; auto.
       rewrite adjoint_involutive.
       Msimpl_light; auto.
       destruct Unitary_V as [_ Unitary_V].

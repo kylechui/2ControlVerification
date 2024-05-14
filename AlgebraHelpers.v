@@ -2,6 +2,16 @@ Require Import QuantumLib.Complex.
 (* @Kyle: this Matrix dependency is for just 1 thing. Maybe better to rewrite the sub_mul_mod
 proof in here *)
 Require Import QuantumLib.Matrix.
+
+Lemma Cmult_nonzero : forall (a b : C), a <> C0 -> b <> C0 -> a * b <> C0.
+Proof.
+  intros.
+  intro.
+  contradict H0.
+  apply (Cmult_cancel_l a); auto.
+  rewrite H1; lca.
+Qed.
+
 Lemma conj_mult_re_is_nonneg: forall (a: C),
 Re (a^* * a) >= 0.
 Proof.

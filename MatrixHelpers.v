@@ -144,6 +144,12 @@ Proof.
   }
 Qed.
 
+Lemma Det_diag2 : forall (c1 c2 : C), Determinant (diag2 c1 c2) = c1 * c2.
+Proof.
+  intros.
+  unfold diag2, Determinant, big_sum, parity, get_minor; lca.
+Qed.
+
 Lemma Diag_diag4: forall (c1 c2 c3 c4 : C), WF_Diagonal (diag4 c1 c2 c3 c4).
 Proof.
   intros.

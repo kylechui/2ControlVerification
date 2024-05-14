@@ -265,3 +265,10 @@ Proof.
     }
   }
 Qed.
+
+(* Helper tactic to quickly destruct cases and assign them a uniform name *)
+Ltac destruct_disjunctions name :=
+  match goal with
+  | [ H : _ \/ _ |- _ ] => destruct H as [name | H]; destruct_disjunctions name
+  | _ => idtac
+  end.
