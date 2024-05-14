@@ -11,7 +11,7 @@ Require Import QuantumLib.Eigenvectors.
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Permutations.
 
-(* Lemma m3_1 : forall (u0 u1 : C),
+Lemma m3_1 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
   forall (U : Square 8), WF_Unitary U ->
     (U × ((diag2 u0 u1) ⊗ (I 2) ⊗ (I 2)) = ((diag2 u0 u1) ⊗ (I 2) ⊗ (I 2)) × U <->
@@ -254,7 +254,7 @@ Proof.
       reflexivity.
     }
   }
-Qed. *)
+Qed.
 
 Lemma m3_2 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
