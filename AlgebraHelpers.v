@@ -1,7 +1,4 @@
 Require Import QuantumLib.Complex.
-(* @Kyle: this Matrix dependency is for just 1 thing. Maybe better to rewrite the sub_mul_mod
-proof in here *)
-Require Import QuantumLib.Matrix.
 
 Lemma Cmult_nonzero : forall (a b : C), a <> C0 -> b <> C0 -> a * b <> C0.
 Proof.
@@ -807,9 +804,7 @@ assert ((i - j) = ((i - j) mod j))%nat.
   lia.
 }
 rewrite H1.
-symmetry.
-rewrite <- Nat.mul_1_l with (n := j) at 1.
-apply sub_mul_mod.
-rewrite Nat.mul_1_l.
-assumption.
+rewrite <- (Nat.Div0.mod_add (i - j) 1).
+replace (1 * j)%nat with j by lia.
+rewrite Nat.sub_add; auto.
 Qed.
