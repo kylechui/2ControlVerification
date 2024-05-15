@@ -183,4 +183,9 @@ Proof.
   reflexivity.
 Qed.
 
-Lemma swapbc_sa: swapbc = (swapbc) †. Proof. lma'. 2: apply WF_adjoint. all: apply WF_swapbc. Qed.
+Lemma swapbc_sa: swapbc = (swapbc) †.
+Proof.
+  lma'.
+  apply WF_swapbc.
+  apply WF_adjoint, WF_swapbc.
+Qed.
