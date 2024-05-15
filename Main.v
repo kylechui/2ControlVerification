@@ -48,8 +48,7 @@ Proof.
       {
         unfold diag2.
         lma'.
-        solve_WF_matrix; apply WF_diag2.
-        solve_WF_matrix.
+        all: solve_WF_matrix.
       }
       assert (UW : U × (diag2 u0 u1 ⊗ I 2 ⊗ I 2) = ∣0⟩⟨0∣ ⊗ (u0 .* V00) .+ ∣0⟩⟨1∣ ⊗ (u1 .* V01) .+ ∣1⟩⟨0∣ ⊗ (u0 .* V10) .+ ∣1⟩⟨1∣ ⊗ (u1 .* V11)).
       {
@@ -223,7 +222,7 @@ Proof.
       assert (H1 : diag2 u0 u1 ⊗ I 2 ⊗ I 2 = ∣0⟩⟨0∣ ⊗ (u0 .* I 4) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* I 4)).
       {
         unfold diag2; Msimpl; lma'.
-        solve_WF_matrix; apply WF_diag2.
+        solve_WF_matrix.
       }
       rewrite H0, H1; clear H0 H1.
       rewrite block_multiply with
@@ -448,14 +447,8 @@ Proof.
       exists (diag2 C1 u1), (I 2), (I 4).
       split.
       {
-        unfold WF_Unitary.
-        split; try apply WF_diag2.
-        lma'.
-        solve_WF_matrix; try apply WF_diag2.
-        unfold adjoint, diag2, I, Mmult; simpl.
-        Csimpl.
-        rewrite <- Cmod_sqr, unit_u1.
-        lca.
+        apply diag2_unitary; auto.
+        apply Cmod_1.
       }
       {
         split; try apply id_unitary.
@@ -473,17 +466,13 @@ Proof.
       exists (diag2 C1 u0), (diag2 C1 u1), notc.
       split.
       {
-        unfold WF_Unitary; split; try apply WF_diag2.
-        lma'; try solve_WF_matrix; try apply WF_diag2.
-        unfold adjoint, diag2, Mmult, I; simpl; Csimpl.
-        rewrite <- Cmod_sqr, unit_u0; lca.
+        apply diag2_unitary; auto.
+        apply Cmod_1.
       }
       split.
       {
-        unfold WF_Unitary; split; try apply WF_diag2.
-        lma'; try solve_WF_matrix; try apply WF_diag2.
-        unfold adjoint, diag2, Mmult, I; simpl; Csimpl.
-        rewrite <- Cmod_sqr, unit_u1; lca.
+        apply diag2_unitary; auto.
+        apply Cmod_1.
       }
       split.
       {
@@ -491,7 +480,7 @@ Proof.
       }
       {
         lma'.
-        solve_WF_matrix; try apply WF_diag2.
+        solve_WF_matrix.
         repeat apply WF_mult.
         apply WF_notc.
         apply WF_diag4.
@@ -522,19 +511,14 @@ Proof.
     assert (Unitary_PD : WF_Unitary (P × diag2 u0 u1)).
     {
       apply Mmult_unitary; auto.
-      unfold WF_Unitary; split; try apply WF_diag2.
-      lma'; try solve_WF_matrix; try apply WF_diag2.
-      unfold adjoint, diag2, Mmult, I; simpl; Csimpl.
-      rewrite <- Cmod_sqr, unit_u0; lca.
-      unfold adjoint, diag2, Mmult, I; simpl; Csimpl.
-      rewrite <- Cmod_sqr, unit_u1; lca.
+      apply diag2_unitary; auto.
     }
     assert (step : control (diag2 u0 u1) = I 2 .⊕ diag2 u0 u1).
     {
       rewrite (direct_sum_decomp _ _ 2 2)%nat; auto.
       lma'.
       apply WF_control, WF_diag2.
-      solve_WF_matrix; apply WF_diag2.
+      solve_WF_matrix.
       unfold control, diag2, adjoint, I, kron, Mmult, Mplus; simpl; lca.
       unfold control, diag2, adjoint, I, kron, Mmult, Mplus; simpl; lca.
       apply WF_I.
@@ -982,8 +966,6 @@ Proof.
       rewrite id_kron; Msimpl; try apply WF_diag4.
       {
         lma'; solve_WF_matrix.
-        apply WF_diag2.
-        apply WF_diag4.
       }
       {
         apply WF_control, WF_diag2.
@@ -993,10 +975,8 @@ Proof.
       exists (diag2 C1 u0).
       split.
       {
-        unfold WF_Unitary; split; try apply WF_diag2.
-        lma'; try solve_WF_matrix; try apply WF_diag2.
-        unfold adjoint, diag2, Mmult, I; simpl; Csimpl.
-        rewrite <- Cmod_sqr, unit_u0; lca.
+        apply diag2_unitary; auto.
+        apply Cmod_1.
       }
       {
         exists notc.
@@ -1010,7 +990,7 @@ Proof.
           split; try rewrite Cmod_gt_0, unit_u0; try lra.
           assert (H : I 2 ⊗ diag2 C1 u0 × control (diag2 u0 u1) = diag4 C1 u0 u0 (u0 * u1)).
           {
-            lma'; solve_WF_matrix; try apply WF_diag2; try apply WF_diag4.
+            lma'; solve_WF_matrix.
             all: unfold diag4, diag2, kron, Mmult; simpl; Csimpl; reflexivity.
           }
           rewrite H; clear H.
@@ -1044,27 +1024,14 @@ Proof.
   - intros.
     destruct H1.
     + exists (I 4), (I 4), (I 2), (diag2 1 u1), (I 2), (I 2).
-      assert (diag2_unitary : WF_Unitary (diag2 1 u1)).
-      {
-        split.
-        - apply WF_diag2.
-        - solve_matrix.
-          unfold diag2; simpl.
-          rewrite <- Cmod_sqr.
-          rewrite H0.
-          lca.
-      }
       split. apply id_unitary.
       split. apply id_unitary.
       split. apply id_unitary.
-      split. apply diag2_unitary.
+      split. apply diag2_unitary; auto; apply Cmod_1.
       split. apply id_unitary.
       split. apply id_unitary.
-      (* This line removes a lot of subgoals created by the following Msimpl *)
-      assert (WF_my_diag2 : WF_Matrix (diag2 1 u1)). apply WF_diag2.
-      Msimpl.
-      lma'.
-      do 2 apply WF_control; apply WF_diag2.
+      Msimpl; try solve_WF_matrix.
+      lma'; try solve_WF_matrix.
       {
         unfold kron, adjoint, Mmult, Mplus, ccu, control, diag2, I, qubit0, qubit1; simpl.
         Csimpl.
@@ -1076,24 +1043,12 @@ Proof.
         reflexivity.
       }
     + exists notc, notc, (I 2), (diag2 1 u0), (I 2), (diag2 1 u1).
-      assert (diag2_unitary : forall u, Cmod u = 1 -> WF_Unitary (diag2 1 u)).
-      {
-        split.
-        - apply WF_diag2.
-        - solve_matrix.
-          unfold diag2; simpl.
-          rewrite <- Cmod_sqr.
-          rewrite H2.
-          lca.
-      }
       split. apply notc_unitary.
       split. apply notc_unitary.
       split. apply id_unitary.
-      split. apply diag2_unitary; exact H.
+      split. apply diag2_unitary; auto; apply Cmod_1.
       split. apply id_unitary.
-      split. apply diag2_unitary; exact H0.
-      (* This line removes a lot of subgoals created by the following Msimpl *)
-      assert (WF_my_diag2 : WF_Matrix (diag2 u0 1)). apply WF_diag2.
+      split. apply diag2_unitary; auto; apply Cmod_1.
       Msimpl.
       lma'.
       {
@@ -1107,8 +1062,6 @@ Proof.
           solve_WF_matrix.
           apply WF_mult.
           solve_WF_matrix.
-          apply WF_diag2.
-          apply WF_diag2.
           apply WF_notc.
       }
       do 2 apply WF_control; apply WF_diag2.
