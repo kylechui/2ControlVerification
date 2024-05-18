@@ -55,8 +55,7 @@ assert (prod_decomp_1 : forall (w : Vector 2), WF_Matrix w -> U × (I 2 ⊗ Q) �
     assert (kron_mix_helper: (I 2 ⊗ Q × (∣0⟩ ⊗ (w 0%nat 0%nat .* ∣0⟩ .+ w 1%nat 0%nat .* ∣1⟩))) = 
     (I 2 × ∣0⟩) ⊗ (Q × (w 0%nat 0%nat .* ∣0⟩ .+ w 1%nat 0%nat .* ∣1⟩))).
     {
-      destruct Q_unitary as [WF_Q _].
-      lma'.
+      lma'; solve_WF_matrix.
     }
     rewrite kron_mix_helper at 1.
     rewrite Mmult_1_l. 2: apply WF_qubit0.
@@ -71,12 +70,12 @@ assert (prod_decomp_1 : forall (w : Vector 2), WF_Matrix w -> U × (I 2 ⊗ Q) �
     rewrite Mmult_assoc with (A := beta).
     rewrite Mscale_mult_dist_r with (A:= ⟨0∣).
     rewrite Mmult00. 
-    assert (beta_helper: (beta × (w 0%nat 0%nat .* I 1)) = w 0%nat 0%nat .* beta). lma'.
+    assert (beta_helper: (beta × (w 0%nat 0%nat .* I 1)) = w 0%nat 0%nat .* beta) by lma'.
     rewrite beta_helper. clear beta_helper.
     rewrite Mmult_assoc.
     rewrite Mscale_mult_dist_r.
     rewrite Mmult11. 
-    assert (beta_p_helper: (beta_p × (w 1%nat 0%nat .* I 1)) = w 1%nat 0%nat .* beta_p). lma'.
+    assert (beta_p_helper: (beta_p × (w 1%nat 0%nat .* I 1)) = w 1%nat 0%nat .* beta_p) by lma'.
     rewrite beta_p_helper. clear beta_p_helper.
     rewrite kron_plus_distr_l.
     do 2 rewrite Mscale_kron_dist_r.
@@ -93,8 +92,7 @@ assert (prod_decomp_2: forall (w : Vector 2), WF_Matrix w -> U × (I 2 ⊗ Q) ×
     rewrite Mmult_assoc.
     assert (kron_mix_helper: (I 2 ⊗ Q × (∣0⟩ ⊗ w)) = (I 2 × ∣0⟩) ⊗ (Q × w)).
     {
-      destruct Q_unitary as [WF_Q _].
-      lma'.
+      lma'; solve_WF_matrix.
     }
     rewrite kron_mix_helper at 1. clear kron_mix_helper.
     rewrite Mmult_1_l. 2: apply WF_qubit0.
@@ -134,15 +132,14 @@ assert (tens_elem_3: forall (w: Vector 2), WF_Matrix w ->(∣1⟩ ⊗ (P10 × Q 
 assert (tens_equiv_0: forall (w: Vector 2), WF_Matrix w ->(∣1⟩ ⊗ (P10 × Q × w)) = (Zero (m:=4) (n:=1))).
 {
     intros w WF_w.
-    destruct Q_unitary as [WF_Q _].
-    lma'.
+    lma'; solve_WF_matrix.
     apply tens_elem_2. assumption.
     apply tens_elem_3. assumption.
 }
 assert (prod_equiv_0: forall (w: Vector 2), WF_Matrix w -> P10 × Q × w = (Zero (m:=2) (n:=1))).
 {
     intros w WF_w.
-    assert (zero_tens: (Zero (m:=4) (n:=1)) = ∣1⟩ ⊗ (Zero (m:=2) (n:=1))). lma'.
+    assert (zero_tens: (Zero (m:=4) (n:=1)) = ∣1⟩ ⊗ (Zero (m:=2) (n:=1))) by lma'.
     rewrite zero_tens in tens_equiv_0.
     apply kron_1_cancel_l; solve_WF_matrix.
     apply tens_equiv_0.
@@ -169,9 +166,8 @@ assert (P01_0: P01 = Zero).
 exists P00, P11.
 assert (U_adj_block_decomp: (U) † = ∣0⟩⟨0∣ ⊗ P00† .+ ∣0⟩⟨1∣ ⊗ P10† .+ ∣1⟩⟨0∣ ⊗ P01† .+ ∣1⟩⟨1∣ ⊗ P11†). 
 {
-    rewrite U_block_decomp. lma'.
-    apply WF_adjoint. 1,2: apply (@WF_blockmatrix 2).
-    5,6,7,8: apply WF_adjoint. all: assumption.
+    rewrite U_block_decomp.
+    lma'; solve_WF_matrix.
 }
 assert (U_adj_mult_1: (U) † × U = ∣0⟩⟨0∣ ⊗ (P00† × P00) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (P11† × P11)).
 {
@@ -187,7 +183,7 @@ assert (U_adj_mult_1: (U) † × U = ∣0⟩⟨0∣ ⊗ (P00† × P00) .+ ∣0�
 }
 assert (I_4_block_decomp: I 4 = ∣0⟩⟨0∣ ⊗ I 2 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ I 2). 
 {
-    lma'. apply (@WF_blockmatrix 2); solve_WF_matrix.
+    lma'; solve_WF_matrix.
 }
 assert (equal_blocks: (P00) † × P00 = I 2 /\ (Zero (m:= 2) (n:=2)) = (Zero (m:= 2) (n:=2)) 
 /\ (Zero (m:= 2) (n:=2)) = (Zero (m:= 2) (n:=2)) /\ (P11) † × P11 = I 2).
@@ -201,8 +197,7 @@ split.
 {
     rewrite U_block_decomp.
     rewrite P10_0, P01_0.
-    lma'.
-    apply (@WF_blockmatrix 2); solve_WF_matrix.
+    lma'; solve_WF_matrix.
 }
 split. 
 {
@@ -258,10 +253,8 @@ assert (U_block_decomp: exists (P0 P1 : Square 2), U = P0 ⊗ ∣0⟩⟨0∣ .+ 
         rewrite swap_swap.
         rewrite Mmult_1_l. 2: apply U_unitary.
         rewrite Mmult_assoc.
-        (* @Kyle for some reason swap_swap doesn't work here *)
-        lma'. 2: apply U_unitary.
-        apply WF_mult. apply U_unitary.
-        apply WF_mult. 1,2: apply WF_swap.
+        (* TODO: Figure out why swap_swap doesn't work here *)
+        lma'; solve_WF_matrix.
     }
     rewrite swap_inverse_helper in SUS_block_decomp.
     rewrite SUS_block_decomp.

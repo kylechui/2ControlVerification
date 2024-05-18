@@ -40,8 +40,7 @@ Lemma a13_1 : forall (D: Square 2),
   WF_Matrix D ->
     swapab × ccu D × swapab = ccu D.
 Proof.
-  intros.
-  lma'.
+  exact swapab_ccu.
 Qed.
 
 Lemma a13_2 : forall (c1 : C), swapbc × ccu (diag2 1 c1) × swapbc = ccu (diag2 1 c1).

@@ -105,18 +105,9 @@ Lemma swapab_ccu: forall (U: Square 2), WF_Matrix U ->
   swapab × (ccu U) × swapab = ccu U.
 Proof.
   intros.
-  apply mat_equiv_eq; solve_WF_matrix.
   (* PERF: This is very slow; perhaps can be optimized if we rewrite our swap
            gates to use swap_two from QuantumLib *)
-  by_cell.
-  lca. lca. lca. lca. lca. lca. lca. lca.
-  lca. lca. lca. lca. lca. lca. lca. lca.
-  lca. lca. lca. lca. lca. lca. lca. lca.
-  lca. lca. lca. lca. lca. lca. lca. lca.
-  lca. lca. lca. lca. lca. lca. lca. lca.
-  lca. lca. lca. lca. lca. lca. lca. lca.
-  lca. lca. lca. lca. lca. lca. lca. lca.
-  lca. lca. lca. lca. lca. lca. lca. lca.
+  lma'.
 Qed.
 
 Lemma ccu_adjoint: forall (U: Square 2), WF_Matrix U -> (ccu U)† = ccu U†.
