@@ -621,8 +621,8 @@ destruct P0_unitary as [WF_P0 P0_inv].
 destruct P1_unitary as [WF_P1 P1_inv].
 rewrite Mmult_plus_distr_l.
 rewrite Mmult_plus_distr_r.
-rewrite swapbc_3gate. 2,3,4: solve_WF_matrix.
-rewrite swapbc_3gate. 2,3,4: solve_WF_matrix.
+rewrite swapbc_3gate; solve_WF_matrix.
+rewrite swapbc_3gate; solve_WF_matrix.
 reflexivity.
 Qed.
 
@@ -1018,10 +1018,7 @@ WF_Matrix phi /\ abgate U × (∣0⟩ ⊗ x ⊗ y) = ∣0⟩ ⊗ phi)).
                         intros.
                         apply Coq.Logic.Classical_Prop.or_not_and.
                         rewrite <- implication_decomp.
-                        apply qubit_not_0tens. lia. unfold abgate.
-                        destruct U_unitary as [WF_U _].
-                        destruct WF_y as [_ [WF_y _]].
-                        auto with wf_db.
+                        apply qubit_not_0tens. lia. unfold abgate; solve_WF_matrix.
                         exists 6%nat.
                         split. lia.
                         apply case110_goal_change.
@@ -1042,10 +1039,7 @@ WF_Matrix phi /\ abgate U × (∣0⟩ ⊗ x ⊗ y) = ∣0⟩ ⊗ phi)).
                         intros.
                         apply Coq.Logic.Classical_Prop.or_not_and.
                         rewrite <- implication_decomp.
-                        apply qubit_not_0tens. lia. unfold abgate.
-                        destruct U_unitary as [WF_U _].
-                        destruct WF_y as [_ [WF_y _]].
-                        auto with wf_db.
+                        apply qubit_not_0tens. lia. unfold abgate; solve_WF_matrix.
                         exists 7%nat.
                         split. lia.
                         apply case111_goal_change.
@@ -1070,10 +1064,7 @@ WF_Matrix phi /\ abgate U × (∣0⟩ ⊗ x ⊗ y) = ∣0⟩ ⊗ phi)).
                         intros.
                         apply Coq.Logic.Classical_Prop.or_not_and.
                         rewrite <- implication_decomp.
-                        apply qubit_not_0tens. lia. unfold abgate.
-                        destruct U_unitary as [WF_U _].
-                        destruct WF_y as [_ [WF_y _]].
-                        auto with wf_db.
+                        apply qubit_not_0tens. lia. unfold abgate; solve_WF_matrix.
                         exists 6%nat.
                         split. lia.
                         apply case100_goal_change.
@@ -1094,10 +1085,7 @@ WF_Matrix phi /\ abgate U × (∣0⟩ ⊗ x ⊗ y) = ∣0⟩ ⊗ phi)).
                         intros.
                         apply Coq.Logic.Classical_Prop.or_not_and.
                         rewrite <- implication_decomp.
-                        apply qubit_not_0tens. lia. unfold abgate.
-                        destruct U_unitary as [WF_U _].
-                        destruct WF_y as [_ [WF_y _]].
-                        auto with wf_db.
+                        apply qubit_not_0tens. lia. unfold abgate; solve_WF_matrix.
                         exists 7%nat.
                         split. lia.
                         apply case101_goal_change.
@@ -1134,10 +1122,7 @@ WF_Matrix phi /\ abgate U × (∣0⟩ ⊗ x ⊗ y) = ∣0⟩ ⊗ phi)).
                         intros.
                         apply Coq.Logic.Classical_Prop.or_not_and.
                         rewrite <- implication_decomp.
-                        apply qubit_not_0tens. lia. unfold abgate.
-                        destruct U_unitary as [WF_U _].
-                        destruct WF_y as [_ [WF_y _]].
-                        auto with wf_db.
+                        apply qubit_not_0tens. lia. unfold abgate; solve_WF_matrix.
                         exists 4%nat.
                         split. lia.
                         apply case010_goal_change.
@@ -1158,10 +1143,7 @@ WF_Matrix phi /\ abgate U × (∣0⟩ ⊗ x ⊗ y) = ∣0⟩ ⊗ phi)).
                         intros.
                         apply Coq.Logic.Classical_Prop.or_not_and.
                         rewrite <- implication_decomp.
-                        apply qubit_not_0tens. lia. unfold abgate.
-                        destruct U_unitary as [WF_U _].
-                        destruct WF_y as [_ [WF_y _]].
-                        auto with wf_db.
+                        apply qubit_not_0tens. lia. unfold abgate; solve_WF_matrix.
                         exists 5%nat.
                         split. lia.
                         apply case011_goal_change.
@@ -1186,10 +1168,7 @@ WF_Matrix phi /\ abgate U × (∣0⟩ ⊗ x ⊗ y) = ∣0⟩ ⊗ phi)).
                         intros.
                         apply Coq.Logic.Classical_Prop.or_not_and.
                         rewrite <- implication_decomp.
-                        apply qubit_not_0tens. lia. unfold abgate.
-                        destruct U_unitary as [WF_U _].
-                        destruct WF_y as [_ [WF_y _]].
-                        auto with wf_db.
+                        apply qubit_not_0tens. lia. unfold abgate; solve_WF_matrix.
                         exists 4%nat.
                         split. lia.
                         apply case000_goal_change.
@@ -1210,10 +1189,7 @@ WF_Matrix phi /\ abgate U × (∣0⟩ ⊗ x ⊗ y) = ∣0⟩ ⊗ phi)).
                         intros.
                         apply Coq.Logic.Classical_Prop.or_not_and.
                         rewrite <- implication_decomp.
-                        apply qubit_not_0tens. lia. unfold abgate.
-                        destruct U_unitary as [WF_U _].
-                        destruct WF_y as [_ [WF_y _]].
-                        auto with wf_db.
+                        apply qubit_not_0tens. lia. unfold abgate; solve_WF_matrix.
                         exists 5%nat.
                         split. lia.
                         apply case001_goal_change.
