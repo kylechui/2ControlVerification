@@ -300,7 +300,7 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣0⟩ ⊗ ∣0⟩)))).
     {
         unfold WF_Qubit.
         split. exists (1%nat). trivial.
-        split. unfold psi0; solve_WF_matrix.
+        split. solve_WF_matrix.
         rewrite vector2_inner_prod_decomp.
         unfold psi0.
         repeat rewrite Mplus_access.
@@ -354,7 +354,7 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣0⟩ ⊗ ∣0⟩)))).
         replace ((Cmod p0 * (Cmod p0 * 1))%R) with ((Cmod p0 ^ 2)%R) by lra.
         assumption.
     }
-    apply a20. unfold psi0; solve_WF_matrix.
+    apply a20. solve_WF_matrix.
     assert (psi0_def: psi0 = c0 * p0 .* ∣0⟩ .+ c0 .* ∣1⟩). unfold psi0. reflexivity.
     assert (prod_decomp: U × (∣0⟩ ⊗ psi0) = U × (∣0⟩ ⊗ psi0)). reflexivity.
     rewrite psi0_def in prod_decomp at 2.
@@ -420,7 +420,7 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣0⟩ ⊗ ∣0⟩)))).
     (* follows from U00 not a tensor prod *)
     unfold a. unfold not. intro.
     apply H.
-    rewrite a20. 2: solve_WF_matrix.
+    rewrite a20; solve_WF_matrix.
     fold a00 a11 a01 a10.
     apply (f_equal (fun f => f + a01 * a10)) in H0.
     rewrite Cplus_0_l in H0.
@@ -465,7 +465,7 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣1⟩ ⊗ ∣0⟩)))).
     {
         unfold WF_Qubit.
         split. exists (1%nat). trivial.
-        split. unfold psi0; solve_WF_matrix.
+        split. solve_WF_matrix.
         rewrite vector2_inner_prod_decomp.
         unfold psi0.
         repeat rewrite Mplus_access.
@@ -519,7 +519,7 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣1⟩ ⊗ ∣0⟩)))).
         replace ((Cmod p0 * (Cmod p0 * 1))%R) with ((Cmod p0 ^ 2)%R) by lra.
         assumption.
     }
-    apply a20. unfold psi0; solve_WF_matrix.
+    apply a20. solve_WF_matrix.
     assert (psi0_def: psi0 = c0 * p0 .* ∣0⟩ .+ c0 .* ∣1⟩). unfold psi0. reflexivity.
     assert (prod_decomp: U × (∣1⟩ ⊗ psi0) = U × (∣1⟩ ⊗ psi0)). reflexivity.
     rewrite psi0_def in prod_decomp at 2.
@@ -585,7 +585,7 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣1⟩ ⊗ ∣0⟩)))).
     (* follows from U00 not a tensor prod *)
     unfold a. unfold not. intro.
     apply H.
-    rewrite a20. 2: solve_WF_matrix.
+    rewrite a20; solve_WF_matrix.
     fold a00 a11 a01 a10.
     apply (f_equal (fun f => f + a01 * a10)) in H0.
     rewrite Cplus_0_l in H0.

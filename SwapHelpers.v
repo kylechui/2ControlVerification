@@ -7,35 +7,33 @@ Definition swapab := swap ⊗ I 2.
 Definition swapbc := I 2 ⊗ swap.
 Definition swapac := swapab × swapbc × swapab.
 
+#[export] Hint Unfold swapab swapbc swapac : M_db.
+
 Lemma WF_swapab : WF_Matrix swapab.
 Proof.
-  unfold swapab; solve_WF_matrix.
+  solve_WF_matrix.
 Qed.
 
 Lemma WF_swapbc : WF_Matrix swapbc.
 Proof.
-  unfold swapbc; solve_WF_matrix.
+  solve_WF_matrix.
 Qed.
 
 Lemma WF_swapac : WF_Matrix swapac.
 Proof.
-  unfold swapac, swapab, swapbc; solve_WF_matrix.
+  solve_WF_matrix.
 Qed.
 
 #[export] Hint Resolve WF_swapab WF_swapbc WF_swapac : wf_db.
 
 Lemma swapab_unitary : WF_Unitary swapab.
 Proof.
-  apply kron_unitary.
-  apply swap_unitary.
-  apply id_unitary.
+  autounfold with M_db; auto with unit_db.
 Qed.
 
 Lemma swapbc_unitary : WF_Unitary swapbc.
 Proof.
-  apply kron_unitary.
-  apply id_unitary.
-  apply swap_unitary.
+  autounfold with M_db; auto with unit_db.
 Qed.
 
 Lemma swapac_unitary : WF_Unitary swapac.
@@ -46,6 +44,8 @@ Proof.
   apply swapbc_unitary.
   apply swapab_unitary.
 Qed.
+
+#[export] Hint Resolve swapab_unitary swapbc_unitary swapac_unitary : unit_db.
 
 Lemma swapab_inverse : swapab × swapab = I 8.
 Proof.
