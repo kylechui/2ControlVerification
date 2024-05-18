@@ -1,6 +1,7 @@
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
 From Proof Require Import MatrixHelpers.
+From Proof Require Import WFHelpers.
 
 Definition swapab := swap ⊗ I 2.
 Definition swapbc := I 2 ⊗ swap.
@@ -8,20 +9,20 @@ Definition swapac := swapab × swapbc × swapab.
 
 Lemma WF_swapab : WF_Matrix swapab.
 Proof.
-  solve_WF_matrix.
+  unfold swapab; solve_WF_matrix.
 Qed.
 
 Lemma WF_swapbc : WF_Matrix swapbc.
 Proof.
-  solve_WF_matrix.
+  unfold swapbc; solve_WF_matrix.
 Qed.
 
 Lemma WF_swapac : WF_Matrix swapac.
 Proof.
-  apply WF_mult.
-  solve_WF_matrix.
-  apply WF_swapab.
+  unfold swapac, swapab, swapbc; solve_WF_matrix.
 Qed.
+
+#[export] Hint Resolve WF_swapab WF_swapbc WF_swapac : wf_db.
 
 Lemma swapab_unitary : WF_Unitary swapab.
 Proof.
@@ -48,24 +49,22 @@ Qed.
 
 Lemma swapab_inverse : swapab × swapab = I 8.
 Proof.
-  apply mat_equiv_eq. solve_WF_matrix. apply WF_I.
   unfold swapab.
-  rewrite kron_mixed_product.
-  rewrite swap_swap.
-  rewrite Mmult_1_l. 2: apply WF_I.
+  rewrite kron_mixed_product, swap_swap.
+  Msimpl_light.
   rewrite id_kron.
-  apply mat_equiv_refl.
+  replace (2 * 2 * 2)%nat with 8%nat by lia.
+  reflexivity.
 Qed.
 
 Lemma swapbc_inverse : swapbc × swapbc = I 8.
 Proof.
-  apply mat_equiv_eq. solve_WF_matrix. apply WF_I.
   unfold swapbc.
-  rewrite kron_mixed_product.
-  rewrite swap_swap.
-  rewrite Mmult_1_l. 2: apply WF_I.
+  rewrite kron_mixed_product, swap_swap.
+  Msimpl_light.
   rewrite id_kron.
-  apply mat_equiv_refl.
+  replace (2 * (2 * 2))%nat with 8%nat by lia.
+  reflexivity.
 Qed.
 
 Lemma swapac_inverse : swapac × swapac = I 8.
@@ -186,6 +185,4 @@ Qed.
 Lemma swapbc_sa: swapbc = (swapbc) †.
 Proof.
   lma'.
-  apply WF_swapbc.
-  apply WF_adjoint, WF_swapbc.
 Qed.

@@ -10,6 +10,7 @@ From Proof Require Import UnitaryMatrices.
 From Proof Require Import ExplicitDecompositions.
 From Proof Require Import Vectors.
 From Proof Require Import TraceoutHelpers.
+From Proof Require Import WFHelpers.
 
 Lemma a20_part1: forall (w : Vector 4), 
 WF_Matrix w -> 
@@ -299,7 +300,7 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣0⟩ ⊗ ∣0⟩)))).
     {
         unfold WF_Qubit.
         split. exists (1%nat). trivial.
-        split. solve_WF_matrix.
+        split. unfold psi0; solve_WF_matrix.
         rewrite vector2_inner_prod_decomp.
         unfold psi0.
         repeat rewrite Mplus_access.
@@ -353,7 +354,7 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣0⟩ ⊗ ∣0⟩)))).
         replace ((Cmod p0 * (Cmod p0 * 1))%R) with ((Cmod p0 ^ 2)%R) by lra.
         assumption.
     }
-    apply a20. solve_WF_matrix. apply U_unitary.
+    apply a20. unfold psi0; solve_WF_matrix.
     assert (psi0_def: psi0 = c0 * p0 .* ∣0⟩ .+ c0 .* ∣1⟩). unfold psi0. reflexivity.
     assert (prod_decomp: U × (∣0⟩ ⊗ psi0) = U × (∣0⟩ ⊗ psi0)). reflexivity.
     rewrite psi0_def in prod_decomp at 2.
@@ -419,7 +420,7 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣0⟩ ⊗ ∣0⟩)))).
     (* follows from U00 not a tensor prod *)
     unfold a. unfold not. intro.
     apply H.
-    rewrite a20. 2: solve_WF_matrix. 2: apply U_unitary.
+    rewrite a20. 2: solve_WF_matrix.
     fold a00 a11 a01 a10.
     apply (f_equal (fun f => f + a01 * a10)) in H0.
     rewrite Cplus_0_l in H0.
@@ -464,7 +465,7 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣1⟩ ⊗ ∣0⟩)))).
     {
         unfold WF_Qubit.
         split. exists (1%nat). trivial.
-        split. solve_WF_matrix.
+        split. unfold psi0; solve_WF_matrix.
         rewrite vector2_inner_prod_decomp.
         unfold psi0.
         repeat rewrite Mplus_access.
@@ -518,7 +519,7 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣1⟩ ⊗ ∣0⟩)))).
         replace ((Cmod p0 * (Cmod p0 * 1))%R) with ((Cmod p0 ^ 2)%R) by lra.
         assumption.
     }
-    apply a20. solve_WF_matrix. apply U_unitary.
+    apply a20. unfold psi0; solve_WF_matrix.
     assert (psi0_def: psi0 = c0 * p0 .* ∣0⟩ .+ c0 .* ∣1⟩). unfold psi0. reflexivity.
     assert (prod_decomp: U × (∣1⟩ ⊗ psi0) = U × (∣1⟩ ⊗ psi0)). reflexivity.
     rewrite psi0_def in prod_decomp at 2.
@@ -584,7 +585,7 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣1⟩ ⊗ ∣0⟩)))).
     (* follows from U00 not a tensor prod *)
     unfold a. unfold not. intro.
     apply H.
-    rewrite a20. 2: solve_WF_matrix. 2: apply U_unitary.
+    rewrite a20. 2: solve_WF_matrix.
     fold a00 a11 a01 a10.
     apply (f_equal (fun f => f + a01 * a10)) in H0.
     rewrite Cplus_0_l in H0.
@@ -724,21 +725,21 @@ assert (ts0 : TensorProdQubit (U × (∣0⟩ ⊗ ∣0⟩))). apply tensorProp.
 assert (ts1 : TensorProdQubit (U × (∣1⟩ ⊗ ∣0⟩))). apply tensorProp.
 assert (tsp : TensorProdQubit (U × (∣+⟩ ⊗ ∣0⟩))). apply tensorProp.
 unfold TensorProdQubit in ts0, ts1, tsp.
-assert (WF_Matrix (U × (∣0⟩ ⊗ ∣0⟩))). solve_WF_matrix. apply U_unitary.
+assert (WF_Matrix (U × (∣0⟩ ⊗ ∣0⟩))). solve_WF_matrix.
 apply ts0 in H. clear ts0.
 destruct H as [a0 [b0 [a0_qubit [b0_qubit a0b0_def]]]].
 assert (temp: WF_Qubit a0). assumption.
 destruct temp as [_ [WF_a0 a0_unit]].
 assert (temp: WF_Qubit b0). assumption.
 destruct temp as [_ [WF_b0 b0_unit]].
-assert (WF_Matrix (U × (∣1⟩ ⊗ ∣0⟩))). solve_WF_matrix. apply U_unitary.
+assert (WF_Matrix (U × (∣1⟩ ⊗ ∣0⟩))). solve_WF_matrix.
 apply ts1 in H. clear ts1.
 destruct H as [a1 [b1 [a1_qubit [b1_qubit a1b1_def]]]].
 assert (temp: WF_Qubit a1). assumption.
 destruct temp as [_ [WF_a1 a1_unit]].
 assert (temp: WF_Qubit b1). assumption.
 destruct temp as [_ [WF_b1 b1_unit]].
-assert (WF_Matrix (U × (∣+⟩ ⊗ ∣0⟩))). solve_WF_matrix. apply U_unitary.
+assert (WF_Matrix (U × (∣+⟩ ⊗ ∣0⟩))). solve_WF_matrix.
 apply tsp in H. clear tsp.
 destruct H as [ap [bp [ap_qubit [bp_qubit apbp_def]]]].
 destruct ap_qubit as [_ [WF_ap ap_unit]].
@@ -1076,7 +1077,7 @@ assert (abgate_0passthru_int : forall (y : Vector 2), WF_Qubit y -> forall (x: V
 {
     intros y y_qubit x x_qubit.
     exists (W00 × (x ⊗ y)).
-    split. solve_WF_matrix. apply x_qubit. apply y_qubit.
+    split. solve_WF_matrix.
     rewrite acgate_mult.
     rewrite Mmult_plus_distr_r.
     rewrite kron_assoc. 4: apply y_qubit. 3: apply x_qubit. 2: solve_WF_matrix.
@@ -1132,7 +1133,7 @@ forall (x : Vector 2), WF_Qubit x -> (exists (phi: Vector 4), WF_Matrix phi /\
     rewrite kron_0_l in abgate_0passthru_int.
     rewrite Mplus_0_r in abgate_0passthru_int.
     exists ((acdiagTL) † × phi).
-    split. solve_WF_matrix. apply acdiagTL_unitary.
+    split. solve_WF_matrix.
     assumption.
 }
 assert (ab_inner_unitary: WF_Unitary ((M0 ⊗ I 2) × V)). 

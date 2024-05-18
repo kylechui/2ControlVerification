@@ -6,6 +6,7 @@ From Proof Require Import QubitHelpers.
 From Proof Require Import MatrixHelpers.
 From Proof Require Import AlgebraHelpers.
 From Proof Require Import Swaps.
+From Proof Require Import WFHelpers.
 
 Lemma a14 : forall (psi : Vector 4), 
 WF_Matrix psi -> ⟨ psi , psi ⟩ = 1 -> 
@@ -112,7 +113,7 @@ assert (beta_p_qubit: WF_Qubit beta_p).
 {
   unfold WF_Qubit.
   split. exists 1%nat. trivial.
-  split. solve_WF_matrix.
+  split. unfold beta_p; auto_wf.
   unfold beta_p.
   rewrite inner_product_plus_l. 
   do 2 rewrite inner_product_plus_r.
@@ -130,7 +131,7 @@ assert (gamma_qubit: WF_Qubit gamma).
 {
   unfold WF_Qubit.
   split. exists 1%nat. trivial.
-  split. solve_WF_matrix.
+  split. unfold gamma; auto_wf.
   unfold gamma.
   rewrite inner_product_plus_l. 
   do 2 rewrite inner_product_plus_r.
@@ -150,7 +151,7 @@ assert (gamma_p_qubit: WF_Qubit gamma_p).
 {
   unfold WF_Qubit.
   split. exists 1%nat. trivial.
-  split. solve_WF_matrix.
+  split. unfold gamma_p; auto_wf.
   unfold gamma_p.
   rewrite inner_product_plus_l. 
   do 2 rewrite inner_product_plus_r.
@@ -399,11 +400,18 @@ assert (WF_Q : WF_Unitary Q).
 assert (HQ_impl := qubit_decomposition2_implicit ((Q ⊗ I 2)† × w)).
 assert (WF_QI2 : WF_Matrix (Q ⊗ I 2)).
 {
-  solve_WF_matrix. apply H. apply H0.
+  unfold Q.
+  destruct H as [_ [WF_beta _]].
+  destruct H0 as [_ [WF_beta_p _]].
+  auto_wf.
 }
 assert (HQ: WF_Matrix ((Q ⊗ I 2) † × w)). 
 {
-  solve_WF_matrix. apply H. apply H0. apply H1.
+  unfold Q.
+  destruct H as [_ [WF_beta _]].
+  destruct H0 as [_ [WF_beta_p _]].
+  destruct H1 as [_ [WF_beta_w _]].
+  auto_wf.
 }
 apply HQ_impl in HQ.
 destruct HQ as [c00 [c01 [c10 [c11 HQ]]]].
@@ -415,15 +423,15 @@ rewrite <- ket0_equiv in HQ.
 rewrite <- ket1_equiv in HQ.
 set (psi := c00 .* ∣0⟩ .+ c01 .* ∣1⟩).
 set (phi := c10 .* ∣0⟩ .+ c11 .* ∣1⟩).
-assert (WF_psi: WF_Matrix psi). solve_WF_matrix.
-assert (WF_phi: WF_Matrix phi). solve_WF_matrix.
+assert (WF_psi: WF_Matrix psi). unfold psi; auto_wf.
+assert (WF_phi: WF_Matrix phi). unfold phi; auto_wf.
 fold psi in HQ. fold phi in HQ.
 exists psi, phi.
 split.
 assert (Step1: beta ⊗ psi .+ beta_p ⊗ phi = (Q ⊗ I 2) × (∣0⟩ ⊗ psi .+ ∣1⟩ ⊗ phi)).
 {
   lma'.
-  solve_WF_matrix. apply H. apply H0.
+  solve_WF_matrix.
 }
 rewrite Step1.
 rewrite <- HQ.
@@ -540,13 +548,13 @@ assert (S1 : (Zero (m:= n) (n := 1%nat)) = w1 ⊗ ((b) † × a1)).
   reflexivity.
 }
 symmetry.
+destruct a0_qubit as [_ [WF_a0 _]].
+destruct a1_qubit as [_ [WF_a1 _]].
 apply (@kron_cancel_r n 1%nat 1%nat 1%nat) with (A:= (Zero (m:= n) (n := 1%nat))) (B:= w1) (C:=((b) † × a1)).
-1,2,3: solve_WF_matrix.
-1,3: apply a1_qubit.
-apply a0_qubit.
-apply H1.
-rewrite kron_0_l.
-apply S1.
+all: auto_wf.
+unfold b; auto_wf.
+assumption.
+Msimpl_light; assumption.
 Qed.
 
 (* Using old version of proof since beta is chosen constructively *)
@@ -583,7 +591,7 @@ apply (f_equal (fun f => swap × f)) in tens.
 rewrite Mmult_0_r in tens.
 rewrite <- Mmult_assoc in tens.
 rewrite swap_swap in tens.
-rewrite Mmult_1_l in tens. 2: solve_WF_matrix. 2: apply a0_qubit. 2: apply a1_qubit.
+rewrite Mmult_1_l in tens. 2: solve_WF_matrix.
 apply a16_part1 with (w0 := w0) (a0 := a0) (a1 := a1).
 all: assumption.
 Qed.

@@ -7,6 +7,7 @@ From Proof Require Import GateHelpers.
 From Proof Require Import SwapHelpers.
 From Proof Require Import ExplicitDecompositions.
 From Proof Require Import AlgebraHelpers.
+From Proof Require Import WFHelpers.
 Lemma partial_trace_ac_on_acgate: forall (U : Square 4) (a b c: Vector 2), 
 WF_Unitary U -> WF_Qubit a -> WF_Qubit b -> WF_Qubit c -> 
 partial_trace_2q_a (partial_trace_3q_c (acgate U × (a ⊗ b ⊗ c) × (a ⊗ b ⊗ c)† × (acgate U)†))
@@ -70,7 +71,7 @@ assert (WF_helper1: WF_Matrix (U × (a × (a) † ⊗ (c × (c) †)) × (U) †
     apply WF_kron. reflexivity. reflexivity.
     apply WF_mult.
     apply WF_mult.
-    all: solve_WF_matrix.
+    all: auto with wf_db.
 }
 assert (WF_helper2: WF_Matrix (U × (a × (a) † ⊗ (c × (c) †)) × (U) † ⊗ (b × (b) †))).
 {

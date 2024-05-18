@@ -2322,31 +2322,3 @@ rewrite H.
 apply kron_plus_distr_r.
 Qed.
 
-Ltac solve_WF_matrix :=
-  repeat (
-    progress (
-      try reflexivity;
-      try assumption;
-      try apply WF_Zero;
-      try apply WF_I;
-      try apply WF_mult;
-      try apply WF_plus;
-      try apply WF_scale;
-      try apply WF_adjoint;
-      try apply WF_kron;
-      try apply WF_bra0;
-      try apply WF_bra1;
-      try apply WF_qubit0;
-      try apply WF_qubit1;
-      try apply WF_braket0;
-      try apply WF_braket1;
-      try apply WF_swap;
-      try apply WF_control;
-      try apply WF_cnot;
-      try apply WF_notc;
-      try apply WF_diag2;
-      try apply WF_diag4;
-      try apply WF_blockmatrix;
-      try solve [intros; exfalso; auto]
-    )
-  ).
