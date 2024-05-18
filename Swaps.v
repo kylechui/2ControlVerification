@@ -30,9 +30,8 @@ Proof.
   rewrite <- Mmult_assoc with (A := swapab) (B := swapab) (C := I 2 ⊗ U).
   rewrite swapab_inverse.
   rewrite Mmult_assoc.
-  rewrite Mmult_1_l. 2: solve_WF_matrix.
   rewrite swapab_inverse at 1.
-  rewrite Mmult_1_r. 2: solve_WF_matrix.
+  Msimpl_light; solve_WF_matrix.
   unfold bcgate.
   reflexivity.
 Qed.
@@ -43,16 +42,12 @@ Lemma a13_1 : forall (D: Square 2),
 Proof.
   intros.
   lma'.
-  apply WF_mult. apply WF_mult. apply WF_swapab. apply WF_ccu. apply H. apply WF_swapab.
-  apply WF_ccu. apply H.
 Qed.
 
 Lemma a13_2 : forall (c1 : C), swapbc × ccu (diag2 1 c1) × swapbc = ccu (diag2 1 c1).
 Proof.
   intros.
-  lma'.
-  apply WF_mult. apply WF_mult. apply WF_swapbc. apply WF_ccu. apply WF_diag2. apply WF_swapbc.
-  apply WF_ccu. apply WF_diag2.
+  lma'; unfold ccu; solve_WF_matrix.
 Qed.
 
 Lemma a13_3 : forall (c1 : C),

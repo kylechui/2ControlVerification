@@ -118,14 +118,13 @@ Proof.
   }
 Qed.
 
+#[export] Hint Resolve WF_diag2 WF_diag4 : wf_db.
+
 Lemma diag2_unitary : forall (c1 c2 : C), Cmod c1 = 1 -> Cmod c2 = 1 -> WF_Unitary (diag2 c1 c2).
 Proof.
   intros c1 c2 unit_c1 unit_c2.
   split; try apply WF_diag2.
   lma'.
-  apply WF_mult.
-  apply WF_adjoint, WF_diag2.
-  apply WF_diag2.
   unfold Mmult, adjoint, diag2, I; simpl.
   Csimpl; rewrite <- Cmod_sqr, unit_c1; lca.
   unfold Mmult, adjoint, diag2, I; simpl.
@@ -1536,13 +1535,11 @@ Qed.
 Lemma id2_diag2: I 2 = diag2 C1 C1.
 Proof.
   lma'.
-  apply WF_diag2.
 Qed.
 
 Lemma id4_diag4: I 4 = diag4 C1 C1 C1 C1.
 Proof.
   lma'.
-  apply WF_diag4.
 Qed.
 
 Lemma diag2_eigenpairs: forall (c1 c2 : C),
@@ -1552,17 +1549,11 @@ Proof.
   split; unfold Eigenpair; simpl.
   {
     lma'.
-    apply WF_mult.
-    apply WF_diag2.
-    apply WF_qubit0.
     unfold Mmult, scale, diag2, qubit0; simpl.
     lca.
   }
   {
     lma'.
-    apply WF_mult.
-    apply WF_diag2.
-    apply WF_qubit1.
     unfold Mmult, scale, diag2, qubit1; simpl.
     lca.
   }
@@ -1576,35 +1567,23 @@ Proof.
   split; unfold Eigenpair; simpl.
   {
     lma'.
-    apply WF_mult.
-    apply WF_diag4.
-    auto with wf_db.
     unfold Mmult, scale, kron, diag4, qubit0; simpl.
     lca.
   }
   split.
   {
     lma'.
-    apply WF_mult.
-    apply WF_diag4.
-    auto with wf_db.
     unfold Mmult, scale, kron, diag4, qubit1; simpl.
     lca.
   }
   split.
   {
     lma'.
-    apply WF_mult.
-    apply WF_diag4.
-    auto with wf_db.
     unfold Mmult, scale, kron, diag4, qubit0; simpl.
     lca.
   }
   {
     lma'.
-    apply WF_mult.
-    apply WF_diag4.
-    auto with wf_db.
     unfold Mmult, scale, kron, diag4, qubit1; simpl.
     lca.
   }
