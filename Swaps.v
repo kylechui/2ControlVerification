@@ -32,8 +32,6 @@ Proof.
   rewrite Mmult_assoc.
   rewrite swapab_inverse at 1.
   Msimpl_light; solve_WF_matrix.
-  unfold bcgate.
-  reflexivity.
 Qed.
 
 Lemma a13_1 : forall (D: Square 2),
@@ -46,7 +44,7 @@ Qed.
 Lemma a13_2 : forall (c1 : C), swapbc × ccu (diag2 1 c1) × swapbc = ccu (diag2 1 c1).
 Proof.
   intros.
-  lma'; unfold ccu; solve_WF_matrix.
+  lma'; solve_WF_matrix.
 Qed.
 
 Lemma a13_3 : forall (c1 : C),

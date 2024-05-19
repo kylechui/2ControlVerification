@@ -8,6 +8,8 @@ Definition WF_Qubit {n} (q: Vector n) := (exists m: nat, (2 ^ m = n)%nat) /\ WF_
 Ltac solve_WF_matrix :=
   repeat (
     progress (
+      try reflexivity;
+      try assumption;
       try match goal with
       | |- WF_Matrix (control _) => apply WF_control
       | |- WF_Matrix (adjoint _) => apply WF_adjoint

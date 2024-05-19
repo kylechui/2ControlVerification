@@ -178,7 +178,6 @@ assert (U_adj_mult_1: (U) † × U = ∣0⟩⟨0∣ ⊗ (P00† × P00) .+ ∣0�
     rewrite (@block_multiply 2) with (U := (U) †) (V := U)
     (P00 := P00†) (P01 := (Zero (m:= 2) (n:=2))) (P10 := (Zero (m:= 2) (n:=2))) (P11 := P11†)
     (Q00 := P00) (Q01 := (Zero (m:= 2) (n:=2))) (Q10 := (Zero (m:= 2) (n:=2))) (Q11 := P11) at 1; solve_WF_matrix.
-    2,3: assumption.
     Msimpl_light; reflexivity.
 }
 assert (I_4_block_decomp: I 4 = ∣0⟩⟨0∣ ⊗ I 2 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ I 2). 
@@ -190,7 +189,6 @@ assert (equal_blocks: (P00) † × P00 = I 2 /\ (Zero (m:= 2) (n:=2)) = (Zero (m
 {
     apply block_equalities with (U := (U) † × U) (V := I 4); solve_WF_matrix.
     lia.
-    1,2: assumption.
     apply U_unitary.
 }
 split.
@@ -260,7 +258,6 @@ assert (U_block_decomp: exists (P0 P1 : Square 2), U = P0 ⊗ ∣0⟩⟨0∣ .+ 
     rewrite SUS_block_decomp.
     rewrite Mmult_plus_distr_l. rewrite Mmult_plus_distr_r.
     repeat rewrite a11; solve_WF_matrix.
-    reflexivity.
 }
 clear P0 P1 P0_unitary P1_unitary SUS_block_decomp.
 destruct U_block_decomp as [P0 [P1 [U_block_decomp [P0_unitary P1_unitary]]]].
@@ -316,7 +313,6 @@ assert (tens_w_decomp: ∣0⟩ ⊗ w = √ r .* (acgate U × (∣0⟩ ⊗ beta �
     rewrite Mmult_plus_distr_l.
     do 2 rewrite Mscale_mult_dist_r.
     repeat rewrite <- kron_assoc; solve_WF_matrix.
-    reflexivity.
 }
 assert (qubit_w: WF_Qubit w).
 {
@@ -341,7 +337,6 @@ assert (Main: ∣0⟩ ⊗ psi ⊗ beta .+ ∣0⟩ ⊗ phi ⊗ beta_p =
         rewrite <- Mmult_plus_distr_l.
         rewrite kron_assoc; solve_WF_matrix.
         rewrite kron_assoc; solve_WF_matrix.
-        reflexivity.
     }
     rewrite Step1. clear Step1.
     assert (Step2: swapbc × (∣0⟩ ⊗ (beta ⊗ psi) .+ ∣0⟩ ⊗ (beta_p ⊗ phi)) = swapbc × (∣0⟩ ⊗ w)).
@@ -375,7 +370,6 @@ assert (Main: ∣0⟩ ⊗ psi ⊗ beta .+ ∣0⟩ ⊗ phi ⊗ beta_p =
         rewrite swapbc_3q; solve_WF_matrix.
         rewrite Mmult_assoc.
         rewrite swapbc_3q; solve_WF_matrix.
-        reflexivity.
     }
     rewrite Step6 at 1. clear Step6.
     (* Step7 *)
@@ -408,7 +402,6 @@ assert ((√ r .* (U × (∣0⟩ ⊗ gamma)) .+ Mopp (∣0⟩ ⊗ psi)) = Zero /
     apply orthonormal_implies_lin_indep_2; solve_WF_matrix.
     apply qubit_beta.
     apply qubit_beta_p.
-    assumption.
     symmetry; assumption.
 }
 destruct H as [U_g U_g_p].

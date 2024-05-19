@@ -5,6 +5,7 @@ Require Import Proof.AlgebraHelpers.
 Require Import Proof.MatrixHelpers.
 Require Import Proof.GateHelpers.
 Require Import Proof.EigenvalueHelpers.
+Require Import Proof.WFHelpers.
 Require Import QuantumLib.Complex.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
@@ -47,8 +48,8 @@ Proof.
       assert (W_eq_blocks : (diag2 u0 u1) ⊗ (I 2) ⊗ (I 2) = ∣0⟩⟨0∣ ⊗ (u0 .*(I 4)) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* (I 4))).
       {
         unfold diag2.
-        lma'.
-        all: solve_WF_matrix.
+        lma'; solve_WF_matrix.
+        show_wf.
       }
       assert (UW : U × (diag2 u0 u1 ⊗ I 2 ⊗ I 2) = ∣0⟩⟨0∣ ⊗ (u0 .* V00) .+ ∣0⟩⟨1∣ ⊗ (u1 .* V01) .+ ∣1⟩⟨0∣ ⊗ (u0 .* V10) .+ ∣1⟩⟨1∣ ⊗ (u1 .* V11)).
       {
@@ -63,10 +64,10 @@ Proof.
           (Q10 := Zero)
           (Q11 := u1 .* I 4)
           (U := (∣0⟩⟨0∣ ⊗ V00 .+ ∣0⟩⟨1∣ ⊗ V01 .+ ∣1⟩⟨0∣ ⊗ V10 .+ ∣1⟩⟨1∣ ⊗ V11))
-          (V := (∣0⟩⟨0∣ ⊗ (u0 .* I 4) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* I 4))) at 1; try solve_WF_matrix.
+          (V := (∣0⟩⟨0∣ ⊗ (u0 .* I 4) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* I 4))) at 1; solve_WF_matrix.
         repeat rewrite Mscale_mult_dist_r.
         Msimpl.
-        reflexivity.
+        all: reflexivity.
       }
       assert (WU : (diag2 u0 u1 ⊗ I 2 ⊗ I 2) × U = ∣0⟩⟨0∣ ⊗ (u0 .* V00) .+ ∣0⟩⟨1∣ ⊗ (u0 .* V01) .+ ∣1⟩⟨0∣ ⊗ (u1 .* V10) .+ ∣1⟩⟨1∣ ⊗ (u1 .* V11)).
       {
@@ -81,10 +82,9 @@ Proof.
           (Q10 := V10)
           (Q11 := V11)
           (U := (∣0⟩⟨0∣ ⊗ (u0 .* I 4) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* I 4)))
-          (V := (∣0⟩⟨0∣ ⊗ V00 .+ ∣0⟩⟨1∣ ⊗ V01 .+ ∣1⟩⟨0∣ ⊗ V10 .+ ∣1⟩⟨1∣ ⊗ V11)) at 1; try solve_WF_matrix.
+          (V := (∣0⟩⟨0∣ ⊗ V00 .+ ∣0⟩⟨1∣ ⊗ V01 .+ ∣1⟩⟨0∣ ⊗ V10 .+ ∣1⟩⟨1∣ ⊗ V11)) at 1; solve_WF_matrix.
           repeat rewrite Mscale_mult_dist_l.
-          Msimpl.
-          reflexivity.
+          all: Msimpl_light; reflexivity.
       }
       rewrite UW, WU in H; clear UW WU W_eq_blocks.
       apply (@block_equalities
@@ -171,7 +171,7 @@ Proof.
         Zero
         Zero
         (I 4)
-        ) in Unitary_U; try solve_WF_matrix; try lia.
+        ) in Unitary_U; solve_WF_matrix; try lia.
         destruct Unitary_U as [Unitary_V00 [_ [_ Unitary_V11]]].
         split.
         {

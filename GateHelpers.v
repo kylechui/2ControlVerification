@@ -611,7 +611,6 @@ rewrite Mmult_plus_distr_l.
 rewrite Mmult_plus_distr_r.
 rewrite swapbc_3gate; solve_WF_matrix.
 rewrite swapbc_3gate; solve_WF_matrix.
-reflexivity.
 Qed.
 
 Lemma abgate_0prop_bottomleft_0block: forall (U: Square 4), 
