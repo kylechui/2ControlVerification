@@ -7,7 +7,7 @@ Definition swapab := swap ⊗ I 2.
 Definition swapbc := I 2 ⊗ swap.
 Definition swapac := swapab × swapbc × swapab.
 
-#[export] Hint Unfold swapab swapbc swapac : M_db.
+#[global] Hint Unfold swapab swapbc swapac : M_db.
 
 Lemma WF_swapab : WF_Matrix swapab.
 Proof.

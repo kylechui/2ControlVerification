@@ -12,7 +12,7 @@ Definition bcgate (U : Square 4) := I 2 ⊗ U.
 Definition acgate (U : Square 4) := swapbc × (abgate U) × swapbc.
 Definition ccu (U : Square 2) := control (control U).
 
-#[export] Hint Unfold abgate bcgate acgate ccu : M_db.
+#[global] Hint Unfold abgate bcgate acgate ccu : M_db.
 
 Lemma WF_abgate : forall (U : Square 4), WF_Matrix U -> WF_Matrix (abgate U).
 Proof.
