@@ -221,8 +221,8 @@ Proof.
       }
       assert (H1 : diag2 u0 u1 ⊗ I 2 ⊗ I 2 = ∣0⟩⟨0∣ ⊗ (u0 .* I 4) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* I 4)).
       {
-        unfold diag2; Msimpl; lma'.
-        solve_WF_matrix.
+        unfold diag2; Msimpl_light; lma'; solve_WF_matrix.
+        show_wf.
       }
       rewrite H0, H1; clear H0 H1.
       rewrite block_multiply with
@@ -456,10 +456,7 @@ Proof.
         Msimpl; try apply WF_diag4.
         rewrite u0_eq_u1.
         lma'.
-        apply WF_kron; try apply WF_diag2; try apply WF_I; auto.
-        apply WF_diag4.
-        unfold kron, diag2, diag4, I; simpl; lca.
-        unfold kron, diag2, diag4, I; simpl; lca.
+        all: unfold kron, diag2, diag4, I; simpl; lca.
       }
     }
     {
@@ -481,10 +478,6 @@ Proof.
       {
         lma'.
         solve_WF_matrix.
-        repeat apply WF_mult.
-        apply WF_notc.
-        apply WF_diag4.
-        apply WF_adjoint, WF_notc.
         unfold diag2, diag4; lca.
         unfold diag2, diag4; lca.
         unfold notc, Mmult, adjoint; simpl; Csimpl.
@@ -515,14 +508,9 @@ Proof.
     }
     assert (step : control (diag2 u0 u1) = I 2 .⊕ diag2 u0 u1).
     {
-      rewrite (direct_sum_decomp _ _ 2 2)%nat; auto.
+      rewrite (direct_sum_decomp _ _ 2 2)%nat; solve_WF_matrix.
       lma'.
-      apply WF_control, WF_diag2.
-      solve_WF_matrix.
-      unfold control, diag2, adjoint, I, kron, Mmult, Mplus; simpl; lca.
-      unfold control, diag2, adjoint, I, kron, Mmult, Mplus; simpl; lca.
-      apply WF_I.
-      apply WF_diag2.
+      all: unfold control, diag2, adjoint, I, kron, Mmult, Mplus; simpl; lca.
     }
     assert (step2 : (I 2 ⊗ P) × control (diag2 u0 u1) = P .⊕ PD).
     {
@@ -621,7 +609,6 @@ Proof.
       {
         intros.
         lma'.
-        apply WF_diag2.
         unfold diag2; lca.
         unfold diag2; lca.
       }
@@ -672,9 +659,6 @@ Proof.
           apply Diagonal_DP.
         }
         {
-          apply WF_diag2.
-        }
-        {
           unfold diag2; simpl.
           rewrite H2; reflexivity.
         }
@@ -698,9 +682,6 @@ Proof.
         lma'.
         {
           apply Diagonal_DPD.
-        }
-        {
-          apply WF_diag2.
         }
         {
           unfold diag2; simpl.
@@ -764,9 +745,6 @@ Proof.
           apply Diagonal_DP.
         }
         {
-          apply WF_diag2.
-        }
-        {
           unfold diag2; simpl.
           rewrite H2; reflexivity.
         }
@@ -790,9 +768,6 @@ Proof.
         lma'.
         {
           apply Diagonal_DPD.
-        }
-        {
-          apply WF_diag2.
         }
         {
           unfold diag2; simpl.
@@ -963,13 +938,8 @@ Proof.
       exists C1, u0.
       split; try apply C1_neq_C0.
       split. rewrite Cmod_gt_0, unit_u0; lra.
-      rewrite id_kron; Msimpl; try apply WF_diag4.
-      {
-        lma'; solve_WF_matrix.
-      }
-      {
-        apply WF_control, WF_diag2.
-      }
+      rewrite id_kron; Msimpl_light.
+      lma'; solve_WF_matrix.
     }
     {
       exists (diag2 C1 u0).
@@ -996,15 +966,6 @@ Proof.
           rewrite H; clear H.
           rewrite u0u1_is_1; clear u0u1_is_1.
           lma'.
-          {
-            apply WF_diag4.
-          }
-          {
-            repeat apply WF_mult.
-            apply WF_notc.
-            apply WF_diag4.
-            apply WF_adjoint, WF_notc.
-          }
           all: unfold diag4, swap, cnot, Mmult, adjoint; simpl; Csimpl; reflexivity.
         }
       }
