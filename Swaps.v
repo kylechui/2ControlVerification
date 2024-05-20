@@ -3,6 +3,7 @@ From Proof Require Import SwapHelpers.
 From Proof Require Import GateHelpers.
 From Proof Require Import MatrixHelpers.
 From Proof Require Import SwapProperty.
+From Proof Require Import WFHelpers.
 Lemma a10 : forall (a b : Vector 2),
   WF_Matrix a -> WF_Matrix b ->
     swap × (a ⊗ b) = b ⊗ a.
@@ -29,29 +30,21 @@ Proof.
   rewrite <- Mmult_assoc with (A := swapab) (B := swapab) (C := I 2 ⊗ U).
   rewrite swapab_inverse.
   rewrite Mmult_assoc.
-  rewrite Mmult_1_l. 2: solve_WF_matrix.
   rewrite swapab_inverse at 1.
-  rewrite Mmult_1_r. 2: solve_WF_matrix.
-  unfold bcgate.
-  reflexivity.
+  Msimpl_light; solve_WF_matrix.
 Qed.
 
 Lemma a13_1 : forall (D: Square 2),
   WF_Matrix D ->
     swapab × ccu D × swapab = ccu D.
 Proof.
-  intros.
-  lma'.
-  apply WF_mult. apply WF_mult. apply WF_swapab. apply WF_ccu. apply H. apply WF_swapab.
-  apply WF_ccu. apply H.
+  exact swapab_ccu.
 Qed.
 
 Lemma a13_2 : forall (c1 : C), swapbc × ccu (diag2 1 c1) × swapbc = ccu (diag2 1 c1).
 Proof.
   intros.
-  lma'.
-  apply WF_mult. apply WF_mult. apply WF_swapbc. apply WF_ccu. apply WF_diag2. apply WF_swapbc.
-  apply WF_ccu. apply WF_diag2.
+  lma'; solve_WF_matrix.
 Qed.
 
 Lemma a13_3 : forall (c1 : C),

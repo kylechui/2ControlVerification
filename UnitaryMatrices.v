@@ -7,6 +7,7 @@ From Proof Require Import PartialTraceDefinitions.
 From Proof Require Import AlgebraHelpers.
 From Proof Require Import SquareMatrices.
 From Proof Require Import Permutations.
+From Proof Require Import WFHelpers.
 Require Import List.
 Import ListNotations.
 
@@ -596,9 +597,8 @@ assert (rl_mult: V × V† = ∣0⟩⟨0∣ ⊗ (P00 × (P00) †) .+ ∣0⟩⟨
     rewrite Vblock_adjoint at 1.
     rewrite (@block_multiply 2) with (Q00 := (P00) †) (Q01 := P10†) (Q10 := P01†) (Q11 := (P11) †)
     (P00 := (P00)) (P01 := (P01)) (P10 := (P10)) (P11 := (P11)).
-    2,3,4,5,6,7,8,9,10,11: solve_WF_matrix.
-    rewrite P01_Zero. rewrite zero_adjoint_eq. repeat rewrite Mmult_0_l. repeat rewrite Mmult_0_r.
-    repeat rewrite Mplus_0_r. reflexivity.
+    all: solve_WF_matrix.
+    rewrite P01_Zero; Msimpl_light; reflexivity.
 }
 assert (lr_mult: V† × V = ∣0⟩⟨0∣ ⊗ ((P00) † × P00 .+ (P10) † × P10) .+ ∣0⟩⟨1∣ ⊗ ((P10) † × P11)
     .+ ∣1⟩⟨0∣ ⊗ ((P11) † × P10) .+ ∣1⟩⟨1∣ ⊗ ((P11) † × P11)).
@@ -608,9 +608,7 @@ assert (lr_mult: V† × V = ∣0⟩⟨0∣ ⊗ ((P00) † × P00 .+ (P10) † �
     rewrite (@block_multiply 2) with (P00 := (P00) †) (P01 := P10†) (P10 := P01†) (P11 := (P11) †)
     (Q00 := (P00)) (Q01 := (P01)) (Q10 := (P10)) (Q11 := (P11)).
     2,3,4,5,6,7,8,9,10,11: solve_WF_matrix.
-    rewrite P01_Zero. rewrite zero_adjoint_eq.
-    repeat rewrite Mmult_0_l. repeat rewrite Mmult_0_r.
-    repeat rewrite Mplus_0_l. reflexivity.
+    rewrite P01_Zero; Msimpl_light; reflexivity.
 }
 clear V_def P01_Zero Vblock_adjoint.
 assert (Vadj_unitary: WF_Unitary V†).
@@ -632,7 +630,7 @@ assert (P00_decomp: P00 × P00† = P00† × P00 .+ P10† × P10).
     apply block_equalities with (P00:= P00 × (P00) †) (P01 := P00 × (P10) †) (P10:= P10 × (P00) †) (P11 := P10 × (P10) † .+ P11 × (P11) †)
     (Q00:= (P00) † × P00 .+ (P10) † × P10) (Q01 := (P10) † × P11) (Q10:= (P11) † × P10) (Q11 := (P11) † × P11) in block_decomp.
     2: lia.
-    2,3,4,5,6,7,8,9,10,11: solve_WF_matrix.
+    all: solve_WF_matrix.
     destruct block_decomp as [first_block _].
     apply first_block.
 }

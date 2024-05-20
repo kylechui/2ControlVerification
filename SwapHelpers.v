@@ -1,10 +1,13 @@
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
 From Proof Require Import MatrixHelpers.
+From Proof Require Import WFHelpers.
 
 Definition swapab := swap ⊗ I 2.
 Definition swapbc := I 2 ⊗ swap.
 Definition swapac := swapab × swapbc × swapab.
+
+#[global] Hint Unfold swapab swapbc swapac : M_db.
 
 Lemma WF_swapab : WF_Matrix swapab.
 Proof.
@@ -18,23 +21,19 @@ Qed.
 
 Lemma WF_swapac : WF_Matrix swapac.
 Proof.
-  apply WF_mult.
   solve_WF_matrix.
-  apply WF_swapab.
 Qed.
+
+#[export] Hint Resolve WF_swapab WF_swapbc WF_swapac : wf_db.
 
 Lemma swapab_unitary : WF_Unitary swapab.
 Proof.
-  apply kron_unitary.
-  apply swap_unitary.
-  apply id_unitary.
+  autounfold with M_db; auto with unit_db.
 Qed.
 
 Lemma swapbc_unitary : WF_Unitary swapbc.
 Proof.
-  apply kron_unitary.
-  apply id_unitary.
-  apply swap_unitary.
+  autounfold with M_db; auto with unit_db.
 Qed.
 
 Lemma swapac_unitary : WF_Unitary swapac.
@@ -46,26 +45,26 @@ Proof.
   apply swapab_unitary.
 Qed.
 
+#[export] Hint Resolve swapab_unitary swapbc_unitary swapac_unitary : unit_db.
+
 Lemma swapab_inverse : swapab × swapab = I 8.
 Proof.
-  apply mat_equiv_eq. solve_WF_matrix. apply WF_I.
   unfold swapab.
-  rewrite kron_mixed_product.
-  rewrite swap_swap.
-  rewrite Mmult_1_l. 2: apply WF_I.
+  rewrite kron_mixed_product, swap_swap.
+  Msimpl_light.
   rewrite id_kron.
-  apply mat_equiv_refl.
+  replace (2 * 2 * 2)%nat with 8%nat by lia.
+  reflexivity.
 Qed.
 
 Lemma swapbc_inverse : swapbc × swapbc = I 8.
 Proof.
-  apply mat_equiv_eq. solve_WF_matrix. apply WF_I.
   unfold swapbc.
-  rewrite kron_mixed_product.
-  rewrite swap_swap.
-  rewrite Mmult_1_l. 2: apply WF_I.
+  rewrite kron_mixed_product, swap_swap.
+  Msimpl_light.
   rewrite id_kron.
-  apply mat_equiv_refl.
+  replace (2 * (2 * 2))%nat with 8%nat by lia.
+  reflexivity.
 Qed.
 
 Lemma swapac_inverse : swapac × swapac = I 8.
@@ -183,4 +182,7 @@ Proof.
   reflexivity.
 Qed.
 
-Lemma swapbc_sa: swapbc = (swapbc) †. Proof. lma'. 2: apply WF_adjoint. all: apply WF_swapbc. Qed.
+Lemma swapbc_sa: swapbc = (swapbc) †.
+Proof.
+  lma'.
+Qed.

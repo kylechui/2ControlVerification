@@ -9,6 +9,7 @@ From Proof Require Import SwapHelpers.
 From Proof Require Import Vectors.
 From Proof Require Import GateHelpers.
 From Proof Require Import AlgebraHelpers.
+From Proof Require Import WFHelpers.
 
 Lemma a17: forall (U : Square 4) (beta beta_p : Vector 2), 
 WF_Unitary U -> WF_Qubit beta -> WF_Qubit beta_p -> ⟨ beta , beta_p ⟩ = C0 -> 
@@ -52,7 +53,10 @@ assert (prod_decomp_1 : forall (w : Vector 2), WF_Matrix w -> U × (I 2 ⊗ Q) �
     rewrite w_decomp at 1.
     rewrite Mmult_assoc.
     assert (kron_mix_helper: (I 2 ⊗ Q × (∣0⟩ ⊗ (w 0%nat 0%nat .* ∣0⟩ .+ w 1%nat 0%nat .* ∣1⟩))) = 
-    (I 2 × ∣0⟩) ⊗ (Q × (w 0%nat 0%nat .* ∣0⟩ .+ w 1%nat 0%nat .* ∣1⟩))). lma'. 1,2: solve_WF_matrix.
+    (I 2 × ∣0⟩) ⊗ (Q × (w 0%nat 0%nat .* ∣0⟩ .+ w 1%nat 0%nat .* ∣1⟩))).
+    {
+      lma'; solve_WF_matrix.
+    }
     rewrite kron_mix_helper at 1.
     rewrite Mmult_1_l. 2: apply WF_qubit0.
     unfold Q.
@@ -66,12 +70,12 @@ assert (prod_decomp_1 : forall (w : Vector 2), WF_Matrix w -> U × (I 2 ⊗ Q) �
     rewrite Mmult_assoc with (A := beta).
     rewrite Mscale_mult_dist_r with (A:= ⟨0∣).
     rewrite Mmult00. 
-    assert (beta_helper: (beta × (w 0%nat 0%nat .* I 1)) = w 0%nat 0%nat .* beta). lma'.
+    assert (beta_helper: (beta × (w 0%nat 0%nat .* I 1)) = w 0%nat 0%nat .* beta) by lma'.
     rewrite beta_helper. clear beta_helper.
     rewrite Mmult_assoc.
     rewrite Mscale_mult_dist_r.
     rewrite Mmult11. 
-    assert (beta_p_helper: (beta_p × (w 1%nat 0%nat .* I 1)) = w 1%nat 0%nat .* beta_p). lma'.
+    assert (beta_p_helper: (beta_p × (w 1%nat 0%nat .* I 1)) = w 1%nat 0%nat .* beta_p) by lma'.
     rewrite beta_p_helper. clear beta_p_helper.
     rewrite kron_plus_distr_l.
     do 2 rewrite Mscale_kron_dist_r.
@@ -86,7 +90,10 @@ assert (prod_decomp_2: forall (w : Vector 2), WF_Matrix w -> U × (I 2 ⊗ Q) ×
 {
     intros w WF_w.
     rewrite Mmult_assoc.
-    assert (kron_mix_helper: (I 2 ⊗ Q × (∣0⟩ ⊗ w)) = (I 2 × ∣0⟩) ⊗ (Q × w)). lma'. 1,2: solve_WF_matrix.
+    assert (kron_mix_helper: (I 2 ⊗ Q × (∣0⟩ ⊗ w)) = (I 2 × ∣0⟩) ⊗ (Q × w)).
+    {
+      lma'; solve_WF_matrix.
+    }
     rewrite kron_mix_helper at 1. clear kron_mix_helper.
     rewrite Mmult_1_l. 2: apply WF_qubit0.
     rewrite U_block_decomp.
@@ -125,25 +132,22 @@ assert (tens_elem_3: forall (w: Vector 2), WF_Matrix w ->(∣1⟩ ⊗ (P10 × Q 
 assert (tens_equiv_0: forall (w: Vector 2), WF_Matrix w ->(∣1⟩ ⊗ (P10 × Q × w)) = (Zero (m:=4) (n:=1))).
 {
     intros w WF_w.
-    lma'.
-    apply WF_kron. reflexivity. reflexivity. apply WF_qubit1. apply WF_mult. solve_WF_matrix. assumption.
+    lma'; solve_WF_matrix.
     apply tens_elem_2. assumption.
     apply tens_elem_3. assumption.
 }
 assert (prod_equiv_0: forall (w: Vector 2), WF_Matrix w -> P10 × Q × w = (Zero (m:=2) (n:=1))).
 {
     intros w WF_w.
-    assert (zero_tens: (Zero (m:=4) (n:=1)) = ∣1⟩ ⊗ (Zero (m:=2) (n:=1))). lma'.
+    assert (zero_tens: (Zero (m:=4) (n:=1)) = ∣1⟩ ⊗ (Zero (m:=2) (n:=1))) by lma'.
     rewrite zero_tens in tens_equiv_0.
-    apply kron_1_cancel_l.
-    apply WF_mult. solve_WF_matrix. assumption.
-    apply WF_Zero.
+    apply kron_1_cancel_l; solve_WF_matrix.
     apply tens_equiv_0.
     assumption.
 }
 assert (P10Q_0: P10 × Q = Zero).
 {
-    apply vector_mult_simplify. 1,2: solve_WF_matrix.
+    apply vector_mult_simplify; solve_WF_matrix.
     intros.
     rewrite Mmult_0_l.
     apply prod_equiv_0.
@@ -162,9 +166,8 @@ assert (P01_0: P01 = Zero).
 exists P00, P11.
 assert (U_adj_block_decomp: (U) † = ∣0⟩⟨0∣ ⊗ P00† .+ ∣0⟩⟨1∣ ⊗ P10† .+ ∣1⟩⟨0∣ ⊗ P01† .+ ∣1⟩⟨1∣ ⊗ P11†). 
 {
-    rewrite U_block_decomp. lma'.
-    apply WF_adjoint. 1,2: apply (@WF_blockmatrix 2).
-    5,6,7,8: apply WF_adjoint. all: assumption.
+    rewrite U_block_decomp.
+    lma'; solve_WF_matrix.
 }
 assert (U_adj_mult_1: (U) † × U = ∣0⟩⟨0∣ ⊗ (P00† × P00) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (P11† × P11)).
 {
@@ -174,34 +177,25 @@ assert (U_adj_mult_1: (U) † × U = ∣0⟩⟨0∣ ⊗ (P00† × P00) .+ ∣0�
     rewrite P01_0 in U_block_decomp.
     rewrite (@block_multiply 2) with (U := (U) †) (V := U)
     (P00 := P00†) (P01 := (Zero (m:= 2) (n:=2))) (P10 := (Zero (m:= 2) (n:=2))) (P11 := P11†)
-    (Q00 := P00) (Q01 := (Zero (m:= 2) (n:=2))) (Q10 := (Zero (m:= 2) (n:=2))) (Q11 := P11) at 1.
-    2,3,4,5,6,7,8,9: solve_WF_matrix.
-    2,3: assumption.
-    do 3 rewrite Mmult_0_l. do 2 rewrite Mmult_0_r.
-    repeat rewrite Mplus_0_l. rewrite Mplus_0_r.
-    reflexivity.
+    (Q00 := P00) (Q01 := (Zero (m:= 2) (n:=2))) (Q10 := (Zero (m:= 2) (n:=2))) (Q11 := P11) at 1; solve_WF_matrix.
+    Msimpl_light; reflexivity.
 }
 assert (I_4_block_decomp: I 4 = ∣0⟩⟨0∣ ⊗ I 2 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ I 2). 
 {
-    lma'. apply (@WF_blockmatrix 2).
-    all: solve_WF_matrix.
+    lma'; solve_WF_matrix.
 }
 assert (equal_blocks: (P00) † × P00 = I 2 /\ (Zero (m:= 2) (n:=2)) = (Zero (m:= 2) (n:=2)) 
 /\ (Zero (m:= 2) (n:=2)) = (Zero (m:= 2) (n:=2)) /\ (P11) † × P11 = I 2).
 {
-    apply block_equalities with (U := (U) † × U) (V := I 4).
+    apply block_equalities with (U := (U) † × U) (V := I 4); solve_WF_matrix.
     lia.
-    1,2,3,4,5,6,7,8: solve_WF_matrix.
-    1,2: assumption.
     apply U_unitary.
 }
 split.
 {
     rewrite U_block_decomp.
     rewrite P10_0, P01_0.
-    lma'.
-    apply (@WF_blockmatrix 2).
-    all: solve_WF_matrix.   
+    lma'; solve_WF_matrix.
 }
 split. 
 {
@@ -257,17 +251,13 @@ assert (U_block_decomp: exists (P0 P1 : Square 2), U = P0 ⊗ ∣0⟩⟨0∣ .+ 
         rewrite swap_swap.
         rewrite Mmult_1_l. 2: apply U_unitary.
         rewrite Mmult_assoc.
-        (* @Kyle for some reason swap_swap doesn't work here *)
-        lma'. 2: apply U_unitary.
-        apply WF_mult. apply U_unitary.
-        apply WF_mult. 1,2: apply WF_swap.
+        (* TODO: Figure out why swap_swap doesn't work here *)
+        lma'; solve_WF_matrix.
     }
     rewrite swap_inverse_helper in SUS_block_decomp.
     rewrite SUS_block_decomp.
     rewrite Mmult_plus_distr_l. rewrite Mmult_plus_distr_r.
-    rewrite a11. 3: apply P0_unitary. 2: solve_WF_matrix.
-    rewrite a11. 3: apply P1_unitary. 2: solve_WF_matrix.
-    reflexivity.
+    repeat rewrite a11; solve_WF_matrix.
 }
 clear P0 P1 P0_unitary P1_unitary SUS_block_decomp.
 destruct U_block_decomp as [P0 [P1 [U_block_decomp [P0_unitary P1_unitary]]]].
@@ -322,14 +312,7 @@ assert (tens_w_decomp: ∣0⟩ ⊗ w = √ r .* (acgate U × (∣0⟩ ⊗ beta �
     do 2 rewrite Mscale_kron_dist_r.
     rewrite Mmult_plus_distr_l.
     do 2 rewrite Mscale_mult_dist_r.
-    rewrite <- kron_assoc.
-    rewrite <- kron_assoc.
-    reflexivity.
-    1,4: solve_WF_matrix.
-    apply qubit_beta_p.
-    apply qubit_gamma_p.
-    apply qubit_beta.
-    apply qubit_gamma.
+    repeat rewrite <- kron_assoc; solve_WF_matrix.
 }
 assert (qubit_w: WF_Qubit w).
 {
@@ -349,12 +332,11 @@ assert (Main: ∣0⟩ ⊗ psi ⊗ beta .+ ∣0⟩ ⊗ phi ⊗ beta_p =
     destruct qubit_gamma_p as [_ [WF_gamma_p gamma_p_unit]].
     assert (Step1: ∣0⟩ ⊗ psi ⊗ beta .+ ∣0⟩ ⊗ phi ⊗ beta_p = swapbc × (∣0⟩ ⊗ (beta ⊗ psi) .+ ∣0⟩ ⊗ (beta_p ⊗ phi))).
     {
-        rewrite <- swapbc_3q. 2,3,4: solve_WF_matrix.
-        rewrite <- swapbc_3q with (b := beta_p). 2,3,4: solve_WF_matrix.
+        rewrite <- swapbc_3q; solve_WF_matrix.
+        rewrite <- swapbc_3q with (b := beta_p); solve_WF_matrix.
         rewrite <- Mmult_plus_distr_l.
-        rewrite kron_assoc. 2,3,4: solve_WF_matrix.
-        rewrite kron_assoc. 2,3,4: solve_WF_matrix.
-        reflexivity.
+        rewrite kron_assoc; solve_WF_matrix.
+        rewrite kron_assoc; solve_WF_matrix.
     }
     rewrite Step1. clear Step1.
     assert (Step2: swapbc × (∣0⟩ ⊗ (beta ⊗ psi) .+ ∣0⟩ ⊗ (beta_p ⊗ phi)) = swapbc × (∣0⟩ ⊗ w)).
@@ -385,17 +367,16 @@ assert (Main: ∣0⟩ ⊗ psi ⊗ beta .+ ∣0⟩ ⊗ phi ⊗ beta_p =
         rewrite Mmult_1_l. 2: apply WF_abgate. 2: apply U_unitary. 2: apply WF_mult. 2: apply WF_mult.
         2,4: apply WF_swapbc. 2: apply WF_abgate. 2: apply U_unitary. 2: solve_WF_matrix.
         rewrite Mmult_assoc.
-        rewrite swapbc_3q. 2,3,4: solve_WF_matrix.
+        rewrite swapbc_3q; solve_WF_matrix.
         rewrite Mmult_assoc.
-        rewrite swapbc_3q. 2,3,4: solve_WF_matrix.
-        reflexivity.
+        rewrite swapbc_3q; solve_WF_matrix.
     }
     rewrite Step6 at 1. clear Step6.
     (* Step7 *)
     unfold abgate.
     rewrite kron_mixed_product. rewrite kron_mixed_product.
-    rewrite Mmult_1_l. rewrite Mmult_1_l. 2,3: solve_WF_matrix.
-    rewrite <- Mscale_kron_dist_l. rewrite <- Mscale_kron_dist_l.
+    Msimpl_light; solve_WF_matrix.
+    repeat rewrite <- Mscale_kron_dist_l.
     reflexivity.
 }
 (* Moving terms in main to apply a16*)
@@ -404,11 +385,11 @@ rewrite Mplus_assoc in Main.
 rewrite Mplus_opp_0_r in Main. 2: solve_WF_matrix.
 rewrite Mplus_0_r in Main.
 rewrite Mplus_assoc in Main.
-rewrite kron_opp_distr_l in Main. 2,3: solve_WF_matrix.
+rewrite kron_opp_distr_l in Main; solve_WF_matrix.
 rewrite <- kron_plus_distr_r in Main.
 apply (f_equal (fun f => Mopp (∣0⟩ ⊗ psi ⊗ beta) .+ f)) in Main.
-rewrite Mplus_opp_0_l in Main. 2: solve_WF_matrix.
-rewrite kron_opp_distr_l in Main. 2,3: solve_WF_matrix.
+rewrite Mplus_opp_0_l in Main; solve_WF_matrix.
+rewrite kron_opp_distr_l in Main; solve_WF_matrix.
 rewrite <- Mplus_assoc in Main.
 rewrite Mplus_comm with (A := Mopp (∣0⟩ ⊗ psi) ⊗ beta) in Main.
 rewrite <- kron_plus_distr_r in Main.
@@ -417,20 +398,12 @@ assert ((√ r .* (U × (∣0⟩ ⊗ gamma)) .+ Mopp (∣0⟩ ⊗ psi)) = Zero /
 {
     destruct qubit_gamma as [_ [WF_gamma gamma_unit]].
     destruct qubit_gamma_p as [_ [WF_gamma_p gamma_p_unit]].
-    apply a16 with (a0:= beta) (a1 := beta_p).
-    1,2: solve_WF_matrix.
-    1,2: apply U_unitary.
+    apply a16 with (a0:= beta) (a1 := beta_p); solve_WF_matrix.
+    apply orthonormal_implies_lin_indep_2; solve_WF_matrix.
     apply qubit_beta.
     apply qubit_beta_p.
-    apply orthonormal_implies_lin_indep_2.
-    1,3: apply qubit_beta.
-    1,2: apply qubit_beta_p.
-    assumption.
-    symmetry.
-    assumption.
+    symmetry; assumption.
 }
-2,3: apply qubit_beta.
-2,3: apply qubit_beta_p.
 destruct H as [U_g U_g_p].
 assert (entangled_prop: Entangled phi2q -> not (r = 0 \/ r = 1)).
 {
@@ -475,7 +448,7 @@ assert (r1sqrt_neq_0: √ (1-r) <> 0).
 (* move around values to prep for a17 application *)
 apply (f_equal (fun f => f .+ ∣0⟩ ⊗ psi)) in U_g.
 rewrite Mplus_assoc in U_g.
-rewrite Mplus_opp_0_l in U_g. 2: solve_WF_matrix.
+rewrite Mplus_opp_0_l in U_g; solve_WF_matrix.
 rewrite Mplus_0_l in U_g. rewrite Mplus_0_r in U_g.
 apply (f_equal (fun f => /√ r .* f)) in U_g.
 rewrite Mscale_assoc in U_g.
@@ -484,7 +457,7 @@ rewrite Mscale_1_l in U_g.
 rewrite <- Mscale_kron_dist_r in U_g.
 apply (f_equal (fun f => f .+ ∣0⟩ ⊗ phi)) in U_g_p.
 rewrite Mplus_assoc in U_g_p.
-rewrite Mplus_opp_0_l in U_g_p. 2: solve_WF_matrix.
+rewrite Mplus_opp_0_l in U_g_p; solve_WF_matrix.
 rewrite Mplus_0_l in U_g_p. rewrite Mplus_0_r in U_g_p.
 apply (f_equal (fun f => /√ (1 - r) .* f)) in U_g_p.
 rewrite Mscale_assoc in U_g_p.

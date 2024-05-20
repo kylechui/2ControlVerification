@@ -11,6 +11,8 @@ ExplicitDecompositions.v
 EigenvalueHelpers.v
 TraceoutHelpers.v
 Permutations.v
+# One command to WF_Matrix them all
+WFHelpers.v
 
 # Appendix of proof
 SquareMatrices.v

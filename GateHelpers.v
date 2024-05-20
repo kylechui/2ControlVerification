@@ -1,159 +1,141 @@
 Require Import QuantumLib.Quantum.
+Require Import QuantumLib.Eigenvectors.
 From Proof Require Import AlgebraHelpers.
 From Proof Require Import MatrixHelpers. 
 From Proof Require Import SwapHelpers.
 From Proof Require Import SwapProperty.
 From Proof Require Import QubitHelpers.
+From Proof Require Import WFHelpers.
 
 Definition abgate (U : Square 4) := U ⊗ I 2.
 Definition bcgate (U : Square 4) := I 2 ⊗ U.
 Definition acgate (U : Square 4) := swapbc × (abgate U) × swapbc.
 Definition ccu (U : Square 2) := control (control U).
 
+#[global] Hint Unfold abgate bcgate acgate ccu : M_db.
+
 Lemma WF_abgate : forall (U : Square 4), WF_Matrix U -> WF_Matrix (abgate U).
 Proof.
-intros. solve_WF_matrix.
+  intros.
+  solve_WF_matrix.
 Qed.
 
 Lemma WF_bcgate : forall (U : Square 4), WF_Matrix U -> WF_Matrix (bcgate U).
 Proof.
-intros. solve_WF_matrix.
+  intros.
+  solve_WF_matrix.
 Qed.
 
 Lemma WF_acgate : forall (U : Square 4), WF_Matrix U -> WF_Matrix (acgate U).
 Proof.
-intros.
-apply WF_mult. solve_WF_matrix.
-apply WF_swapbc.
+  intros.
+  solve_WF_matrix.
 Qed.
 
 Lemma WF_ccu : forall (U : Square 2), WF_Matrix U -> WF_Matrix (ccu U).
 Proof.
-intros. solve_WF_matrix.
+  intros.
+  solve_WF_matrix.
 Qed.
+
+#[export] Hint Resolve WF_abgate WF_bcgate WF_acgate WF_ccu : wf_db.
 
 Lemma abgate_unitary : forall (U : Square 4), WF_Unitary U -> WF_Unitary (abgate U).
 Proof.
-intros.
-apply kron_unitary. apply H. apply id_unitary.
+  intros.
+  autounfold with M_db; auto with unit_db.
 Qed.
 
 Lemma bcgate_unitary : forall (U : Square 4), WF_Unitary U -> WF_Unitary (bcgate U).
 Proof.
-intros.
-apply kron_unitary. apply id_unitary. apply H.
+  intros.
+  autounfold with M_db; auto with unit_db.
 Qed.
 
 Lemma acgate_unitary : forall (U : Square 4), WF_Unitary U -> WF_Unitary (acgate U).
 Proof.
-intros.
-apply Mmult_unitary. apply Mmult_unitary.
-apply swapbc_unitary.
-apply abgate_unitary. apply H.
-apply swapbc_unitary.
+  intros.
+  autounfold with M_db; auto with unit_db.
 Qed.
 
 Lemma ccu_unitary : forall (U : Square 2), WF_Unitary U -> WF_Unitary (ccu U).
 Proof.
-intros.
-apply control_unitary. apply control_unitary. apply H.
+  intros.
+  autounfold with M_db; auto with unit_db.
 Qed.
 
-Lemma bcgate_adjoint: forall (U : Square 4), WF_Matrix U -> 
-(bcgate U) † = bcgate (U†).
+Lemma bcgate_adjoint: forall (U : Square 4), WF_Matrix U ->
+  (bcgate U) † = bcgate (U†).
 Proof.
-intros.
-lma'.
-apply WF_adjoint. apply WF_bcgate. assumption.
-apply WF_bcgate. apply WF_adjoint. assumption.
-Qed. 
+  intros.
+  unfold bcgate.
+  rewrite kron_adjoint.
+  rewrite id_adjoint_eq.
+  reflexivity.
+Qed.
 
 Lemma ccu_sum_expansion : forall (U : Square 2),
-WF_Matrix U -> ccu U = ∣0⟩⟨0∣ ⊗ I 2 ⊗ I 2 .+ ∣1⟩⟨1∣ ⊗ (control U).
-Proof. 
-intros.
-rewrite kron_assoc. 2,3,4: solve_WF_matrix.
-lma'.
-1,2: solve_WF_matrix.
-all: unfold ccu.
-all: rewrite Mplus_access.
-all: rewrite upper_left_block_nonentries.
-3,4,7,8,11,12,15,16: lia.
-2,4,6,8: solve_WF_matrix.
-all: rewrite lower_right_block_entries.
-3,4,7,8,11,12,15,16: lia.
-2,4,6,8: apply (@WF_control 2).
-2,3,4,5: solve_WF_matrix.
-all: unfold control.
-all: simpl.
-all: lca.
+  WF_Matrix U -> ccu U = ∣0⟩⟨0∣ ⊗ I 2 ⊗ I 2 .+ ∣1⟩⟨1∣ ⊗ (control U).
+Proof.
+  intros.
+  rewrite kron_assoc; solve_WF_matrix.
+  lma'.
+  all: unfold ccu.
+  all: rewrite Mplus_access.
+  all: rewrite upper_left_block_nonentries; solve_WF_matrix; try lia.
+  all: rewrite lower_right_block_entries; solve_WF_matrix; try lia.
+  2,4,6,8: apply (@WF_control 2).
+  all: solve_WF_matrix.
+  all: unfold control; simpl; lca.
 Qed.
 
 Lemma swapab_ccu: forall (U: Square 2), WF_Matrix U ->
-swapab × (ccu U) × swapab = ccu U.
+  swapab × (ccu U) × swapab = ccu U.
 Proof.
-intros.
-apply mat_equiv_eq.
-apply WF_mult. apply WF_mult.
-1,3: apply WF_swapab.
-1,2: apply WF_ccu.
-1,2: assumption.
-by_cell.
-lca. lca. lca. lca. lca. lca. lca. lca.
-lca. lca. lca. lca. lca. lca. lca. lca.
-lca. lca. lca. lca. lca. lca. lca. lca.
-lca. lca. lca. lca. lca. lca. lca. lca.
-lca. lca. lca. lca. lca. lca. lca. lca.
-lca. lca. lca. lca. lca. lca. lca. lca.
-lca. lca. lca. lca. lca. lca. lca. lca.
-lca. lca. lca. lca. lca. lca. lca. lca.
+  intros.
+  (* PERF: This is very slow; perhaps can be optimized if we rewrite our swap
+           gates to use swap_two from QuantumLib *)
+  lma'.
 Qed.
 
-Lemma ccu_adjoint: forall (U: Square 2), WF_Matrix U ->
-(ccu U)† = ccu U†.
+Lemma ccu_adjoint: forall (U: Square 2), WF_Matrix U -> (ccu U)† = ccu U†.
 Proof.
-intros.
-lma'.
-apply WF_adjoint. apply WF_ccu. assumption.
-apply WF_ccu. apply WF_adjoint. assumption.
-all: rewrite Madj_explicit_decomp.
-all: unfold ccu.
-all: unfold control.
-all: simpl.
-all: lca.
+  intros.
+  unfold ccu.
+  repeat rewrite control_adjoint.
+  reflexivity.
 Qed.
 
-Lemma abgate_adjoint: forall (U : Square 4), WF_Matrix U -> 
-(abgate U) † = abgate (U†).
+Lemma abgate_adjoint: forall (U : Square 4), WF_Matrix U -> (abgate U) † = abgate (U†).
 Proof.
-intros.
-lma'.
-apply WF_adjoint. apply WF_abgate. assumption.
-apply WF_abgate. apply WF_adjoint. assumption.
+  intros.
+  unfold abgate.
+  rewrite kron_adjoint, id_adjoint_eq.
+  reflexivity.
 Qed.
 
 Lemma acgate_adjoint: forall (U : Square 4), WF_Matrix U -> 
 (acgate U)† = acgate (U†).
 Proof.
-intros.
-unfold acgate.
-repeat rewrite Mmult_adjoint.
-rewrite <- swapbc_sa. rewrite swapbc_sa at 1. rewrite adjoint_involutive.
-rewrite abgate_adjoint. 2: solve_WF_matrix.
-symmetry.
-apply Mmult_assoc.
+  intros.
+  unfold acgate.
+  repeat rewrite Mmult_adjoint.
+  repeat rewrite <- swapbc_sa at 1.
+  rewrite abgate_adjoint, Mmult_assoc.
+  reflexivity.
+  assumption.
 Qed.
 
 Lemma acgate_alt_def: forall (U : Square 4), WF_Matrix U -> 
 acgate U = swapab × bcgate U × swapab.
 Proof.
-intros.
-unfold acgate, swapbc, abgate, swapab, bcgate.
-apply swap_helper.
-assumption.
+  intros.
+  unfold acgate, swapbc, abgate, swapab, bcgate.
+  apply swap_helper.
+  assumption.
 Qed.
 
-Lemma acgate_tens_eq: forall (U : Square 4) (a b c d e: Vector 2), 
+Lemma acgate_tens_eq: forall (U : Square 4) (a b c d e: Vector 2),
 WF_Matrix U -> WF_Matrix a -> WF_Matrix b -> WF_Matrix c -> WF_Matrix d -> WF_Matrix e ->
 b <> Zero -> (acgate U) × (a ⊗ b ⊗ c) = d ⊗ b ⊗ e ->  U × (a ⊗ c) = d ⊗ e.
 Proof.
@@ -627,9 +609,8 @@ destruct P0_unitary as [WF_P0 P0_inv].
 destruct P1_unitary as [WF_P1 P1_inv].
 rewrite Mmult_plus_distr_l.
 rewrite Mmult_plus_distr_r.
-rewrite swapbc_3gate. 2,3,4: solve_WF_matrix.
-rewrite swapbc_3gate. 2,3,4: solve_WF_matrix.
-reflexivity.
+rewrite swapbc_3gate; solve_WF_matrix.
+rewrite swapbc_3gate; solve_WF_matrix.
 Qed.
 
 Lemma abgate_0prop_bottomleft_0block: forall (U: Square 4), 
@@ -1024,7 +1005,7 @@ WF_Matrix phi /\ abgate U × (∣0⟩ ⊗ x ⊗ y) = ∣0⟩ ⊗ phi)).
                         intros.
                         apply Coq.Logic.Classical_Prop.or_not_and.
                         rewrite <- implication_decomp.
-                        apply qubit_not_0tens. lia. solve_WF_matrix. apply U_unitary. apply WF_y.
+                        apply qubit_not_0tens. lia. solve_WF_matrix.
                         exists 6%nat.
                         split. lia.
                         apply case110_goal_change.
@@ -1045,7 +1026,7 @@ WF_Matrix phi /\ abgate U × (∣0⟩ ⊗ x ⊗ y) = ∣0⟩ ⊗ phi)).
                         intros.
                         apply Coq.Logic.Classical_Prop.or_not_and.
                         rewrite <- implication_decomp.
-                        apply qubit_not_0tens. lia. solve_WF_matrix. apply U_unitary. apply WF_y.
+                        apply qubit_not_0tens. lia. unfold abgate; solve_WF_matrix.
                         exists 7%nat.
                         split. lia.
                         apply case111_goal_change.
@@ -1070,7 +1051,7 @@ WF_Matrix phi /\ abgate U × (∣0⟩ ⊗ x ⊗ y) = ∣0⟩ ⊗ phi)).
                         intros.
                         apply Coq.Logic.Classical_Prop.or_not_and.
                         rewrite <- implication_decomp.
-                        apply qubit_not_0tens. lia. solve_WF_matrix. apply U_unitary. apply WF_y.
+                        apply qubit_not_0tens. lia. unfold abgate; solve_WF_matrix.
                         exists 6%nat.
                         split. lia.
                         apply case100_goal_change.
@@ -1091,7 +1072,7 @@ WF_Matrix phi /\ abgate U × (∣0⟩ ⊗ x ⊗ y) = ∣0⟩ ⊗ phi)).
                         intros.
                         apply Coq.Logic.Classical_Prop.or_not_and.
                         rewrite <- implication_decomp.
-                        apply qubit_not_0tens. lia. solve_WF_matrix. apply U_unitary. apply WF_y.
+                        apply qubit_not_0tens. lia. unfold abgate; solve_WF_matrix.
                         exists 7%nat.
                         split. lia.
                         apply case101_goal_change.
@@ -1128,7 +1109,7 @@ WF_Matrix phi /\ abgate U × (∣0⟩ ⊗ x ⊗ y) = ∣0⟩ ⊗ phi)).
                         intros.
                         apply Coq.Logic.Classical_Prop.or_not_and.
                         rewrite <- implication_decomp.
-                        apply qubit_not_0tens. lia. solve_WF_matrix. apply U_unitary. apply WF_y.
+                        apply qubit_not_0tens. lia. unfold abgate; solve_WF_matrix.
                         exists 4%nat.
                         split. lia.
                         apply case010_goal_change.
@@ -1149,7 +1130,7 @@ WF_Matrix phi /\ abgate U × (∣0⟩ ⊗ x ⊗ y) = ∣0⟩ ⊗ phi)).
                         intros.
                         apply Coq.Logic.Classical_Prop.or_not_and.
                         rewrite <- implication_decomp.
-                        apply qubit_not_0tens. lia. solve_WF_matrix. apply U_unitary. apply WF_y.
+                        apply qubit_not_0tens. lia. unfold abgate; solve_WF_matrix.
                         exists 5%nat.
                         split. lia.
                         apply case011_goal_change.
@@ -1174,7 +1155,7 @@ WF_Matrix phi /\ abgate U × (∣0⟩ ⊗ x ⊗ y) = ∣0⟩ ⊗ phi)).
                         intros.
                         apply Coq.Logic.Classical_Prop.or_not_and.
                         rewrite <- implication_decomp.
-                        apply qubit_not_0tens. lia. solve_WF_matrix. apply U_unitary. apply WF_y.
+                        apply qubit_not_0tens. lia. unfold abgate; solve_WF_matrix.
                         exists 4%nat.
                         split. lia.
                         apply case000_goal_change.
@@ -1195,7 +1176,7 @@ WF_Matrix phi /\ abgate U × (∣0⟩ ⊗ x ⊗ y) = ∣0⟩ ⊗ phi)).
                         intros.
                         apply Coq.Logic.Classical_Prop.or_not_and.
                         rewrite <- implication_decomp.
-                        apply qubit_not_0tens. lia. solve_WF_matrix. apply U_unitary. apply WF_y.
+                        apply qubit_not_0tens. lia. unfold abgate; solve_WF_matrix.
                         exists 5%nat.
                         split. lia.
                         apply case001_goal_change.
@@ -1271,7 +1252,7 @@ WF_TL0_inv WF_TR_block WF_BL_block WF_BR_block
 (@WF_I 4) (@WF_Zero 4 4) (@WF_Zero 4 4) (@WF_I 4) block_mult abU_inv self_eq).
 destruct block_eq as [TL0_inv [_ [TR_is_Zero BR0_inv]]].
 assert (TL0_unitary: WF_Unitary TL0). split. 1,2: assumption.
-apply unitary_mult_zero_cancel_r in TR_is_Zero. 2,3: solve_WF_matrix.
+apply unitary_mult_zero_cancel_r in TR_is_Zero. 2: solve_WF_matrix. 2: assumption.
 rewrite <- zero_adjoint_eq in TR_is_Zero.
 apply (f_equal (fun f => f †)) in TR_is_Zero.
 repeat rewrite adjoint_involutive in TR_is_Zero.
@@ -1283,8 +1264,7 @@ split. assumption.
 split. split. 1,2: assumption.
 rewrite zpass_decomp.
 rewrite TR_is_Zero.
-repeat rewrite kron_0_r.
-repeat rewrite Mplus_0_r.
+Msimpl_light.
 reflexivity.
 Qed.
 

@@ -6,6 +6,7 @@ From Proof Require Import QubitHelpers.
 From Proof Require Import GateHelpers.
 From Proof Require Import ControlledUnitaries.
 From Proof Require Import TensorProducts.
+From Proof Require Import WFHelpers.
 
 Lemma a27: forall (V1 V2 V3 V4 U0 U1 : Square 4) (P0 P1: Square 2), 
 WF_Unitary V1 -> WF_Unitary V2 -> WF_Unitary V3 -> WF_Unitary V4 -> 

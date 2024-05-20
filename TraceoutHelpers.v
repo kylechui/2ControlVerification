@@ -7,6 +7,7 @@ From Proof Require Import GateHelpers.
 From Proof Require Import SwapHelpers.
 From Proof Require Import ExplicitDecompositions.
 From Proof Require Import AlgebraHelpers.
+From Proof Require Import WFHelpers.
 Lemma partial_trace_ac_on_acgate: forall (U : Square 4) (a b c: Vector 2), 
 WF_Unitary U -> WF_Qubit a -> WF_Qubit b -> WF_Qubit c -> 
 partial_trace_2q_a (partial_trace_3q_c (acgate U × (a ⊗ b ⊗ c) × (a ⊗ b ⊗ c)† × (acgate U)†))
@@ -46,9 +47,8 @@ rewrite <- Mmult_assoc with (B := a × (a) † ⊗ (c × (c) †) ⊗ (b × (b) 
 assert (kron_mix_help: U ⊗ I 2 × (a × (a) † ⊗ (c × (c) †) ⊗ (b × (b) †)) =
  (U × (a × (a) † ⊗ (c × (c) †))) ⊗ (b × (b) †) ).
 {
-    rewrite <- Mmult_1_l with (A:= (b × (b) †)) at 2.
+    rewrite <- Mmult_1_l with (A:= (b × (b) †)) at 2; solve_WF_matrix.
     apply kron_mixed_product.
-    solve_WF_matrix.
 }
 rewrite kron_mix_help at 1.
 clear kron_mix_help.
@@ -59,31 +59,21 @@ clear kron_adj_helper.
 assert (kron_mix_help: U × (a × (a) † ⊗ (c × (c) †)) ⊗ (b × (b) †) × ((U) † ⊗ I 2) = 
 (U × (a × (a) † ⊗ (c × (c) †)) × (U) †) ⊗ (b × (b) †)).
 {
-    rewrite <- Mmult_1_r with (A:= (b × (b) †)) at 2.
+    rewrite <- Mmult_1_r with (A:= (b × (b) †)) at 2; solve_WF_matrix.
     apply kron_mixed_product.
-    solve_WF_matrix.
 }
 rewrite kron_mix_help at 1.
 assert (WF_helper1: WF_Matrix (U × (a × (a) † ⊗ (c × (c) †)) × (U) † ⊗ (b × (b) †) × swapbc)).
 {
-    apply WF_mult.
-    apply WF_kron. reflexivity. reflexivity.
-    apply WF_mult.
-    apply WF_mult.
-    all: solve_WF_matrix.
+    solve_WF_matrix.
 }
 assert (WF_helper2: WF_Matrix (U × (a × (a) † ⊗ (c × (c) †)) × (U) † ⊗ (b × (b) †))).
 {
-    apply WF_kron. reflexivity. reflexivity.
-    apply WF_mult.
-    apply WF_mult.
-    all: solve_WF_matrix.
+    solve_WF_matrix.
 }
 assert (WF_helper3: WF_Matrix (U × (a × (a) † ⊗ (c × (c) †)) × (U) †)).
 {
-    apply WF_mult.
-    apply WF_mult.
-    all: solve_WF_matrix.
+    solve_WF_matrix.
 }
 assert (WF_helper4: WF_Matrix ((b × (b) †))).
 {
@@ -95,8 +85,7 @@ assert (WF_helper5: WF_Matrix (U × (a × (a) † ⊗ (c × (c) †)))).
 }
 assert (WF_helper6: WF_Matrix (U) †).
 {
-    apply WF_adjoint.
-    apply U_unitary.
+    solve_WF_matrix.
 }
 assert (WF_helper8: WF_Matrix (a × (a) † ⊗ (c × (c) †))).
 {

@@ -5,6 +5,7 @@ Require Import Proof.AlgebraHelpers.
 Require Import Proof.MatrixHelpers.
 Require Import Proof.GateHelpers.
 Require Import Proof.EigenvalueHelpers.
+Require Import Proof.WFHelpers.
 Require Import QuantumLib.Complex.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
@@ -47,9 +48,8 @@ Proof.
       assert (W_eq_blocks : (diag2 u0 u1) ⊗ (I 2) ⊗ (I 2) = ∣0⟩⟨0∣ ⊗ (u0 .*(I 4)) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* (I 4))).
       {
         unfold diag2.
-        lma'.
-        solve_WF_matrix; apply WF_diag2.
-        solve_WF_matrix.
+        lma'; solve_WF_matrix.
+        show_wf.
       }
       assert (UW : U × (diag2 u0 u1 ⊗ I 2 ⊗ I 2) = ∣0⟩⟨0∣ ⊗ (u0 .* V00) .+ ∣0⟩⟨1∣ ⊗ (u1 .* V01) .+ ∣1⟩⟨0∣ ⊗ (u0 .* V10) .+ ∣1⟩⟨1∣ ⊗ (u1 .* V11)).
       {
@@ -64,10 +64,10 @@ Proof.
           (Q10 := Zero)
           (Q11 := u1 .* I 4)
           (U := (∣0⟩⟨0∣ ⊗ V00 .+ ∣0⟩⟨1∣ ⊗ V01 .+ ∣1⟩⟨0∣ ⊗ V10 .+ ∣1⟩⟨1∣ ⊗ V11))
-          (V := (∣0⟩⟨0∣ ⊗ (u0 .* I 4) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* I 4))) at 1; try solve_WF_matrix.
+          (V := (∣0⟩⟨0∣ ⊗ (u0 .* I 4) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* I 4))) at 1; solve_WF_matrix.
         repeat rewrite Mscale_mult_dist_r.
         Msimpl.
-        reflexivity.
+        all: reflexivity.
       }
       assert (WU : (diag2 u0 u1 ⊗ I 2 ⊗ I 2) × U = ∣0⟩⟨0∣ ⊗ (u0 .* V00) .+ ∣0⟩⟨1∣ ⊗ (u0 .* V01) .+ ∣1⟩⟨0∣ ⊗ (u1 .* V10) .+ ∣1⟩⟨1∣ ⊗ (u1 .* V11)).
       {
@@ -82,10 +82,9 @@ Proof.
           (Q10 := V10)
           (Q11 := V11)
           (U := (∣0⟩⟨0∣ ⊗ (u0 .* I 4) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* I 4)))
-          (V := (∣0⟩⟨0∣ ⊗ V00 .+ ∣0⟩⟨1∣ ⊗ V01 .+ ∣1⟩⟨0∣ ⊗ V10 .+ ∣1⟩⟨1∣ ⊗ V11)) at 1; try solve_WF_matrix.
+          (V := (∣0⟩⟨0∣ ⊗ V00 .+ ∣0⟩⟨1∣ ⊗ V01 .+ ∣1⟩⟨0∣ ⊗ V10 .+ ∣1⟩⟨1∣ ⊗ V11)) at 1; solve_WF_matrix.
           repeat rewrite Mscale_mult_dist_l.
-          Msimpl.
-          reflexivity.
+          all: Msimpl_light; reflexivity.
       }
       rewrite UW, WU in H; clear UW WU W_eq_blocks.
       apply (@block_equalities
@@ -172,7 +171,7 @@ Proof.
         Zero
         Zero
         (I 4)
-        ) in Unitary_U; try solve_WF_matrix; try lia.
+        ) in Unitary_U; solve_WF_matrix; try lia.
         destruct Unitary_U as [Unitary_V00 [_ [_ Unitary_V11]]].
         split.
         {
@@ -222,8 +221,8 @@ Proof.
       }
       assert (H1 : diag2 u0 u1 ⊗ I 2 ⊗ I 2 = ∣0⟩⟨0∣ ⊗ (u0 .* I 4) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* I 4)).
       {
-        unfold diag2; Msimpl; lma'.
-        solve_WF_matrix; apply WF_diag2.
+        unfold diag2; Msimpl_light; lma'; solve_WF_matrix.
+        show_wf.
       }
       rewrite H0, H1; clear H0 H1.
       rewrite block_multiply with
@@ -448,14 +447,8 @@ Proof.
       exists (diag2 C1 u1), (I 2), (I 4).
       split.
       {
-        unfold WF_Unitary.
-        split; try apply WF_diag2.
-        lma'.
-        solve_WF_matrix; try apply WF_diag2.
-        unfold adjoint, diag2, I, Mmult; simpl.
-        Csimpl.
-        rewrite <- Cmod_sqr, unit_u1.
-        lca.
+        apply diag2_unitary; auto.
+        apply Cmod_1.
       }
       {
         split; try apply id_unitary.
@@ -463,27 +456,20 @@ Proof.
         Msimpl; try apply WF_diag4.
         rewrite u0_eq_u1.
         lma'.
-        apply WF_kron; try apply WF_diag2; try apply WF_I; auto.
-        apply WF_diag4.
-        unfold kron, diag2, diag4, I; simpl; lca.
-        unfold kron, diag2, diag4, I; simpl; lca.
+        all: unfold kron, diag2, diag4, I; simpl; lca.
       }
     }
     {
       exists (diag2 C1 u0), (diag2 C1 u1), notc.
       split.
       {
-        unfold WF_Unitary; split; try apply WF_diag2.
-        lma'; try solve_WF_matrix; try apply WF_diag2.
-        unfold adjoint, diag2, Mmult, I; simpl; Csimpl.
-        rewrite <- Cmod_sqr, unit_u0; lca.
+        apply diag2_unitary; auto.
+        apply Cmod_1.
       }
       split.
       {
-        unfold WF_Unitary; split; try apply WF_diag2.
-        lma'; try solve_WF_matrix; try apply WF_diag2.
-        unfold adjoint, diag2, Mmult, I; simpl; Csimpl.
-        rewrite <- Cmod_sqr, unit_u1; lca.
+        apply diag2_unitary; auto.
+        apply Cmod_1.
       }
       split.
       {
@@ -491,11 +477,7 @@ Proof.
       }
       {
         lma'.
-        solve_WF_matrix; try apply WF_diag2.
-        repeat apply WF_mult.
-        apply WF_notc.
-        apply WF_diag4.
-        apply WF_adjoint, WF_notc.
+        solve_WF_matrix.
         unfold diag2, diag4; lca.
         unfold diag2, diag4; lca.
         unfold notc, Mmult, adjoint; simpl; Csimpl.
@@ -522,23 +504,13 @@ Proof.
     assert (Unitary_PD : WF_Unitary (P × diag2 u0 u1)).
     {
       apply Mmult_unitary; auto.
-      unfold WF_Unitary; split; try apply WF_diag2.
-      lma'; try solve_WF_matrix; try apply WF_diag2.
-      unfold adjoint, diag2, Mmult, I; simpl; Csimpl.
-      rewrite <- Cmod_sqr, unit_u0; lca.
-      unfold adjoint, diag2, Mmult, I; simpl; Csimpl.
-      rewrite <- Cmod_sqr, unit_u1; lca.
+      apply diag2_unitary; auto.
     }
     assert (step : control (diag2 u0 u1) = I 2 .⊕ diag2 u0 u1).
     {
-      rewrite (direct_sum_decomp _ _ 2 2)%nat; auto.
+      rewrite (direct_sum_decomp _ _ 2 2)%nat; solve_WF_matrix.
       lma'.
-      apply WF_control, WF_diag2.
-      solve_WF_matrix; apply WF_diag2.
-      unfold control, diag2, adjoint, I, kron, Mmult, Mplus; simpl; lca.
-      unfold control, diag2, adjoint, I, kron, Mmult, Mplus; simpl; lca.
-      apply WF_I.
-      apply WF_diag2.
+      all: unfold control, diag2, adjoint, I, kron, Mmult, Mplus; simpl; lca.
     }
     assert (step2 : (I 2 ⊗ P) × control (diag2 u0 u1) = P .⊕ PD).
     {
@@ -637,7 +609,6 @@ Proof.
       {
         intros.
         lma'.
-        apply WF_diag2.
         unfold diag2; lca.
         unfold diag2; lca.
       }
@@ -688,9 +659,6 @@ Proof.
           apply Diagonal_DP.
         }
         {
-          apply WF_diag2.
-        }
-        {
           unfold diag2; simpl.
           rewrite H2; reflexivity.
         }
@@ -714,9 +682,6 @@ Proof.
         lma'.
         {
           apply Diagonal_DPD.
-        }
-        {
-          apply WF_diag2.
         }
         {
           unfold diag2; simpl.
@@ -780,9 +745,6 @@ Proof.
           apply Diagonal_DP.
         }
         {
-          apply WF_diag2.
-        }
-        {
           unfold diag2; simpl.
           rewrite H2; reflexivity.
         }
@@ -806,9 +768,6 @@ Proof.
         lma'.
         {
           apply Diagonal_DPD.
-        }
-        {
-          apply WF_diag2.
         }
         {
           unfold diag2; simpl.
@@ -979,24 +938,15 @@ Proof.
       exists C1, u0.
       split; try apply C1_neq_C0.
       split. rewrite Cmod_gt_0, unit_u0; lra.
-      rewrite id_kron; Msimpl; try apply WF_diag4.
-      {
-        lma'; solve_WF_matrix.
-        apply WF_diag2.
-        apply WF_diag4.
-      }
-      {
-        apply WF_control, WF_diag2.
-      }
+      rewrite id_kron; Msimpl_light.
+      lma'; solve_WF_matrix.
     }
     {
       exists (diag2 C1 u0).
       split.
       {
-        unfold WF_Unitary; split; try apply WF_diag2.
-        lma'; try solve_WF_matrix; try apply WF_diag2.
-        unfold adjoint, diag2, Mmult, I; simpl; Csimpl.
-        rewrite <- Cmod_sqr, unit_u0; lca.
+        apply diag2_unitary; auto.
+        apply Cmod_1.
       }
       {
         exists notc.
@@ -1010,21 +960,12 @@ Proof.
           split; try rewrite Cmod_gt_0, unit_u0; try lra.
           assert (H : I 2 ⊗ diag2 C1 u0 × control (diag2 u0 u1) = diag4 C1 u0 u0 (u0 * u1)).
           {
-            lma'; solve_WF_matrix; try apply WF_diag2; try apply WF_diag4.
+            lma'; solve_WF_matrix.
             all: unfold diag4, diag2, kron, Mmult; simpl; Csimpl; reflexivity.
           }
           rewrite H; clear H.
           rewrite u0u1_is_1; clear u0u1_is_1.
           lma'.
-          {
-            apply WF_diag4.
-          }
-          {
-            repeat apply WF_mult.
-            apply WF_notc.
-            apply WF_diag4.
-            apply WF_adjoint, WF_notc.
-          }
           all: unfold diag4, swap, cnot, Mmult, adjoint; simpl; Csimpl; reflexivity.
         }
       }
@@ -1040,31 +981,60 @@ Lemma m4_1 : forall (u0 u1 : C),
     <-> u0 = u1 \/ u0 * u1 = 1.
 Proof.
   split.
-  - admit.
+  - intros [U [V [P0 [P1 [Q0 [Q1 [Unitary_U [Unitary_V [Unitary_P0 [Unitary_P1 [Unitary_Q0 [Unitary_Q1 H1]]]]]]]]]]]].
+    rewrite <- (direct_sum_decomp _ _ 0 0) in H1; solve_WF_matrix.
+    unfold ccu in H1.
+    rewrite control_decomp in H1.
+    assert (H2 : (U × (P0 ⊗ Q0) × V) = I 4 /\ (U × (P1 ⊗ Q1) × V) = control (diag2 u0 u1)).
+    {
+      apply direct_sum_simplify; solve_WF_matrix.
+      apply (WF_control 2), WF_diag2.
+    }
+    destruct H2.
+    assert (H4 : control (diag2 u0 u1) = diag4 1 1 u0 u1).
+    {
+      lma'.
+      all: unfold control, diag2, diag4; lca.
+    }
+    rewrite H4 in H3; clear H4.
+    assert (H4 : diag4 1 1 u0 u1 = U × ((P1 × P0†) ⊗ (Q1 × Q0†)) × U†).
+    {
+      rewrite <- Mmult_1_r at 1; solve_WF_matrix.
+      rewrite <- id_adjoint_eq.
+      rewrite <- H2, <- H3; clear H2 H3.
+      distribute_adjoint.
+      pose proof (other_unitary_decomp V Unitary_V).
+      rewrite Mmult_assoc.
+      rewrite <- Mmult_assoc with (A := V), H2 at 1.
+      Msimpl_light; solve_WF_matrix.
+      rewrite kron_adjoint, <- kron_mixed_product.
+      repeat rewrite Mmult_assoc; reflexivity.
+    }
+    apply m3_2; auto.
+    exists (P1 × P0†), (Q1 × Q0†), (U†).
+    split; solve_WF_matrix.
+    split; solve_WF_matrix.
+    split; solve_WF_matrix.
+    rewrite adjoint_involutive.
+    apply (f_equal (fun f => U† × f × U)) in H4.
+    rewrite H4.
+    destruct Unitary_U as [WF_U Unitary_U].
+    repeat rewrite Mmult_assoc.
+    rewrite Unitary_U at 1.
+    repeat rewrite <- Mmult_assoc.
+    rewrite Unitary_U at 1.
+    Msimpl_light; solve_WF_matrix.
   - intros.
     destruct H1.
     + exists (I 4), (I 4), (I 2), (diag2 1 u1), (I 2), (I 2).
-      assert (diag2_unitary : WF_Unitary (diag2 1 u1)).
-      {
-        split.
-        - apply WF_diag2.
-        - solve_matrix.
-          unfold diag2; simpl.
-          rewrite <- Cmod_sqr.
-          rewrite H0.
-          lca.
-      }
       split. apply id_unitary.
       split. apply id_unitary.
       split. apply id_unitary.
-      split. apply diag2_unitary.
+      split. apply diag2_unitary; auto; apply Cmod_1.
       split. apply id_unitary.
       split. apply id_unitary.
-      (* This line removes a lot of subgoals created by the following Msimpl *)
-      assert (WF_my_diag2 : WF_Matrix (diag2 1 u1)). apply WF_diag2.
-      Msimpl.
-      lma'.
-      do 2 apply WF_control; apply WF_diag2.
+      Msimpl; try solve_WF_matrix.
+      lma'; try solve_WF_matrix.
       {
         unfold kron, adjoint, Mmult, Mplus, ccu, control, diag2, I, qubit0, qubit1; simpl.
         Csimpl.
@@ -1076,25 +1046,13 @@ Proof.
         reflexivity.
       }
     + exists notc, notc, (I 2), (diag2 1 u0), (I 2), (diag2 1 u1).
-      assert (diag2_unitary : forall u, Cmod u = 1 -> WF_Unitary (diag2 1 u)).
-      {
-        split.
-        - apply WF_diag2.
-        - solve_matrix.
-          unfold diag2; simpl.
-          rewrite <- Cmod_sqr.
-          rewrite H2.
-          lca.
-      }
       split. apply notc_unitary.
       split. apply notc_unitary.
       split. apply id_unitary.
-      split. apply diag2_unitary; exact H.
+      split. apply diag2_unitary; auto; apply Cmod_1.
       split. apply id_unitary.
-      split. apply diag2_unitary; exact H0.
-      (* This line removes a lot of subgoals created by the following Msimpl *)
-      assert (WF_my_diag2 : WF_Matrix (diag2 u0 1)). apply WF_diag2.
-      Msimpl.
+      split. apply diag2_unitary; auto; apply Cmod_1.
+      Msimpl_light.
       lma'.
       {
         apply WF_plus.
@@ -1107,11 +1065,8 @@ Proof.
           solve_WF_matrix.
           apply WF_mult.
           solve_WF_matrix.
-          apply WF_diag2.
-          apply WF_diag2.
           apply WF_notc.
       }
-      do 2 apply WF_control; apply WF_diag2.
       {
         unfold kron, adjoint, Mmult, Mplus, ccu, control, diag2, I, qubit0, qubit1; simpl.
         Csimpl.
@@ -1127,7 +1082,7 @@ Proof.
         Csimpl.
         reflexivity.
       }
-Admitted.
+Qed.
 
 Lemma m4_2 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
@@ -1500,7 +1455,5 @@ Proof.
       unfold beta, beta_perp.
       rewrite a8; auto.
       lma'.
-      apply WF_ccu.
-      apply WF_diag2.
     }
 Qed.

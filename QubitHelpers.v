@@ -3,9 +3,7 @@ Require Import QuantumLib.Quantum.
 Require Import QuantumLib.CauchySchwarz.
 From Proof Require Import MatrixHelpers.
 From Proof Require Import AlgebraHelpers.
-
-
-Definition WF_Qubit {n} (q: Vector n) := (exists m: nat, (2 ^ m = n)%nat) /\ WF_Matrix q /\ ⟨ q, q ⟩ = 1.
+From Proof Require Import WFHelpers.
 
 Lemma qubit_prop_explicit: forall (a: Vector 2), 
 WF_Qubit a -> 
@@ -184,7 +182,10 @@ rewrite neg.
 apply ab_indep.
 rewrite eq.
 lma'.
-solve_WF_matrix.
+unfold WF_Matrix.
+
+show_wf.
+
 all: apply b_qubit.
 Qed.
 
@@ -749,7 +750,7 @@ Proof.
 intros.
 destruct H0 as [pow_prop [WF_x x_unit]].
 split. apply pow_prop.
-split. solve_WF_matrix. apply H.
+split. solve_WF_matrix.
 rewrite <- unitary_preserves_inner_prod.
 all: assumption.
 Qed. 

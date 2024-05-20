@@ -29,7 +29,6 @@ match x with
 | _ => C0
 end) : (Square 8)).
 lma'.
-solve_WF_matrix.
 {
     unfold WF_Matrix.
     intros.
@@ -77,7 +76,6 @@ match y with
 | _ => C0
 end) : (Square 8)).
 lma'.
-solve_WF_matrix.
 {
     unfold WF_Matrix.
     intros.
