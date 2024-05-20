@@ -9,6 +9,7 @@ Require Import Proof.EigenvalueHelpers.
 Require Import Proof.OtherProperties.
 Require Import Proof.WFHelpers.
 Require Import Proof.Swaps.
+Require Import Proof.SwapHelpers.
 Require Import QuantumLib.Complex.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
@@ -2036,9 +2037,63 @@ Proof.
        unfold bcgate; simpl.
        apply id_kron.
       }
-      Search (I _ *kron _ ).
       rewrite temp_bc.
       Msimpl.
+      assert (temp_ac : acgate (I 4) = I 8).
+      {
+       unfold acgate; simpl.
+       unfold abgate; simpl.
+       unfold swapbc; simpl.
+       unfold swap; simpl.
+       solve_matrix.
+      }
+      rewrite temp_ac.
+      Msimpl.
+      unfold abgate; simpl.
+      lma'.
+      {
+        unfold kron, Mmult, ccu, control, diag2, I, qubit0, qubit1; simpl.
+        Csimpl.
+        reflexivity.
+      }
+      {
+        unfold kron, Mmult, ccu, control, diag2, I, qubit0, qubit1; simpl.
+        Csimpl.
+        reflexivity.
+      }
     + (* Case: u0 * u1 = 1 *)
-      admit.
+      exists notc, (∣0⟩⟨0∣ ⊗ (diag2 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u1)), (∣0⟩⟨0∣ ⊗ (diag2 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u0)), notc.
+      split. apply notc_unitary.
+      assert (WF_diag4_unitary_u1 : WF_Unitary (∣0⟩⟨0∣ ⊗ (diag2 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u1))).
+      {
+       split.
+       - solve_WF_matrix.
+       - unfold adjoint, diag2, kron; simpl.
+         solve_matrix.
+         rewrite <- Cmod_sqr.
+         rewrite H0.
+         lca.
+      }
+      assert (WF_diag4_unitary_u0 : WF_Unitary (∣0⟩⟨0∣ ⊗ (diag2 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u0))).
+      {
+        split.
+        - solve_WF_matrix.
+        - unfold adjoint, diag2, kron; simpl.
+          solve_matrix.
+          rewrite <- Cmod_sqr.
+          rewrite H.
+          lca.
+      }
+      split. apply WF_diag4_unitary_u1.
+      split. apply WF_diag4_unitary_u0.
+      split. apply notc_unitary.
+      
+      (* do this last bit -- follow the scientific proof *)
+      assert (ac_bc_simpl : (acgate (∣0⟩⟨0∣ ⊗ (diag2 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u1))) × abgate (∣0⟩⟨0∣ ⊗ diag2 C1 C1 .+ ∣1⟩⟨1∣ ⊗ diag2 C1 u0) = ∣0⟩⟨0∣ ⊗ (diag4 1 1 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag4 1 u1 u0 (u0*u1))).
+      {
+        unfold acgate, abgate; simpl.
+        unfold swapbc; simpl.
+        unfold swap; simpl.
+        admit.
+      }
 Admitted.
