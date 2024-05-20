@@ -40,6 +40,9 @@ Ltac solve_WF_matrix :=
                                    end
       (* TODO: Make this lemma *)
       (*| |- WF_Unitary (_ .⊕ _) => apply direct_sum_unitary; try lia*)
+      | |- WF_Unitary (control ?A) => match type of A with
+                                      | Square ?n => apply (@control_unitary n)
+                                      end
       | |- WF_Unitary ?A => match goal with
                             | [ H : WF_Unitary A |- _ ] => apply H
                             | _ => auto with unit_db; autounfold with M_db; try unfold A

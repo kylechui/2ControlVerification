@@ -1613,6 +1613,48 @@ Proof.
     reflexivity.
   }
   {
-    admit.
+    intros.
+    destruct H as [u0_eq_u1 | u0u1_eq_1].
+    {
+      rewrite u0_eq_u1; clear u0_eq_u1.
+      exists (I 4), swap, (control (diag2 C1 u1)), swap.
+      split. apply id_unitary.
+      split. apply swap_unitary.
+      split. apply (@control_unitary 2), diag2_unitary. apply Cmod_1. assumption.
+      split. apply swap_unitary.
+      exists (I 2), (I 2).
+      split. apply id_unitary.
+      split. apply id_unitary.
+      split. rewrite <- kron_plus_distr_r, Mplus01, id_kron; reflexivity.
+      unfold acgate, abgate, bcgate, swapbc.
+      repeat rewrite <- Mmult_assoc.
+      rewrite id_kron; Msimpl_light.
+      repeat rewrite kron_mixed_product.
+      rewrite swap_swap.
+      rewrite Mmult_assoc with (B := swap).
+      rewrite Mmult_assoc.
+      rewrite (kron_mixed_product (I 2) swap).
+      repeat rewrite swap_swap.
+      Msimpl_light.
+      rewrite id_kron; Msimpl_light.
+      unfold ccu.
+      do 2 rewrite control_decomp.
+      (* TODO: prove kron distributes over direct sums *)
+      repeat rewrite (direct_sum_decomp _ _ 0 0); solve_WF_matrix.
+      rewrite kron_plus_distr_r.
+      rewrite kron_assoc with (C := I 2); solve_WF_matrix.
+      rewrite kron_assoc with (C := I 2); solve_WF_matrix.
+      repeat rewrite <- (direct_sum_decomp 4 4 0 0); solve_WF_matrix.
+
+      rewrite direct_sum_simplify; solve_WF_matrix.
+      split. rewrite id_kron; reflexivity.
+      lma'; solve_WF_matrix.
+      all: unfold kron, diag2, I, control; simpl; lca.
+    }
+    {
+      (* TODO: Figure out how to define this matrix! *)
+      set (P := I 2).
+      all: admit.
+    }
   }
 Admitted.

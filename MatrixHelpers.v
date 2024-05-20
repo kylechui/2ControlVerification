@@ -133,6 +133,8 @@ Proof.
   Csimpl; rewrite <- Cmod_sqr, unit_c2; lca.
 Qed.
 
+#[export] Hint Resolve diag2_unitary : unit_db.
+
 Lemma Det_diag2 : forall (c1 c2 : C), Determinant (diag2 c1 c2) = c1 * c2.
 Proof.
   intros.
