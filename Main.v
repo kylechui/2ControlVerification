@@ -981,7 +981,49 @@ Lemma m4_1 : forall (u0 u1 : C),
     <-> u0 = u1 \/ u0 * u1 = 1.
 Proof.
   split.
-  - admit.
+  - intros [U [V [P0 [P1 [Q0 [Q1 [Unitary_U [Unitary_V [Unitary_P0 [Unitary_P1 [Unitary_Q0 [Unitary_Q1 H1]]]]]]]]]]]].
+    rewrite <- (direct_sum_decomp _ _ 0 0) in H1; solve_WF_matrix.
+    unfold ccu in H1.
+    rewrite control_decomp in H1.
+    assert (H2 : (U × (P0 ⊗ Q0) × V) = I 4 /\ (U × (P1 ⊗ Q1) × V) = control (diag2 u0 u1)).
+    {
+      apply direct_sum_simplify; solve_WF_matrix.
+      apply (WF_control 2), WF_diag2.
+    }
+    destruct H2.
+    assert (H4 : control (diag2 u0 u1) = diag4 1 1 u0 u1).
+    {
+      lma'.
+      all: unfold control, diag2, diag4; lca.
+    }
+    rewrite H4 in H3; clear H4.
+    assert (H4 : diag4 1 1 u0 u1 = U × ((P1 × P0†) ⊗ (Q1 × Q0†)) × U†).
+    {
+      rewrite <- Mmult_1_r at 1; solve_WF_matrix.
+      rewrite <- id_adjoint_eq.
+      rewrite <- H2, <- H3; clear H2 H3.
+      distribute_adjoint.
+      pose proof (other_unitary_decomp V Unitary_V).
+      rewrite Mmult_assoc.
+      rewrite <- Mmult_assoc with (A := V), H2 at 1.
+      Msimpl_light; solve_WF_matrix.
+      rewrite kron_adjoint, <- kron_mixed_product.
+      repeat rewrite Mmult_assoc; reflexivity.
+    }
+    apply m3_2; auto.
+    exists (P1 × P0†), (Q1 × Q0†), (U†).
+    split; solve_WF_matrix.
+    split; solve_WF_matrix.
+    split; solve_WF_matrix.
+    rewrite adjoint_involutive.
+    apply (f_equal (fun f => U† × f × U)) in H4.
+    rewrite H4.
+    destruct Unitary_U as [WF_U Unitary_U].
+    repeat rewrite Mmult_assoc.
+    rewrite Unitary_U at 1.
+    repeat rewrite <- Mmult_assoc.
+    rewrite Unitary_U at 1.
+    Msimpl_light; solve_WF_matrix.
   - intros.
     destruct H1.
     + exists (I 4), (I 4), (I 2), (diag2 1 u1), (I 2), (I 2).
@@ -1010,7 +1052,7 @@ Proof.
       split. apply diag2_unitary; auto; apply Cmod_1.
       split. apply id_unitary.
       split. apply diag2_unitary; auto; apply Cmod_1.
-      Msimpl.
+      Msimpl_light.
       lma'.
       {
         apply WF_plus.
@@ -1025,7 +1067,6 @@ Proof.
           solve_WF_matrix.
           apply WF_notc.
       }
-      do 2 apply WF_control; apply WF_diag2.
       {
         unfold kron, adjoint, Mmult, Mplus, ccu, control, diag2, I, qubit0, qubit1; simpl.
         Csimpl.
@@ -1041,7 +1082,7 @@ Proof.
         Csimpl.
         reflexivity.
       }
-Admitted.
+Qed.
 
 Lemma m4_2 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->
@@ -1414,7 +1455,5 @@ Proof.
       unfold beta, beta_perp.
       rewrite a8; auto.
       lma'.
-      apply WF_ccu.
-      apply WF_diag2.
     }
 Qed.

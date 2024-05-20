@@ -1,3 +1,4 @@
+Require Import Coq.Arith.PeanoNat.
 Require Import Coq.Logic.Classical_Pred_Type.
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
@@ -2301,3 +2302,127 @@ rewrite H.
 apply kron_plus_distr_r.
 Qed.
 
+Lemma control_decomp : forall {n} (A : Square n), control A = I n .⊕ A.
+Proof.
+  intros.
+  prep_matrix_equality.
+  unfold control, direct_sum, I.
+  destruct (x <? n) eqn:L1.
+  {
+    rewrite Nat.ltb_lt, <- Nat.leb_gt in L1.
+    rewrite L1.
+    destruct (y =? x) eqn:L2.
+    {
+      rewrite Nat.eqb_eq in L2.
+      symmetry in L2.
+      apply Nat.eqb_eq in L2.
+      rewrite L2.
+      lca.
+    }
+    {
+      assert (H : x =? y = false).
+      {
+        rewrite Nat.eqb_neq.
+        rewrite Nat.eqb_neq in L2.
+        intro.
+        contradict L2.
+        rewrite H; reflexivity.
+      }
+      rewrite H.
+      lca.
+    }
+  }
+  {
+    rewrite Nat.ltb_ge, <- Nat.leb_le in L1.
+    rewrite L1.
+    destruct (y <? n) eqn:L2.
+    {
+      rewrite Nat.ltb_lt, <- Nat.leb_gt in L2.
+      rewrite L2.
+      assert (H : x <> y).
+      {
+        rewrite Nat.leb_le in L1.
+        rewrite Nat.leb_gt in L2.
+        lia.
+      }
+      rewrite <- Nat.eqb_neq in H.
+      rewrite H.
+      lca.
+    }
+    {
+      rewrite Nat.ltb_ge, <- Nat.leb_le in L2.
+      rewrite L2.
+      lca.
+    }
+  }
+Qed.
+
+Lemma direct_sum_simplify : forall {n} (A B C D : Square n),
+  WF_Matrix A -> WF_Matrix B -> WF_Matrix C -> WF_Matrix D ->
+    A .⊕ B = C .⊕ D -> A = C /\ B = D.
+Proof.
+  intros.
+  split.
+  {
+    lma'; try assumption.
+    apply (f_equal (fun f => f i j)) in H3.
+    unfold direct_sum in H3.
+    destruct (i <? n) eqn:L1.
+    {
+      assumption.
+    }
+    {
+      destruct (j <? n) eqn:L2.
+      {
+        assumption.
+      }
+      {
+        rewrite Nat.ltb_ge in L1, L2.
+        unfold WF_Matrix in H, H1.
+        specialize (H i j).
+        specialize (H1 i j).
+        rewrite H, H1; auto.
+      }
+    }
+  }
+  {
+    lma'; try assumption.
+    apply (f_equal (fun f => f (i + n) (j + n))%nat) in H3.
+    unfold direct_sum in H3.
+    destruct (i <? n) eqn:L1.
+    {
+      assert (H4 : i + n <? n = false).
+      {
+        rewrite Nat.ltb_ge.
+        lia.
+      }
+      rewrite H4 in H3.
+      destruct (j <? n) eqn:L2.
+      {
+        assert (H5 : j + n <? n = false).
+        {
+          rewrite Nat.ltb_ge.
+          lia.
+        }
+        rewrite H5 in H3.
+        simpl in H3.
+        repeat rewrite Nat.add_sub in H3.
+        exact H3.
+      }
+      {
+        rewrite Nat.ltb_ge in L2.
+        unfold WF_Matrix in H0, H2.
+        specialize (H0 i j).
+        specialize (H2 i j).
+        rewrite H0, H2; auto.
+      }
+    }
+    {
+      rewrite Nat.ltb_ge in L1.
+      unfold WF_Matrix in H0, H2.
+      specialize (H0 i j).
+      specialize (H2 i j).
+      rewrite H0, H2; auto.
+    }
+  }
+Qed.
