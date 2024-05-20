@@ -11,7 +11,10 @@ Ltac solve_WF_matrix :=
       try reflexivity;
       try assumption;
       try match goal with
-      | |- WF_Matrix (control _) => apply WF_control
+      (* Not entirely sure why, but it seems to do better when you explicitly provide dimensions *)
+      | |- WF_Matrix (control ?A) => match type of A with
+                                     | Square ?n => apply (@WF_control n)
+                                     end
       | |- WF_Matrix (adjoint _) => apply WF_adjoint
       | |- WF_Matrix (Mopp _) => unfold Mopp
       | |- WF_Matrix (_ .+ _) => apply WF_plus; try lia

@@ -1020,7 +1020,6 @@ Proof.
     assert (H2 : (U × (P0 ⊗ Q0) × V) = I 4 /\ (U × (P1 ⊗ Q1) × V) = control (diag2 u0 u1)).
     {
       apply direct_sum_simplify; solve_WF_matrix.
-      apply (WF_control 2), WF_diag2.
     }
     destruct H2.
     assert (H4 : control (diag2 u0 u1) = diag4 1 1 u0 u1).
@@ -1057,26 +1056,24 @@ Proof.
     rewrite Unitary_U at 1.
     Msimpl_light; solve_WF_matrix.
   - intros.
-    destruct H1.
-    + exists (I 4), (I 4), (I 2), (diag2 1 u1), (I 2), (I 2).
+    destruct H1 as [u0_eq_u1 | u0u1_eq_1].
+    + rewrite u0_eq_u1; clear u0_eq_u1.
+      exists (I 4), (I 4), (I 2), (diag2 1 u1), (I 2), (I 2).
       split. apply id_unitary.
       split. apply id_unitary.
       split. apply id_unitary.
       split. apply diag2_unitary; auto; apply Cmod_1.
       split. apply id_unitary.
       split. apply id_unitary.
-      Msimpl; try solve_WF_matrix.
-      lma'; try solve_WF_matrix.
-      {
-        unfold kron, adjoint, Mmult, Mplus, ccu, control, diag2, I, qubit0, qubit1; simpl.
-        Csimpl.
-        symmetry; exact H1.
-      }
-      {
-        unfold kron, adjoint, Mmult, Mplus, ccu, control, diag2, I, qubit0, qubit1; simpl.
-        Csimpl.
-        reflexivity.
-      }
+      rewrite id_kron.
+      Msimpl_light.
+      unfold ccu.
+      rewrite control_decomp, <- (direct_sum_decomp _ _ 0 0); solve_WF_matrix.
+      rewrite direct_sum_simplify; solve_WF_matrix.
+      split; try reflexivity.
+      (* PERF: Can probably be sped up by omitting lma' *)
+      lma'; solve_WF_matrix.
+      all: unfold notc, Mmult, diag2, control, kron; simpl; Csimpl; reflexivity.
     + exists notc, notc, (I 2), (diag2 1 u0), (I 2), (diag2 1 u1).
       split. apply notc_unitary.
       split. apply notc_unitary.
@@ -1091,11 +1088,9 @@ Proof.
       rewrite control_decomp, <- (direct_sum_decomp _ _ 0 0); solve_WF_matrix.
       rewrite direct_sum_simplify; solve_WF_matrix.
       split; try reflexivity.
-      (* PERF: Can definitely be sped up by omitting lma' *)
+      (* PERF: Can probably be sped up by omitting lma' *)
       lma'; solve_WF_matrix.
-      unfold notc, Mmult, diag2, control, kron; simpl; Csimpl; assumption.
-      unfold notc, Mmult, diag2, control, kron; simpl; Csimpl; reflexivity.
-      unfold notc, Mmult, diag2, control, kron; simpl; Csimpl; reflexivity.
+      all: unfold notc, Mmult, diag2, control, kron; simpl; Csimpl; auto.
 Qed.
 
 Lemma m4_2 : forall (u0 u1 : C),

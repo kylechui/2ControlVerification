@@ -2360,71 +2360,78 @@ Qed.
 
 Lemma direct_sum_simplify : forall {n} (A B C D : Square n),
   WF_Matrix A -> WF_Matrix B -> WF_Matrix C -> WF_Matrix D ->
-    A .⊕ B = C .⊕ D -> A = C /\ B = D.
+    A .⊕ B = C .⊕ D <-> A = C /\ B = D.
 Proof.
   intros.
   split.
   {
-    lma'; try assumption.
-    apply (f_equal (fun f => f i j)) in H3.
-    unfold direct_sum in H3.
-    destruct (i <? n) eqn:L1.
+    split.
     {
-      assumption.
-    }
-    {
-      destruct (j <? n) eqn:L2.
+      lma'; try assumption.
+      apply (f_equal (fun f => f i j)) in H3.
+      unfold direct_sum in H3.
+      destruct (i <? n) eqn:L1.
       {
         assumption.
       }
       {
-        rewrite Nat.ltb_ge in L1, L2.
-        unfold WF_Matrix in H, H1.
-        specialize (H i j).
-        specialize (H1 i j).
-        rewrite H, H1; auto.
+        destruct (j <? n) eqn:L2.
+        {
+          assumption.
+        }
+        {
+          rewrite Nat.ltb_ge in L1, L2.
+          unfold WF_Matrix in H, H1.
+          specialize (H i j).
+          specialize (H1 i j).
+          rewrite H, H1; auto.
+        }
       }
     }
-  }
-  {
-    lma'; try assumption.
-    apply (f_equal (fun f => f (i + n) (j + n))%nat) in H3.
-    unfold direct_sum in H3.
-    destruct (i <? n) eqn:L1.
     {
-      assert (H4 : i + n <? n = false).
+      lma'; try assumption.
+      apply (f_equal (fun f => f (i + n) (j + n))%nat) in H3.
+      unfold direct_sum in H3.
+      destruct (i <? n) eqn:L1.
       {
-        rewrite Nat.ltb_ge.
-        lia.
-      }
-      rewrite H4 in H3.
-      destruct (j <? n) eqn:L2.
-      {
-        assert (H5 : j + n <? n = false).
+        assert (H4 : i + n <? n = false).
         {
           rewrite Nat.ltb_ge.
           lia.
         }
-        rewrite H5 in H3.
-        simpl in H3.
-        repeat rewrite Nat.add_sub in H3.
-        exact H3.
+        rewrite H4 in H3.
+        destruct (j <? n) eqn:L2.
+        {
+          assert (H5 : j + n <? n = false).
+          {
+            rewrite Nat.ltb_ge.
+            lia.
+          }
+          rewrite H5 in H3.
+          simpl in H3.
+          repeat rewrite Nat.add_sub in H3.
+          exact H3.
+        }
+        {
+          rewrite Nat.ltb_ge in L2.
+          unfold WF_Matrix in H0, H2.
+          specialize (H0 i j).
+          specialize (H2 i j).
+          rewrite H0, H2; auto.
+        }
       }
       {
-        rewrite Nat.ltb_ge in L2.
+        rewrite Nat.ltb_ge in L1.
         unfold WF_Matrix in H0, H2.
         specialize (H0 i j).
         specialize (H2 i j).
         rewrite H0, H2; auto.
       }
     }
-    {
-      rewrite Nat.ltb_ge in L1.
-      unfold WF_Matrix in H0, H2.
-      specialize (H0 i j).
-      specialize (H2 i j).
-      rewrite H0, H2; auto.
-    }
+  }
+  {
+    intros [H3 H4].
+    rewrite H3, H4; reflexivity.
   }
 Qed.
 
