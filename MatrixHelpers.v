@@ -4,6 +4,7 @@ Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
 From Proof Require Import AlgebraHelpers.
+From Proof Require Import WFHelpers.
 
 Lemma Mplus_cancel_l : forall {m n} (A B C : Matrix m n),
   A .+ B = A .+ C -> B = C.
@@ -2425,4 +2426,11 @@ Proof.
       rewrite H0, H2; auto.
     }
   }
+Qed.
+
+Lemma swap_kron : forall (A B : Square 2),
+  WF_Matrix A -> WF_Matrix B -> swap × (A ⊗ B) × swap = B ⊗ A.
+Proof.
+  intros.
+  lma'; solve_WF_matrix.
 Qed.

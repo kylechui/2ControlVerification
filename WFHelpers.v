@@ -25,8 +25,27 @@ Ltac solve_WF_matrix :=
                            | [ H : WF_Qubit A |- _ ] => apply H
                            | _ => auto_wf; autounfold with M_db; try unfold A
                            end
-      | |- WF_Unitary _ => auto with unit_db
-      | |- WF_Qubit _ => auto
+      | |- WF_Unitary (control _) => apply control_unitary
+      | |- WF_Unitary (adjoint _) => apply adjoint_unitary
+      | |- WF_Unitary (Mopp _) => unfold Mopp
+      | |- WF_Unitary (_ × _) => apply Mmult_unitary
+      (* Not entirely sure why, but it seems to do better when you explicitly provide dimensions *)
+      | |- WF_Unitary (?A ⊗ ?B) => match type of A with
+                                   | Square ?m => match type of B with
+                                                  | Square ?n => apply (@kron_unitary m n)
+                                                  end
+                                   end
+      (* TODO: Make this lemma *)
+      (*| |- WF_Unitary (_ .⊕ _) => apply direct_sum_unitary; try lia*)
+      | |- WF_Unitary ?A => match goal with
+                            | [ H : WF_Unitary A |- _ ] => apply H
+                            | _ => auto with unit_db; autounfold with M_db; try unfold A
+                            end
+      | |- WF_Qubit ?A => match goal with
+                          | [ H : WF_Qubit A |- _ ] => apply H
+      (* TODO: Make a database for this, e.g. qubit_db *)
+                          | _ => idtac
+                          end
       end
     )
   ).
