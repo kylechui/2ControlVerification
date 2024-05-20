@@ -1084,36 +1084,18 @@ Proof.
       split. apply diag2_unitary; auto; apply Cmod_1.
       split. apply id_unitary.
       split. apply diag2_unitary; auto; apply Cmod_1.
+      rewrite id_kron.
       Msimpl_light.
-      lma'.
-      {
-        apply WF_plus.
-        - apply WF_kron. lia. lia.
-          solve_WF_matrix.
-          apply WF_mult.
-          solve_WF_matrix.
-          apply WF_notc.
-        - apply WF_kron. lia. lia.
-          solve_WF_matrix.
-          apply WF_mult.
-          solve_WF_matrix.
-          apply WF_notc.
-      }
-      {
-        unfold kron, adjoint, Mmult, Mplus, ccu, control, diag2, I, qubit0, qubit1; simpl.
-        Csimpl.
-        assumption.
-      }
-      {
-        unfold kron, adjoint, Mmult, Mplus, ccu, control, diag2, I, qubit0, qubit1; simpl.
-        Csimpl.
-        reflexivity.
-      }
-      {
-        unfold kron, adjoint, Mmult, Mplus, ccu, control, diag2, I, qubit0, qubit1; simpl.
-        Csimpl.
-        reflexivity.
-      }
+      rewrite notc_notc.
+      unfold ccu.
+      rewrite control_decomp, <- (direct_sum_decomp _ _ 0 0); solve_WF_matrix.
+      rewrite direct_sum_simplify; solve_WF_matrix.
+      split; try reflexivity.
+      (* PERF: Can definitely be sped up by omitting lma' *)
+      lma'; solve_WF_matrix.
+      unfold notc, Mmult, diag2, control, kron; simpl; Csimpl; assumption.
+      unfold notc, Mmult, diag2, control, kron; simpl; Csimpl; reflexivity.
+      unfold notc, Mmult, diag2, control, kron; simpl; Csimpl; reflexivity.
 Qed.
 
 Lemma m4_2 : forall (u0 u1 : C),

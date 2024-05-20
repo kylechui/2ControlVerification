@@ -2434,3 +2434,13 @@ Proof.
   intros.
   lma'; solve_WF_matrix.
 Qed.
+
+Lemma cnot_cnot : cnot × cnot = I 4.
+Proof.
+  lma'.
+Qed.
+
+Lemma notc_notc : notc × notc = I 4.
+Proof.
+  lma'.
+Qed.

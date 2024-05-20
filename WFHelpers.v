@@ -41,6 +41,11 @@ Ltac solve_WF_matrix :=
                             | [ H : WF_Unitary A |- _ ] => apply H
                             | _ => auto with unit_db; autounfold with M_db; try unfold A
                             end
+      (* TODO: Make a database for this (and upstream it!), e.g. diag_db *)
+      | |- WF_Diagonal ?A => match goal with
+                             | [ H : WF_Diagonal A |- _ ] => apply H
+                             | _ => idtac
+                             end
       | |- WF_Qubit ?A => match goal with
                           | [ H : WF_Qubit A |- _ ] => apply H
       (* TODO: Make a database for this, e.g. qubit_db *)
