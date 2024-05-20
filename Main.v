@@ -1997,3 +1997,48 @@ Proof.
     }
   }
 Qed.
+
+Lemma m5_1 : forall (u0 u1 : C),
+  Cmod u0 = 1 -> Cmod u1 = 1 ->
+    (exists (U1 U2 U3 U4 : Square 4),
+      WF_Unitary U1 /\ WF_Unitary U2 /\ WF_Unitary U3 /\ WF_Unitary U4 /\
+      (bcgate U1 × acgate U2 × abgate U3 × bcgate U4) = ccu (diag2 u0 u1))
+    <-> u0 = u1 \/ u0 * u1 = 1.
+
+Proof.
+  split.
+  - admit.
+  - intros [H_eq | H_prod].
+    + (* Case: u0 = u1 *)
+      subst.
+      exists (I 4), (I 4), (control (diag2 1 u1)) , (I 4).
+      assert (WF_my_control_diag2 : WF_Matrix (control (diag2 1 u1))).
+      {
+        apply WF_control.
+        apply WF_diag2.
+      }
+      assert (control_diag2_unitary : WF_Unitary (control (diag2 C1 u1))).
+      {
+        split.
+        - apply WF_my_control_diag2.
+        - unfold control, diag2, kron; simpl.
+          solve_matrix.
+          rewrite <- Cmod_sqr.
+          rewrite H0.
+          lca.
+      }
+      split. apply id_unitary.
+      split. apply id_unitary.
+      split. apply control_diag2_unitary.
+      split. apply id_unitary.
+      assert (temp_bc : bcgate (I 4) = I 8).
+      {
+       unfold bcgate; simpl.
+       apply id_kron.
+      }
+      Search (I _ *kron _ ).
+      rewrite temp_bc.
+      Msimpl.
+    + (* Case: u0 * u1 = 1 *)
+      admit.
+Admitted.
