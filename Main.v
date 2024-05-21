@@ -1607,8 +1607,6 @@ Proof.
     exists (W × (I 2 ⊗ V)).
     split; solve_WF_matrix.
     exists (D 0 0)%nat, (D 1 1)%nat.
-    split. admit. (* Need to prove non-zero!! *)
-    split. admit. (* Need to prove non-zero!! *)
     rewrite <- H4.
     reflexivity.
   }
