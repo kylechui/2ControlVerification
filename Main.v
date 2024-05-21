@@ -2013,20 +2013,11 @@ Proof.
     + (* Case: u0 = u1 *)
       subst.
       exists (I 4), (I 4), (control (diag2 1 u1)) , (I 4).
-      assert (WF_my_control_diag2 : WF_Matrix (control (diag2 1 u1))).
-      {
-        apply WF_control.
-        apply WF_diag2.
-      }
       assert (control_diag2_unitary : WF_Unitary (control (diag2 C1 u1))).
       {
-        split.
-        - apply WF_my_control_diag2.
-        - unfold control, diag2, kron; simpl.
-          solve_matrix.
-          rewrite <- Cmod_sqr.
-          rewrite H0.
-          lca.
+        apply control_unitary, diag2_unitary.
+        exact Cmod_1.
+        assumption.
       }
       split. apply id_unitary.
       split. apply id_unitary.
@@ -2038,26 +2029,33 @@ Proof.
        apply id_kron.
       }
       rewrite temp_bc.
-      Msimpl.
+      Msimpl; solve_WF_matrix.
       assert (temp_ac : acgate (I 4) = I 8).
       {
        unfold acgate; simpl.
        unfold abgate; simpl.
        unfold swapbc; simpl.
-       unfold swap; simpl.
-       solve_matrix.
+       replace 4%nat with (2 * 2)%nat by lia.
+       rewrite <- (id_kron 2 2).
+       rewrite kron_assoc.
+       repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
+       rewrite id_kron; Msimpl_light.
+       rewrite swap_swap.
+       rewrite id_kron.
+       reflexivity.
+       all: apply WF_I.
       }
       rewrite temp_ac.
-      Msimpl.
+      Msimpl; solve_WF_matrix.
       unfold abgate; simpl.
-      lma'.
+      lma'; solve_WF_matrix.
       {
-        unfold kron, Mmult, ccu, control, diag2, I, qubit0, qubit1; simpl.
+        unfold ccu, kron, diag2, kron, control, I; simpl.
         Csimpl.
         reflexivity.
       }
       {
-        unfold kron, Mmult, ccu, control, diag2, I, qubit0, qubit1; simpl.
+        unfold kron, Mmult, ccu, control, diag2, I; simpl.
         Csimpl.
         reflexivity.
       }
@@ -2091,7 +2089,7 @@ Proof.
       (* Define smaller pieces for better readability and easier manipulation *)
       set (X := ∣0⟩⟨0∣ ⊗ diag2 C1 C1 .+ ∣1⟩⟨1∣ ⊗ diag2 C1 u1 : Square 4).
       set (Y := ∣0⟩⟨0∣ ⊗ diag2 C1 C1 .+ ∣1⟩⟨1∣ ⊗ diag2 C1 u0 : Square 4).
-      
+
       (* do this last bit -- follow the scientific proof *)
       assert (ac_ab_simpl : (acgate X × abgate Y) = ∣0⟩⟨0∣ ⊗ (diag4 1 1 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag4 1 u1 u0 (u0*u1))).
       {
@@ -2099,16 +2097,36 @@ Proof.
         subst Y.
         unfold acgate, abgate; simpl.
         unfold swapbc; simpl.
-        unfold swap, kron; simpl.
-        solve_matrix.
-        unfold diag2; simpl.
-        unfold diag4; simpl.
-        rewrite H_prod.
-        rewrite Cmult_comm.
-        apply H_prod.
+        repeat rewrite kron_plus_distr_r.
+        repeat rewrite Mmult_plus_distr_l.
+        repeat rewrite (@kron_assoc 2 2 2 2).
+        repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
+        repeat rewrite Mmult_1_l.
+        repeat rewrite Mmult_assoc.
+        repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
+        Msimpl_light.
+        repeat rewrite Mmult_plus_distr_r.
+        repeat rewrite kron_mixed_product.
+        replace (diag2 C1 C1 ⊗ I 2) with (I 4) by lma'.
+        rewrite cancel00, cancel01, cancel10, cancel11.
+        Msimpl.
+        rewrite swap_swap.
+        repeat rewrite <- (@direct_sum_decomp _ _ 0 0).
+        apply direct_sum_simplify; solve_WF_matrix.
+        split.
+        {
+          lma'.
+        }
+        {
+          rewrite <- Mmult_assoc.
+          rewrite swap_2gate; solve_WF_matrix.
+          lma'.
+          all: unfold I, diag2, diag4, Mmult, kron; simpl; lca.
+        }
+        all: solve_WF_matrix.
       }
-      
       repeat rewrite Mmult_assoc.
       repeat rewrite <- Mmult_assoc with (C := bcgate notc).
-      rewrite ac_ab_simpl.
+      rewrite ac_ab_simpl at 1.
+      (* TODO: @Arsh finish up here :) *)
 Admitted.
