@@ -2087,13 +2087,28 @@ Proof.
       split. apply WF_diag4_unitary_u1.
       split. apply WF_diag4_unitary_u0.
       split. apply notc_unitary.
+
+      (* Define smaller pieces for better readability and easier manipulation *)
+      set (X := ∣0⟩⟨0∣ ⊗ diag2 C1 C1 .+ ∣1⟩⟨1∣ ⊗ diag2 C1 u1 : Square 4).
+      set (Y := ∣0⟩⟨0∣ ⊗ diag2 C1 C1 .+ ∣1⟩⟨1∣ ⊗ diag2 C1 u0 : Square 4).
       
       (* do this last bit -- follow the scientific proof *)
-      assert (ac_bc_simpl : (acgate (∣0⟩⟨0∣ ⊗ (diag2 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u1))) × abgate (∣0⟩⟨0∣ ⊗ diag2 C1 C1 .+ ∣1⟩⟨1∣ ⊗ diag2 C1 u0) = ∣0⟩⟨0∣ ⊗ (diag4 1 1 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag4 1 u1 u0 (u0*u1))).
+      assert (ac_ab_simpl : (acgate X × abgate Y) = ∣0⟩⟨0∣ ⊗ (diag4 1 1 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag4 1 u1 u0 (u0*u1))).
       {
+        subst X.
+        subst Y.
         unfold acgate, abgate; simpl.
         unfold swapbc; simpl.
-        unfold swap; simpl.
-        admit.
+        unfold swap, kron; simpl.
+        solve_matrix.
+        unfold diag2; simpl.
+        unfold diag4; simpl.
+        rewrite H_prod.
+        rewrite Cmult_comm.
+        apply H_prod.
       }
+      
+      repeat rewrite Mmult_assoc.
+      repeat rewrite <- Mmult_assoc with (C := bcgate notc).
+      rewrite ac_ab_simpl.
 Admitted.

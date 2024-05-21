@@ -3,6 +3,7 @@ Require Import Coq.Logic.Classical_Pred_Type.
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
+From Proof Require Import WFHelpers.
 From Proof Require Import AlgebraHelpers.
 From Proof Require Import WFHelpers.
 
