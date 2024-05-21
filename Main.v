@@ -8,6 +8,7 @@ Require Import Proof.SwapHelpers.
 Require Import Proof.EigenvalueHelpers.
 Require Import Proof.OtherProperties.
 Require Import Proof.WFHelpers.
+Require Import Proof.Swaps.
 Require Import QuantumLib.Complex.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
@@ -1650,9 +1651,196 @@ Proof.
       all: unfold kron, diag2, I, control; simpl; lca.
     }
     {
-      (* TODO: Figure out how to define this matrix! *)
-      set (P := I 2).
-      all: admit.
+      assert (Cexp_Cmod : forall (c : C), Cmod c = 1 -> exists (θ : R), Cexp θ = c).
+      {
+        admit.
+      }
+      pose proof (Cexp_Cmod u1 unit_u1) as [θ u1_Cexp]; clear Cexp_Cmod.
+      assert (u0_Cexp : Cexp (-θ) = u0).
+      {
+        rewrite <- Cexp_0 in u0u1_eq_1.
+        replace 0%R with (θ + (-θ))%R in u0u1_eq_1 by lra.
+        rewrite Cexp_add in u0u1_eq_1.
+        rewrite u1_Cexp in u0u1_eq_1.
+        symmetry.
+        rewrite Cmult_comm in u0u1_eq_1.
+        apply Cmult_cancel_l with (a := u1); auto.
+        rewrite <- u1_Cexp.
+        apply Cexp_nonzero.
+      }
+      set (u := Cexp (θ / 2)).
+      set (P := diag2 (/ u) u).
+      set (U := ∣0⟩⟨0∣ ⊗ σx .+ ∣1⟩⟨1∣ ⊗ I 2).
+      set (V := control P).
+      assert (unit_u : Cmod u = 1).
+      {
+        apply Cmod_Cexp.
+      }
+      assert (Unitary_P : WF_Unitary P).
+      {
+        solve_WF_matrix.
+        apply diag2_unitary; auto.
+        rewrite Cmod_inv, unit_u.
+        lra.
+        rewrite Cmod_gt_0, unit_u; lra.
+      }
+      assert (Unitary_U : WF_Unitary U).
+      {
+        solve_WF_matrix.
+        rewrite <- (direct_sum_decomp _ _ 0 0); solve_WF_matrix.
+        apply direct_sum_unitary.
+        apply σx_unitary.
+        apply id_unitary.
+      }
+      assert (Unitary_V : WF_Unitary V).
+      {
+        solve_WF_matrix.
+      }
+      exists V, U, V, (U†).
+      split; auto.
+      split; auto.
+      split; auto.
+      split; solve_WF_matrix.
+      exists (I 2), P.
+      split; solve_WF_matrix.
+      split; auto.
+      split.
+      {
+        unfold V.
+        rewrite control_decomp, (direct_sum_decomp _ _ 0 0); solve_WF_matrix.
+      }
+      {
+        assert (step1 : P = (/ u) .* ∣0⟩⟨0∣ .+ u .* ∣1⟩⟨1∣).
+        {
+          lma'; solve_WF_matrix.
+        }
+        assert (step2 : P × P = diag2 u0 u1).
+        {
+          rewrite step1.
+          repeat rewrite Mmult_plus_distr_l.
+          repeat rewrite Mmult_plus_distr_r.
+          repeat rewrite Mscale_mult_dist_l.
+          repeat rewrite Mscale_mult_dist_r.
+          rewrite cancel00, cancel01, cancel10, cancel11; solve_WF_matrix.
+          Msimpl_light.
+          repeat rewrite Mscale_assoc.
+          unfold u.
+          rewrite <- Cexp_neg.
+          repeat rewrite <- Cexp_add.
+          replace (θ / 2 + θ / 2)%R with θ by lra.
+          replace (- (θ / 2) + - (θ / 2))%R with (-θ)%R by lra.
+          rewrite u0_Cexp, u1_Cexp.
+          lma'.
+          all: unfold scale, Mmult, Mplus, adjoint, diag2; simpl; lca.
+        }
+        clear step1.
+        assert (step3 : acgate V = ∣0⟩⟨0∣ ⊗ I 4 .+ ∣1⟩⟨1∣ ⊗ I 2 ⊗ P).
+        {
+          unfold acgate, abgate, swapbc, V.
+          rewrite control_decomp, (direct_sum_decomp _ _ 0 0); solve_WF_matrix.
+          rewrite kron_plus_distr_r.
+          rewrite kron_assoc; solve_WF_matrix.
+          rewrite kron_assoc; solve_WF_matrix.
+          rewrite Mmult_plus_distr_l.
+          rewrite Mmult_plus_distr_r.
+          repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
+          rewrite id_kron.
+          Msimpl_light.
+          rewrite swap_swap, a11; solve_WF_matrix.
+          rewrite <- kron_assoc; solve_WF_matrix.
+        }
+        assert (step4 : P × σx × P × σx = I 2).
+        {
+          lma'; solve_WF_matrix.
+          all: unfold P, σx, Mmult, I, diag2; simpl; Csimpl.
+          {
+            rewrite Cinv_l; auto.
+            unfold u.
+            apply Cexp_nonzero.
+          }
+          {
+            rewrite Cinv_r; auto.
+            unfold u.
+            apply Cexp_nonzero.
+          }
+        }
+        assert (step5 : (I 2 ⊗ P) × U × (I 2 ⊗ P) × U† = control (P × P)).
+        {
+          unfold U.
+          rewrite Mplus_adjoint.
+          repeat rewrite kron_adjoint.
+          rewrite id_adjoint_eq, adjoint00, adjoint11.
+          repeat rewrite Mmult_plus_distr_l.
+          repeat rewrite kron_mixed_product.
+          Msimpl_light.
+          rewrite <- Mmult_plus_distr_l.
+          repeat rewrite Mmult_plus_distr_r.
+          repeat rewrite kron_mixed_product.
+          replace (σx†) with σx by lma'.
+          repeat rewrite Mmult_plus_distr_l.
+          repeat rewrite kron_mixed_product.
+          Msimpl_light.
+          rewrite cancel00, cancel01, cancel10, cancel11.
+          Msimpl_light.
+          rewrite step4.
+          rewrite control_decomp, (@direct_sum_decomp _ _ 0 0).
+          reflexivity.
+          all: solve_WF_matrix.
+        }
+        rewrite step2 in step5.
+        unfold ccu.
+        rewrite <- step5; clear step5.
+        rewrite step3; clear step3.
+        unfold bcgate.
+        unfold U.
+        repeat rewrite Mplus_adjoint.
+        repeat rewrite kron_adjoint.
+        rewrite adjoint00, adjoint11, id_adjoint_eq.
+        rewrite kron_plus_distr_l.
+        replace (σx†) with σx by lma'.
+        repeat rewrite Mmult_plus_distr_l.
+        repeat rewrite Mmult_plus_distr_r.
+        repeat rewrite kron_mixed_product.
+        (* PERF: These Msimpl_lights are non-trivially expensive, can optimize later*)
+        repeat rewrite Mmult_1_r.
+        repeat rewrite <- kron_assoc.
+        repeat rewrite (@kron_mixed_product 4 4 4 2 2 2).
+        repeat rewrite Mmult_1_l.
+        repeat rewrite Mmult_plus_distr_l.
+        repeat rewrite (@kron_mixed_product 2 2 2 2 2 2).
+        repeat rewrite cancel00.
+        repeat rewrite cancel01.
+        repeat rewrite cancel10.
+        repeat rewrite cancel11.
+        Msimpl_light.
+        repeat rewrite kron_plus_distr_l.
+        repeat rewrite kron_assoc.
+        repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
+        repeat rewrite cancel01.
+        repeat rewrite cancel10.
+        Msimpl_light.
+        repeat rewrite Mmult_plus_distr_l.
+        repeat rewrite cancel11.
+        repeat rewrite <- kron_plus_distr_l.
+        replace (σx × σx) with (I 2) by lma'.
+        repeat rewrite <- kron_plus_distr_r.
+        rewrite Mplus01, id_kron.
+        repeat rewrite <- kron_assoc.
+        repeat rewrite (@kron_mixed_product 4 4 4 2 2 2).
+        repeat rewrite (@kron_mixed_product 2 2 2 2 2 2).
+        repeat rewrite cancel00.
+        repeat rewrite cancel01.
+        repeat rewrite cancel10.
+        repeat rewrite cancel11.
+        Msimpl_light.
+        rewrite step2, step4.
+        repeat rewrite kron_assoc.
+        rewrite <- (kron_plus_distr_l 2 2 4 4).
+        rewrite <- (@direct_sum_decomp _ _ 0 0).
+        rewrite control_decomp.
+        reflexivity.
+        all: solve_WF_matrix.
+      }
     }
   }
 Admitted.
