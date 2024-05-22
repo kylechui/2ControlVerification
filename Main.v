@@ -1516,7 +1516,7 @@ Proof.
       repeat rewrite kron_assoc with (A := ∣1⟩⟨1∣); solve_WF_matrix.
       repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
       Msimpl_light.
-      repeat rewrite swap_kron; solve_WF_matrix.
+      repeat rewrite swap_2gate; solve_WF_matrix.
       repeat rewrite Mmult_plus_distr_l.
       repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
       rewrite cancel00, cancel01, cancel10, cancel11; solve_WF_matrix.

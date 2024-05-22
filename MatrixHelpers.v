@@ -2437,13 +2437,6 @@ Proof.
   }
 Qed.
 
-Lemma swap_kron : forall (A B : Square 2),
-  WF_Matrix A -> WF_Matrix B -> swap × (A ⊗ B) × swap = B ⊗ A.
-Proof.
-  intros.
-  lma'; solve_WF_matrix.
-Qed.
-
 Lemma cnot_cnot : cnot × cnot = I 4.
 Proof.
   lma'.
