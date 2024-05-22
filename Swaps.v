@@ -43,7 +43,18 @@ Qed.
 Lemma a13_2 : forall (c1 : C), swapbc × ccu (diag2 1 c1) × swapbc = ccu (diag2 1 c1).
 Proof.
   intros.
-  lma'; solve_WF_matrix.
+  unfold swapbc.
+  unfold ccu.
+  rewrite control_decomp, (@direct_sum_decomp _ _ 0 0).
+  rewrite Mmult_plus_distr_l.
+  rewrite Mmult_plus_distr_r.
+  repeat rewrite kron_mixed_product.
+  repeat rewrite Mmult_1_l.
+  repeat rewrite Mmult_1_r.
+  rewrite swap_swap.
+  assert (swap × control (diag2 C1 c1) × swap = control (diag2 C1 c1)) by lma'.
+  rewrite H.
+  all: solve_WF_matrix.
 Qed.
 
 Lemma a13_3 : forall (c1 : C),
