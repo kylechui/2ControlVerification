@@ -808,3 +808,109 @@ rewrite <- (Nat.Div0.mod_add (i - j) 1).
 replace (1 * j)%nat with j by lia.
 rewrite Nat.sub_add; auto.
 Qed.
+
+(* TODO: Can this proof be made shorter? It's a bit unwieldy at the moment *)
+Lemma Cexp_Cmod : forall (c : C), Cmod c = 1 -> exists (θ : R), Cexp θ = c.
+Proof.
+  intros.
+  destruct c as [re im].
+  assert (re * re + im * im = 1)%R.
+  {
+    fold (Rsqr re) (Rsqr im).
+    unfold Cmod in H; simpl in H.
+    repeat rewrite Rmult_1_r in H.
+    rewrite <- Rmult_1_l.
+    rewrite <- H.
+    symmetry.
+    apply (Rsqr_sqrt).
+    apply Rplus_le_le_0_compat; apply Rle_0_sqr.
+  }
+  assert (re <> 0 -> (√(1 + (im / re)²) = 1 / √(re * re))%R).
+  {
+    intros.
+    unfold Rsqr.
+    rewrite Rmult_div; auto.
+    unfold Rdiv.
+    rewrite <- Rinv_r with (r := (re * re)%R) at 1; auto.
+    rewrite <- Rmult_plus_distr_r.
+    rewrite H0.
+    rewrite <- Rdiv_unfold, sqrt_div; try lra.
+    rewrite sqrt_1.
+    reflexivity.
+    fold (Rsqr re).
+    apply Rlt_0_sqr.
+    assumption.
+  }
+  destruct (Req_appart_dec re 0)%R as [re_eq_0 | [re_lt_0 | req_gt_0]].
+  {
+    clear H1.
+    rewrite re_eq_0 in H0.
+    rewrite Rmult_0_l, Rplus_0_l in H0.
+    rewrite <- Rsqr_1 in H0.
+    fold (Rsqr im) in H0.
+    pose proof (Rsqr_eq_abs_0 im 1 H0) as H1.
+    rewrite Rabs_R1 in H1.
+    unfold Rabs in H1.
+    destruct (Rcase_abs im).
+    {
+      exists (3 * (PI / 2))%R.
+      unfold Cexp.
+      rewrite sin_3PI2, cos_3PI2.
+      rewrite re_eq_0.
+      replace (im) with (-1)%R by lra.
+      reflexivity.
+    }
+    {
+      exists (PI / 2)%R.
+      unfold Cexp.
+      rewrite sin_PI2, cos_PI2.
+      rewrite re_eq_0, H1.
+      reflexivity.
+    }
+  }
+  {
+    assert (re <> 0)%R by lra.
+    exists (atan (im / re) + PI)%R.
+    unfold Cexp.
+    rewrite sin_plus, cos_plus.
+    rewrite sin_atan, cos_atan.
+    rewrite H1; auto; clear H1.
+    unfold Rdiv.
+    rewrite Rinv_mult.
+    rewrite Rinv_1.
+    rewrite Rinv_inv.
+    repeat rewrite Rmult_1_l.
+    replace (re * re)%R with ((-re) * (-re))%R by lra.
+    rewrite sqrt_mult; try lra.
+    rewrite sqrt_sqrt; try lra.
+    rewrite sin_PI, cos_PI.
+    repeat rewrite Rmult_0_r.
+    unfold Rminus.
+    rewrite Ropp_0.
+    repeat rewrite Rplus_0_r.
+    rewrite Rmult_assoc.
+    replace (-re * -1)%R with re by lra.
+    rewrite Rmult_assoc.
+    rewrite Rmult_inv_l; auto.
+    rewrite Rmult_1_r.
+    reflexivity.
+  }
+  {
+    assert (re <> 0)%R by lra.
+    exists (atan (im / re)).
+    unfold Cexp.
+    rewrite sin_atan, cos_atan.
+    rewrite H1; auto; clear H1.
+    unfold Rdiv.
+    rewrite Rinv_mult.
+    rewrite Rinv_1.
+    rewrite Rinv_inv.
+    repeat rewrite Rmult_1_l.
+    rewrite sqrt_mult; try lra.
+    rewrite sqrt_sqrt; try lra.
+    rewrite Rmult_assoc.
+    rewrite Rmult_inv_l; auto.
+    rewrite Rmult_1_r.
+    reflexivity.
+  }
+Qed.
