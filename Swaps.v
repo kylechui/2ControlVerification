@@ -2,7 +2,6 @@ Require Import QuantumLib.Quantum.
 From Proof Require Import SwapHelpers.
 From Proof Require Import GateHelpers.
 From Proof Require Import MatrixHelpers.
-From Proof Require Import SwapProperty.
 From Proof Require Import WFHelpers.
 Lemma a10 : forall (a b : Vector 2),
   WF_Matrix a -> WF_Matrix b ->

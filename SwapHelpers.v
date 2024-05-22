@@ -191,24 +191,6 @@ Proof.
   reflexivity.
 Qed.
 
-Lemma Mmult88_explicit_decomp: forall (A B: Square 8), 
-WF_Matrix A -> WF_Matrix B -> 
-A × B = ((fun x y => 
-A x 0%nat * B 0%nat y + A x 1%nat * B 1%nat y
-+ A x 2%nat * B 2%nat y + A x 3%nat * B 3%nat y
-+ A x 4%nat * B 4%nat y + A x 5%nat * B 5%nat y
-+ A x 6%nat * B 6%nat y + A x 7%nat * B 7%nat y) : Square 8).
-Proof.
-intros.
-lma'.
-unfold WF_Matrix.
-intros.
-destruct H1.
-repeat rewrite H. lca. 1,2,3,4,5,6,7,8: lia.
-repeat rewrite H0. lca. all: lia.
-Qed.
-
-
 Property swap_helper : forall (U : Square 4),
   WF_Matrix U -> 
   swapbc × (U ⊗ I 2) × swapbc = swapab × (I 2 ⊗ U) × swapab.

@@ -3,7 +3,6 @@ Require Import QuantumLib.Eigenvectors.
 From Proof Require Import AlgebraHelpers.
 From Proof Require Import MatrixHelpers. 
 From Proof Require Import SwapHelpers.
-From Proof Require Import SwapProperty.
 From Proof Require Import QubitHelpers.
 From Proof Require Import WFHelpers.
 
