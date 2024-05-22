@@ -1363,6 +1363,7 @@ Proof.
             apply WF_diag2.
             assumption.
           }
+          (* PERF: Solve without lma' *)
           unfold ccu, control, diag2, Mmult.
           lma'.
         }
@@ -1503,14 +1504,14 @@ Proof.
     }
     rewrite ccdiag_decomp in H0.
     pose proof (
-     a27
-     V1 V2 V3 V4
-     (I 4) (control (diag2 u0 u1))
-     P0 P1
-     Unitary_V1 Unitary_V2 Unitary_V3 Unitary_V4
-     (id_unitary 4) Unitary_diag
-     Unitary_P0 Unitary_P1
-     H0 H
+      a27
+      V1 V2 V3 V4
+      (I 4) (control (diag2 u0 u1))
+      P0 P1
+      Unitary_V1 Unitary_V2 Unitary_V3 Unitary_V4
+      (id_unitary 4) Unitary_diag
+      Unitary_P0 Unitary_P1
+      H0 H
     ) as [Q0 [Q1 [Unitary_Q0 [Unitary_Q1 H2]]]].
     assert (H3 : acgate V1 × bcgate V2 × acgate V3 = ∣0⟩⟨0∣ ⊗ (((I 2) ⊗ P0) × V2 × ((I 2) ⊗ Q0)) .+ ∣1⟩⟨1∣ ⊗ (((I 2) ⊗ P1) × V2 × ((I 2) ⊗ Q1))).
     {
