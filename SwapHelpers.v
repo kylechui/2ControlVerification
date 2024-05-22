@@ -184,5 +184,34 @@ Qed.
 
 Lemma swapbc_sa: swapbc = (swapbc) †.
 Proof.
-  lma'.
+  unfold swapbc.
+  rewrite kron_adjoint.
+  rewrite id_adjoint_eq.
+  rewrite swap_hermitian.
+  reflexivity.
+Qed.
+
+Property swap_helper : forall (U : Square 4),
+  WF_Matrix U ->
+  swapbc × (U ⊗ I 2) × swapbc = swapab × (I 2 ⊗ U) × swapab.
+Proof.
+  intros U WF_U.
+  pose proof (@block_decomp 2 U WF_U).
+  unfold swapab, swapbc.
+  destruct H as [TL [TR [BL [BR [WF_TL [WF_TR [WF_BL [WF_BR H]]]]]]]].
+  rewrite H; clear H.
+  repeat rewrite kron_plus_distr_l.
+  repeat rewrite kron_plus_distr_r.
+  repeat rewrite Mmult_plus_distr_l.
+  repeat rewrite Mmult_plus_distr_r.
+  repeat rewrite kron_assoc.
+  repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
+  repeat rewrite <- kron_assoc.
+  repeat rewrite (@kron_mixed_product 4 4 4 2 2 2).
+  repeat rewrite swap_2gate.
+  repeat rewrite Mmult_1_l.
+  repeat rewrite Mmult_1_r.
+  repeat rewrite (@kron_assoc 2 2 2 2).
+  reflexivity.
+  all: solve_WF_matrix.
 Qed.

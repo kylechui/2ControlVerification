@@ -5,7 +5,6 @@ PartialTraceDefinitions.v
 AlgebraHelpers.v
 SwapHelpers.v
 GateHelpers.v
-SwapProperty.v
 QubitHelpers.v
 ExplicitDecompositions.v
 EigenvalueHelpers.v

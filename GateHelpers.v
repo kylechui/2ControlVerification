@@ -3,7 +3,6 @@ Require Import QuantumLib.Eigenvectors.
 From Proof Require Import AlgebraHelpers.
 From Proof Require Import MatrixHelpers. 
 From Proof Require Import SwapHelpers.
-From Proof Require Import SwapProperty.
 From Proof Require Import QubitHelpers.
 From Proof Require Import WFHelpers.
 
@@ -78,24 +77,36 @@ Lemma ccu_sum_expansion : forall (U : Square 2),
   WF_Matrix U -> ccu U = ∣0⟩⟨0∣ ⊗ I 2 ⊗ I 2 .+ ∣1⟩⟨1∣ ⊗ (control U).
 Proof.
   intros.
-  rewrite kron_assoc; solve_WF_matrix.
-  lma'.
-  all: unfold ccu.
-  all: rewrite Mplus_access.
-  all: rewrite upper_left_block_nonentries; solve_WF_matrix; try lia.
-  all: rewrite lower_right_block_entries; solve_WF_matrix; try lia.
-  2,4,6,8: apply (@WF_control 2).
+  unfold ccu.
+  rewrite control_decomp, (@direct_sum_decomp _ _ 0 0).
+  rewrite kron_assoc, id_kron.
   all: solve_WF_matrix.
-  all: unfold control; simpl; lca.
 Qed.
 
 Lemma swapab_ccu: forall (U: Square 2), WF_Matrix U ->
   swapab × (ccu U) × swapab = ccu U.
 Proof.
   intros.
-  (* PERF: This is very slow; perhaps can be optimized if we rewrite our swap
-           gates to use swap_two from QuantumLib *)
-  lma'.
+  unfold swapab.
+  unfold ccu.
+  repeat rewrite control_decomp, (@direct_sum_decomp _ _ 0 0).
+  rewrite kron_plus_distr_l.
+  repeat rewrite Mmult_plus_distr_l.
+  repeat rewrite Mmult_plus_distr_r.
+  rewrite <- id_kron.
+  repeat rewrite <- kron_assoc.
+  repeat rewrite (@kron_mixed_product 4 4 4 2 2 2).
+  repeat rewrite swap_2gate.
+  Msimpl_light.
+  rewrite <- Mplus01 at 1 4.
+  repeat rewrite kron_assoc.
+  repeat rewrite kron_plus_distr_r.
+  rewrite kron_plus_distr_l.
+  rewrite Mplus_assoc.
+  rewrite <- Mplus_assoc with (A := ∣1⟩⟨1∣ ⊗ (∣0⟩⟨0∣ ⊗ I 2)).
+  rewrite Mplus_comm with (A := ∣1⟩⟨1∣ ⊗ (∣0⟩⟨0∣ ⊗ I 2)).
+  repeat rewrite <- Mplus_assoc.
+  all: solve_WF_matrix.
 Qed.
 
 Lemma ccu_adjoint: forall (U: Square 2), WF_Matrix U -> (ccu U)† = ccu U†.
