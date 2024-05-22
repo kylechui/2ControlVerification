@@ -50,9 +50,16 @@ Proof.
       exists V00, V11.
       assert (W_eq_blocks : (diag2 u0 u1) ⊗ (I 2) ⊗ (I 2) = ∣0⟩⟨0∣ ⊗ (u0 .*(I 4)) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ (u1 .* (I 4))).
       {
-        unfold diag2.
-        lma'; solve_WF_matrix.
-        show_wf.
+        Msimpl_light.
+        repeat rewrite Mscale_kron_dist_r.
+        repeat rewrite <- Mscale_kron_dist_l.
+        repeat rewrite <- kron_plus_distr_r.
+        rewrite kron_assoc, id_kron.
+        apply (kron_simplify 2 2 4 4).
+        (* TODO: Prove this as diag2_decomp *)
+        lma'.
+        1, 2: unfold diag2, scale, Mplus; simpl; lca.
+        all: solve_WF_matrix.
       }
       assert (UW : U × (diag2 u0 u1 ⊗ I 2 ⊗ I 2) = ∣0⟩⟨0∣ ⊗ (u0 .* V00) .+ ∣0⟩⟨1∣ ⊗ (u1 .* V01) .+ ∣1⟩⟨0∣ ⊗ (u0 .* V10) .+ ∣1⟩⟨1∣ ⊗ (u1 .* V11)).
       {
