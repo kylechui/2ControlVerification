@@ -1651,11 +1651,7 @@ Proof.
       all: unfold kron, diag2, I, control; simpl; lca.
     }
     {
-      assert (Cexp_Cmod : forall (c : C), Cmod c = 1 -> exists (θ : R), Cexp θ = c).
-      {
-        admit.
-      }
-      pose proof (Cexp_Cmod u1 unit_u1) as [θ u1_Cexp]; clear Cexp_Cmod.
+      pose proof (Cexp_Cmod u1 unit_u1) as [θ u1_Cexp].
       assert (u0_Cexp : Cexp (-θ) = u0).
       {
         rewrite <- Cexp_0 in u0u1_eq_1.
@@ -1843,4 +1839,4 @@ Proof.
       }
     }
   }
-Admitted.
+Qed.
