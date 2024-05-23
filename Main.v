@@ -515,24 +515,14 @@ Proof.
       apply Mmult_unitary; auto.
       apply diag2_unitary; auto.
     }
-    assert (step : control (diag2 u0 u1) = I 2 .⊕ diag2 u0 u1).
-    {
-      rewrite (direct_sum_decomp _ _ 2 2)%nat; solve_WF_matrix.
-      lma'.
-      all: unfold control, diag2, adjoint, I, kron, Mmult, Mplus; simpl; lca.
-    }
     assert (step2 : (I 2 ⊗ P) × control (diag2 u0 u1) = P .⊕ PD).
     {
-      rewrite step.
+      rewrite control_decomp.
       repeat rewrite (direct_sum_decomp _ _ 2 2)%nat; auto.
       rewrite Mmult_plus_distr_l.
       repeat rewrite kron_mixed_product; Msimpl_light.
       reflexivity.
-      apply Unitary_P.
-      apply Unitary_P.
-      apply Unitary_PD.
-      apply WF_I.
-      apply WF_diag2.
+      all: solve_WF_matrix.
     }
     pose proof (a3 P Unitary_P) as [VP [DP [Unitary_VP [Diagonal_DP P_decomp]]]].
     pose proof (a3 PD Unitary_PD) as [VPD [DPD [Unitary_VPD [Diagonal_DPD PD_decomp]]]].
@@ -1845,6 +1835,165 @@ Proof.
         reflexivity.
         all: solve_WF_matrix.
       }
+    }
+  }
+Qed.
+
+Lemma m4_4 : forall (u0 u1 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
+  (exists (V1 V2 V3 V4 : Square 4),
+    WF_Unitary V1 /\ WF_Unitary V2 /\ WF_Unitary V3 /\ WF_Unitary V4 /\
+    exists (P0 P1 : Square 2),
+      WF_Unitary P0 /\ WF_Unitary P1 /\ V4 = ∣0⟩⟨0∣ ⊗ P0 .+ ∣1⟩⟨1∣ ⊗ P1 /\
+      (acgate V1 × bcgate V2 × acgate V3 × bcgate V4 = ccu (diag2 u0 u1)))
+  <-> u0 = u1 \/ u0 * u1 = C1.
+Proof.
+  intros u0 u1 unit_u0 unit_u1.
+  assert (conj : u0^* = u1^* \/ u0^* * u1^* = C1 <-> u0 = u1 \/ u0 * u1 = C1).
+  {
+    split.
+    {
+      intro.
+      destruct H.
+      {
+        left.
+        apply (f_equal (fun f => f^*)) in H.
+        repeat rewrite Cconj_involutive in H.
+        exact H.
+      }
+      {
+        right.
+        rewrite <- Cconj_mult_distr in H.
+        apply (f_equal (fun f => f^*)) in H.
+        rewrite Cconj_involutive in H.
+        rewrite H; lca.
+      }
+    }
+    {
+      intro.
+      destruct H.
+      {
+        left.
+        rewrite H; lca.
+      }
+      {
+        right.
+        rewrite <- Cconj_mult_distr.
+        rewrite H; lca.
+      }
+    }
+  }
+  assert (diag2_adjoint : diag2 (u0 ^*) (u1 ^*) = (diag2 u0 u1)†).
+  {
+    lma'.
+    all: unfold diag2, adjoint; simpl; reflexivity.
+  }
+  split.
+  {
+    intro.
+    destruct H as [V1 [V2 [V3 [V4 H]]]].
+    destruct H as [Unitary_V1 [Unitary_V2 [Unitary_V3 [Unitary_V4 H]]]].
+    destruct H as [P0 [P1 [Unitary_P0 [Unitary_P1 H]]]].
+    destruct H as [H H0].
+    rewrite <- conj; clear conj.
+    rewrite <- m4_3.
+    exists V4†, V3†, V2†, V1†.
+    split; solve_WF_matrix.
+    split; solve_WF_matrix.
+    split; solve_WF_matrix.
+    split; solve_WF_matrix.
+    exists P0†, P1†.
+    split; solve_WF_matrix.
+    split; solve_WF_matrix.
+    split.
+    {
+      rewrite H.
+      rewrite Mplus_adjoint.
+      repeat rewrite kron_adjoint.
+      rewrite adjoint00, adjoint11.
+      reflexivity.
+    }
+    {
+      rewrite diag2_adjoint; clear diag2_adjoint.
+      rewrite <- a13_1.
+      unfold ccu. unfold ccu in H0.
+      repeat rewrite <- control_adjoint.
+      rewrite <- H0; clear H0.
+      rewrite <- a12 with (U := V2).
+      rewrite <- a12 with (U := V4).
+      repeat rewrite Mmult_adjoint.
+      repeat rewrite <- Mmult_assoc.
+      repeat rewrite swapab_hermitian at 1.
+      rewrite swapab_inverse at 1.
+      rewrite Mmult_1_l.
+      repeat rewrite Mmult_assoc.
+      rewrite <- Mmult_assoc with (A := swapab).
+      rewrite <- Mmult_assoc with (B := swapab).
+      rewrite <- Mmult_assoc with (A := swapab).
+      repeat rewrite acgate_adjoint.
+      repeat rewrite a12.
+      all: solve_WF_matrix.
+    }
+    {
+      rewrite Cmod_Cconj; auto.
+    }
+    {
+      rewrite Cmod_Cconj; auto.
+    }
+  }
+  {
+    intro.
+    rewrite <- conj in H; clear conj.
+    rewrite <- Cmod_Cconj in unit_u0, unit_u1.
+    pose proof (
+      m4_3
+      (u0^*) (u1^*)
+      unit_u0 unit_u1
+    ).
+    rewrite <- H0 in H; clear H0.
+    destruct H as [V1 [V2 [V3 [V4 [Unitary_V1 [Unitary_V2 [Unitary_V3 [Unitary_V4 H]]]]]]]].
+    destruct H as [P0 [P1 [Unitary_P0 [Unitary_P1 [H H0]]]]].
+    exists V4†, V3†, V2†, V1†.
+    split; solve_WF_matrix.
+    split; solve_WF_matrix.
+    split; solve_WF_matrix.
+    split; solve_WF_matrix.
+    exists P0†, P1†.
+    split; solve_WF_matrix.
+    split; solve_WF_matrix.
+    split.
+    {
+      rewrite H.
+      rewrite Mplus_adjoint.
+      repeat rewrite kron_adjoint.
+      rewrite adjoint00, adjoint11.
+      reflexivity.
+    }
+    {
+      (* TODO: A bit repetitive here; we can probably pull this out to an assertion*)
+      rewrite diag2_adjoint in H0.
+      unfold ccu in H0.
+      repeat rewrite <- control_adjoint in H0.
+      rewrite <- a13_1.
+      unfold ccu.
+      apply (f_equal (fun f => f†)) in H0.
+      rewrite adjoint_involutive in H0.
+      rewrite <- H0; clear H0.
+      repeat rewrite Mmult_adjoint.
+      repeat rewrite <- Mmult_assoc.
+      rewrite <- a12 with (U := V2).
+      rewrite <- a12 with (U := V4).
+      repeat rewrite Mmult_adjoint.
+      repeat rewrite <- Mmult_assoc.
+      repeat rewrite swapab_hermitian at 1.
+      rewrite swapab_inverse at 1.
+      rewrite Mmult_1_l.
+      repeat rewrite Mmult_assoc.
+      rewrite <- Mmult_assoc with (A := swapab).
+      rewrite <- Mmult_assoc with (B := swapab).
+      rewrite <- Mmult_assoc with (A := swapab).
+      repeat rewrite acgate_adjoint.
+      repeat rewrite a12.
+      all: solve_WF_matrix.
     }
   }
 Qed.
