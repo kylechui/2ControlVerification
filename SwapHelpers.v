@@ -86,6 +86,14 @@ Proof.
   apply mat_equiv_refl.
 Qed.
 
+Lemma swapab_hermitian : swapab† = swapab.
+Proof.
+  unfold swapab.
+  rewrite kron_adjoint.
+  rewrite swap_hermitian, id_adjoint_eq.
+  reflexivity.
+Qed.
+
 Lemma swap_2q : forall (a b : Vector 2),
   WF_Matrix a -> WF_Matrix b ->
     swap × (a ⊗ b) = b ⊗ a.
