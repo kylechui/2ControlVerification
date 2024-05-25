@@ -28,7 +28,6 @@ Ltac solve_WF_matrix :=
                            | [ H : WF_Qubit A |- _ ] => apply H
                            | _ => auto_wf; autounfold with M_db; try unfold A
                            end
-      | |- WF_Unitary (control _) => apply control_unitary
       | |- WF_Unitary (adjoint _) => apply adjoint_unitary
       | |- WF_Unitary (Mopp _) => unfold Mopp
       | |- WF_Unitary (_ × _) => apply Mmult_unitary
