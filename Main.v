@@ -2128,5 +2128,22 @@ Proof.
       repeat rewrite Mmult_assoc.
       repeat rewrite <- Mmult_assoc with (C := bcgate notc).
       rewrite ac_ab_simpl at 1.
-      (* TODO: @Arsh finish up here :) *)
+      
+      rewrite H_prod.
+      unfold diag2, diag4, kron, I; simpl.
+      unfold bcgate; simpl.
+      unfold notc, kron; simpl.
+      unfold ccu; simpl.
+      unfold control, diag2, I; simpl.
+      Msimpl.
+      solve_matrix.
+      Ltac simplify_match :=
+        match goal with
+        | [ |- context[match ?x with _ => _ end] ] => destruct x
+        end.
+      repeat simplify_match.
+      all: repeat reflexivity.
+      repeat simplify_match.
+      all: repeat reflexivity.
+      
 Admitted.
