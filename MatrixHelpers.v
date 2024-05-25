@@ -56,68 +56,14 @@ Definition diag4 (c1 c2 c3 c4 : C) : Square 4 :=
 
 Lemma WF_diag2: forall (c1 c2 : C), WF_Matrix (diag2 c1 c2).
 Proof.
-  unfold WF_Matrix.
   intros.
-  destruct H.
-  {
-    unfold diag2.
-    destruct x as [|x'].
-    contradict H.
-    lia.
-    destruct x' as [|x''].
-    contradict H.
-    lia. reflexivity.
-  }
-  {
-    unfold diag2.
-    destruct x as [|x'].
-    destruct y as [|y'].
-    contradict H.
-    lia. reflexivity.
-    destruct x' as [|x''].
-    destruct y as [|y'].
-    contradict H.
-    lia.
-    destruct y' as [|y''].
-    contradict H.
-    lia. reflexivity. reflexivity.
-  }
+  show_wf.
 Qed.
 
 Lemma WF_diag4: forall (c1 c2 c3 c4 : C), WF_Matrix (diag4 c1 c2 c3 c4).
 Proof.
-  unfold WF_Matrix.
   intros.
-  destruct H.
-  {
-    unfold diag4.
-    destruct x.
-    - lia.
-    - destruct x.
-      + lia.
-      + destruct x.
-        * lia.
-        * destruct x.
-          lia. reflexivity.
-  }
-  {
-    unfold diag4.
-    destruct y.
-    - lia.
-    - destruct y.
-      + lia.
-      + destruct y.
-        * lia.
-        * destruct y.
-          -- lia.
-          -- destruct x.
-             ++ reflexivity.
-             ++ destruct x.
-                ** reflexivity.
-                ** destruct x.
-                   --- reflexivity.
-                   --- destruct x; reflexivity.
-  }
+  show_wf.
 Qed.
 
 #[export] Hint Resolve WF_diag2 WF_diag4 : wf_db.
@@ -133,7 +79,24 @@ Proof.
   Csimpl; rewrite <- Cmod_sqr, unit_c2; lca.
 Qed.
 
-#[export] Hint Resolve diag2_unitary : unit_db.
+Lemma diag4_unitary : forall (c1 c2 c3 c4 : C),
+  Cmod c1 = 1 -> Cmod c2 = 1 -> Cmod c3 = 1 -> Cmod c4 = 1 ->
+  WF_Unitary (diag4 c1 c2 c3 c4).
+Proof.
+  intros c1 c2 c3 c4 unit_c1 unit_c2 unit_c3 unit_c4.
+  split. apply WF_diag4.
+  lma'.
+  unfold Mmult, adjoint, diag4, I; simpl.
+  Csimpl; rewrite <- Cmod_sqr, unit_c1; lca.
+  unfold Mmult, adjoint, diag4, I; simpl.
+  Csimpl; rewrite <- Cmod_sqr, unit_c2; lca.
+  unfold Mmult, adjoint, diag4, I; simpl.
+  Csimpl; rewrite <- Cmod_sqr, unit_c3; lca.
+  unfold Mmult, adjoint, diag4, I; simpl.
+  Csimpl; rewrite <- Cmod_sqr, unit_c4; lca.
+Qed.
+
+#[export] Hint Resolve diag2_unitary diag4_unitary : unit_db.
 
 Lemma Det_diag2 : forall (c1 c2 : C), Determinant (diag2 c1 c2) = c1 * c2.
 Proof.
