@@ -1483,10 +1483,7 @@ Proof.
     destruct H as [Unitary_V1 [Unitary_V2 [Unitary_V3 [Unitary_V4 H]]]].
     destruct H as [P0 [P1 [Unitary_P0 [Unitary_P1 H]]]].
     destruct H as [H H0].
-    assert (Unitary_diag : WF_Unitary (control (diag2 u0 u1))).
-    {
-      apply control_unitary, diag2_unitary; auto.
-    }
+    assert (Unitary_diag : WF_Unitary (control (diag2 u0 u1))) by solve_WF_matrix.
     assert (ccdiag_decomp : ccu (diag2 u0 u1) = ∣0⟩⟨0∣ ⊗ (I 4) .+ ∣1⟩⟨1∣ ⊗ (control (diag2 u0 u1))).
     {
       unfold ccu.
@@ -1614,11 +1611,13 @@ Proof.
     intros.
     destruct H as [u0_eq_u1 | u0u1_eq_1].
     {
+      pose proof Cmod_1.
       rewrite u0_eq_u1; clear u0_eq_u1.
       exists (I 4), swap, (control (diag2 C1 u1)), swap.
       split. apply id_unitary.
       split. apply swap_unitary.
-      split. apply (@control_unitary 2), diag2_unitary. apply Cmod_1. assumption.
+      (* TODO(Kyle): Unsure why we need to manually apply control_unitary here *)
+      split. apply (control_unitary 2). solve_WF_matrix.
       split. apply swap_unitary.
       exists (I 2), (I 2).
       split. apply id_unitary.
