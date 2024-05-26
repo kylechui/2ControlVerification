@@ -12,7 +12,9 @@ Ltac solve_WF_matrix :=
       try reflexivity;
       try assumption;
       try match goal with
-      | [ A : Square ?n |- WF_Matrix (control ?A) ] => apply (@WF_control n)
+      | |- WF_Matrix (control ?A) => match type of A with
+                                     | Square ?n => apply (@WF_control n)
+                                     end
       | |- WF_Matrix (adjoint _) => apply WF_adjoint
       | |- WF_Matrix (Mopp _) => unfold Mopp
       | |- WF_Matrix (_ .+ _) => apply WF_plus; try lia
@@ -29,10 +31,16 @@ Ltac solve_WF_matrix :=
       | |- WF_Unitary (adjoint _) => apply adjoint_unitary
       | |- WF_Unitary (Mopp _) => unfold Mopp
       | |- WF_Unitary (_ × _) => apply Mmult_unitary
-      (* TODO: Make this lemma *)
-      (*| |- WF_Unitary (_ .⊕ _) => apply direct_sum_unitary; try lia*)
-      | [ A : Square ?m, B : Square ?n  |- WF_Unitary (?A ⊗ ?B) ] => apply (@kron_unitary m n)
-      | [ A : Square ?n |- WF_Unitary (control ?A) ] => apply (@control_unitary n)
+      (* TODO: Upstream `direct_sum_unitary`, otherwise we can't have this case *)
+      (*| |- WF_Unitary (_ .⊕ _) => apply direct_sum_unitary *)
+      | |- WF_Unitary (?A ⊗ ?B) => match type of A with
+                                     | Square ?m => match type of B with
+                                                    | Square ?n => apply (@kron_unitary m n)
+                                                    end
+                                     end
+      | |- WF_Unitary (control ?A) => match type of A with
+                                      | Square ?n => apply (@control_unitary n)
+                                      end
       | |- WF_Unitary ?A => match goal with
                             | [ H : WF_Unitary A |- _ ] => apply H
                             | _ => auto with unit_db; autounfold with M_db; try unfold A

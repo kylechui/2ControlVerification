@@ -149,26 +149,26 @@ Lemma direct_sum_unitary : forall {n : nat} (P Q : Square n),
 Proof.
   intros n P Q [WF_P Unitary_P] [WF_Q Unitary_Q].
   unfold WF_Unitary.
-  split; try apply WF_direct_sum; auto.
-  repeat rewrite direct_sum_decomp; auto.
+  split. apply WF_direct_sum; auto.
+  rewrite direct_sum_decomp; auto.
   replace (n + n)%nat with (2 * n)%nat by lia.
   rewrite Mplus_adjoint.
-  repeat rewrite Mmult_plus_distr_r.
+  rewrite Mmult_plus_distr_r.
   repeat rewrite Mmult_plus_distr_l.
   repeat rewrite kron_adjoint.
   repeat rewrite kron_mixed_product.
-  replace ∣0⟩⟨0∣† with ∣0⟩⟨0∣ by lma'.
-  replace ∣1⟩⟨1∣† with ∣1⟩⟨1∣ by lma'.
-  repeat rewrite cancel00; auto with wf_db.
-  repeat rewrite cancel11; auto with wf_db.
-  repeat rewrite cancel01; Msimpl_light.
-  repeat rewrite cancel10; Msimpl_light.
+  rewrite adjoint00, adjoint11.
+  rewrite cancel00, cancel01, cancel10, cancel11; solve_WF_matrix.
+  repeat rewrite kron_0_l.
+  rewrite Mplus_0_l, Mplus_0_r.
   rewrite Unitary_P, Unitary_Q.
   rewrite <- kron_plus_distr_r.
   rewrite Mplus01.
   rewrite id_kron.
   reflexivity.
 Qed.
+
+#[export] Hint Resolve direct_sum_unitary : unit_db.
 
 Lemma direct_sum_diagonal : forall {n : nat} (P Q : Square n),
   WF_Diagonal P -> WF_Diagonal Q -> WF_Diagonal (P .⊕ Q).
