@@ -33,4 +33,5 @@ nlia.cache
 nra.cache
 .vscode/
 .DS_Store
-CoqMakefile*
+CoqMakefile
+CoqMakefile.conf
