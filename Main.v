@@ -517,11 +517,9 @@ Proof.
     }
     assert (step2 : (I 2 ⊗ P) × control (diag2 u0 u1) = P .⊕ PD).
     {
-      rewrite control_decomp.
-      repeat rewrite (direct_sum_decomp _ _ 2 2)%nat; auto.
+      rewrite control_decomp, (direct_sum_decomp _ _ 0 0).
       rewrite Mmult_plus_distr_l.
       repeat rewrite kron_mixed_product; Msimpl_light.
-      reflexivity.
       all: solve_WF_matrix.
     }
     pose proof (a3 P Unitary_P) as [VP [DP [Unitary_VP [Diagonal_DP P_decomp]]]].
@@ -1014,7 +1012,7 @@ Proof.
   - intros [U [V [P0 [P1 [Q0 [Q1 [Unitary_U [Unitary_V [Unitary_P0 [Unitary_P1 [Unitary_Q0 [Unitary_Q1 H1]]]]]]]]]]]].
     rewrite <- (direct_sum_decomp _ _ 0 0) in H1; solve_WF_matrix.
     unfold ccu in H1.
-    rewrite control_decomp in H1.
+    rewrite control_direct_sum in H1.
     assert (H2 : (U × (P0 ⊗ Q0) × V) = I 4 /\ (U × (P1 ⊗ Q1) × V) = control (diag2 u0 u1)).
     {
       apply direct_sum_simplify; solve_WF_matrix.
@@ -1066,12 +1064,14 @@ Proof.
       rewrite id_kron.
       Msimpl_light.
       unfold ccu.
-      rewrite control_decomp, <- (direct_sum_decomp _ _ 0 0); solve_WF_matrix.
+      rewrite <- (direct_sum_decomp _ _ 0 0); solve_WF_matrix.
+      rewrite control_direct_sum.
       rewrite direct_sum_simplify; solve_WF_matrix.
-      split; try reflexivity.
-      (* PERF: Can probably be sped up by omitting lma' *)
-      lma'; solve_WF_matrix.
-      all: unfold notc, Mmult, diag2, control, kron; simpl; Csimpl; reflexivity.
+      split. reflexivity.
+      lma'.
+      (* TODO: Why doesn't solve_WF_matrix work? *)
+      apply (WF_control 2), WF_diag2.
+      all: unfold diag2, control, kron; simpl; Csimpl; reflexivity.
     + exists notc, notc, (I 2), (diag2 1 u0), (I 2), (diag2 1 u1).
       split. apply notc_unitary.
       split. apply notc_unitary.
@@ -1079,15 +1079,16 @@ Proof.
       split. apply diag2_unitary; auto; apply Cmod_1.
       split. apply id_unitary.
       split. apply diag2_unitary; auto; apply Cmod_1.
-      rewrite id_kron.
-      Msimpl_light.
-      rewrite notc_notc.
+      rewrite id_kron, Mmult_1_r.
+      rewrite notc_notc at 1.
       unfold ccu.
-      rewrite control_decomp, <- (direct_sum_decomp _ _ 0 0); solve_WF_matrix.
-      rewrite direct_sum_simplify; solve_WF_matrix.
-      split; try reflexivity.
+      rewrite <- (direct_sum_decomp _ _ 0 0).
+      rewrite control_direct_sum.
+      rewrite direct_sum_simplify.
+      split. reflexivity.
       (* PERF: Can probably be sped up by omitting lma' *)
-      lma'; solve_WF_matrix.
+      lma'.
+      all: solve_WF_matrix.
       all: unfold notc, Mmult, diag2, control, kron; simpl; Csimpl; auto.
 Qed.
 
@@ -1486,8 +1487,7 @@ Proof.
     assert (ccdiag_decomp : ccu (diag2 u0 u1) = ∣0⟩⟨0∣ ⊗ (I 4) .+ ∣1⟩⟨1∣ ⊗ (control (diag2 u0 u1))).
     {
       unfold ccu.
-      rewrite control_decomp.
-      rewrite <- (direct_sum_decomp _ _ 0 0); solve_WF_matrix.
+      rewrite control_decomp; solve_WF_matrix.
     }
     rewrite ccdiag_decomp in H0.
     pose proof (
@@ -1634,7 +1634,7 @@ Proof.
       Msimpl_light.
       rewrite id_kron; Msimpl_light.
       unfold ccu.
-      do 2 rewrite control_decomp.
+      do 2 rewrite control_direct_sum.
       (* TODO: prove kron distributes over direct sums *)
       repeat rewrite (direct_sum_decomp _ _ 0 0); solve_WF_matrix.
       rewrite kron_plus_distr_r.
@@ -1700,7 +1700,7 @@ Proof.
       split.
       {
         unfold V.
-        rewrite control_decomp, (direct_sum_decomp _ _ 0 0); solve_WF_matrix.
+        rewrite control_decomp; solve_WF_matrix.
       }
       {
         assert (step1 : P = (/ u) .* ∣0⟩⟨0∣ .+ u .* ∣1⟩⟨1∣).
@@ -1730,7 +1730,7 @@ Proof.
         assert (step3 : acgate V = ∣0⟩⟨0∣ ⊗ I 4 .+ ∣1⟩⟨1∣ ⊗ I 2 ⊗ P).
         {
           unfold acgate, abgate, swapbc, V.
-          rewrite control_decomp, (direct_sum_decomp _ _ 0 0); solve_WF_matrix.
+          rewrite control_decomp; solve_WF_matrix.
           rewrite kron_plus_distr_r.
           rewrite kron_assoc; solve_WF_matrix.
           rewrite kron_assoc; solve_WF_matrix.
@@ -1776,7 +1776,7 @@ Proof.
           rewrite cancel00, cancel01, cancel10, cancel11.
           Msimpl_light.
           rewrite step4.
-          rewrite control_decomp, (@direct_sum_decomp _ _ 0 0).
+          rewrite control_decomp.
           reflexivity.
           all: solve_WF_matrix.
         }
@@ -1830,7 +1830,7 @@ Proof.
         repeat rewrite kron_assoc.
         rewrite <- (kron_plus_distr_l 2 2 4 4).
         rewrite <- (@direct_sum_decomp _ _ 0 0).
-        rewrite control_decomp.
+        rewrite control_direct_sum.
         reflexivity.
         all: solve_WF_matrix.
       }

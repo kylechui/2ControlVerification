@@ -2268,7 +2268,7 @@ rewrite H.
 apply kron_plus_distr_r.
 Qed.
 
-Lemma control_decomp : forall {n} (A : Square n), control A = I n .⊕ A.
+Lemma control_direct_sum : forall {n} (A : Square n), control A = I n .⊕ A.
 Proof.
   intros.
   prep_matrix_equality.
@@ -2321,6 +2321,14 @@ Proof.
       lca.
     }
   }
+Qed.
+
+Lemma control_decomp : forall {n} (A : Square n),
+  WF_Matrix A -> control A = ∣0⟩⟨0∣ ⊗ I n .+ ∣1⟩⟨1∣ ⊗ A.
+Proof.
+  intros.
+  rewrite control_direct_sum, (@direct_sum_decomp _ _ 0 0).
+  all: solve_WF_matrix.
 Qed.
 
 Lemma direct_sum_simplify : forall {n} (A B C D : Square n),

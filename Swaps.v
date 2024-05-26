@@ -45,7 +45,7 @@ Proof.
   intros.
   unfold swapbc.
   unfold ccu.
-  rewrite control_decomp, (@direct_sum_decomp _ _ 0 0).
+  rewrite control_decomp.
   rewrite Mmult_plus_distr_l.
   rewrite Mmult_plus_distr_r.
   repeat rewrite kron_mixed_product.
