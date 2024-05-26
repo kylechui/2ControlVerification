@@ -36,6 +36,16 @@ Proof.
   assumption.
 Qed.
 
+Lemma kron_direct_sum_distr_r : forall {m n o p} (A B : Matrix m n) (C : Matrix o p),
+  WF_Matrix A -> WF_Matrix B -> WF_Matrix C -> (A .⊕ B) ⊗ C = (A ⊗ C) .⊕ (B ⊗ C).
+Proof.
+  intros.
+  repeat rewrite (direct_sum_decomp _ _ 0 0).
+  rewrite (kron_plus_distr_r (2 * m) (2 * n) o p (∣0⟩⟨0∣ ⊗ A) (∣1⟩⟨1∣ ⊗ B) C) at 1.
+  repeat rewrite <- kron_assoc.
+  all: solve_WF_matrix.
+Qed.
+
 Definition diag2 (c1 c2 : C) : Square 2 :=
   fun x y =>
     match (x,y) with
@@ -417,9 +427,7 @@ Lemma WF_blockmatrix {n}: forall (P00 P01 P10 P11: Square n),
   WF_Matrix (∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11).
 Proof.
   intros.
-  repeat apply WF_plus; auto.
-  all: try apply WF_kron; auto.
-  all: show_wf.
+  solve_WF_matrix.
 Qed.
 
 Lemma isolate_inner_mult {a b c d e}: forall (A: Matrix a b) (B: Matrix b c) (C: Matrix c d) (D: Matrix d e),
@@ -438,13 +446,17 @@ Lemma block_multiply {n}: forall (U V: Square (2*n)%nat) (P00 P01 P10 P11 Q00 Q0
   U × V = ∣0⟩⟨0∣ ⊗ (P00 × Q00 .+ P01 × Q10) .+ ∣0⟩⟨1∣ ⊗ (P00 × Q01 .+ P01×Q11) .+ ∣1⟩⟨0∣ ⊗ (P10×Q00 .+ P11 × Q10) .+ ∣1⟩⟨1∣ ⊗ (P10 × Q01 .+ P11 × Q11).
 Proof.
   intros.
-  rewrite H7, H8.
+  rewrite H7, H8; clear H7 H8.
   repeat rewrite Mmult_plus_distr_l.
   repeat rewrite Mmult_plus_distr_r.
   repeat rewrite kron_mixed_product.
-  repeat rewrite isolate_inner_mult.
-  rewrite Mmult00, Mmult01, Mmult10, Mmult11.
-  solve_matrix.
+  repeat rewrite cancel00.
+  repeat rewrite cancel01.
+  repeat rewrite cancel10.
+  repeat rewrite cancel11.
+  Msimpl_light.
+  lma'.
+  all: solve_WF_matrix.
 Qed.
 
 Lemma upper_left_block_entries {n}: forall (A : Square n) (i j: nat),
@@ -2268,7 +2280,7 @@ rewrite H.
 apply kron_plus_distr_r.
 Qed.
 
-Lemma control_decomp : forall {n} (A : Square n), control A = I n .⊕ A.
+Lemma control_direct_sum : forall {n} (A : Square n), control A = I n .⊕ A.
 Proof.
   intros.
   prep_matrix_equality.
@@ -2321,6 +2333,14 @@ Proof.
       lca.
     }
   }
+Qed.
+
+Lemma control_decomp : forall {n} (A : Square n),
+  WF_Matrix A -> control A = ∣0⟩⟨0∣ ⊗ I n .+ ∣1⟩⟨1∣ ⊗ A.
+Proof.
+  intros.
+  rewrite control_direct_sum, (@direct_sum_decomp _ _ 0 0).
+  all: solve_WF_matrix.
 Qed.
 
 Lemma direct_sum_simplify : forall {n} (A B C D : Square n),

@@ -78,7 +78,7 @@ Lemma ccu_sum_expansion : forall (U : Square 2),
 Proof.
   intros.
   unfold ccu.
-  rewrite control_decomp, (@direct_sum_decomp _ _ 0 0).
+  rewrite control_decomp.
   rewrite kron_assoc, id_kron.
   all: solve_WF_matrix.
 Qed.
@@ -89,7 +89,7 @@ Proof.
   intros.
   unfold swapab.
   unfold ccu.
-  repeat rewrite control_decomp, (@direct_sum_decomp _ _ 0 0).
+  repeat rewrite control_decomp.
   rewrite kron_plus_distr_l.
   repeat rewrite Mmult_plus_distr_l.
   repeat rewrite Mmult_plus_distr_r.
