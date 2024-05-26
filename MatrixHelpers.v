@@ -36,6 +36,16 @@ Proof.
   assumption.
 Qed.
 
+Lemma kron_direct_sum_distr_r : forall {m n o p} (A B : Matrix m n) (C : Matrix o p),
+  WF_Matrix A -> WF_Matrix B -> WF_Matrix C -> (A .⊕ B) ⊗ C = (A ⊗ C) .⊕ (B ⊗ C).
+Proof.
+  intros.
+  repeat rewrite (direct_sum_decomp _ _ 0 0).
+  rewrite (kron_plus_distr_r (2 * m) (2 * n) o p (∣0⟩⟨0∣ ⊗ A) (∣1⟩⟨1∣ ⊗ B) C) at 1.
+  repeat rewrite <- kron_assoc.
+  all: solve_WF_matrix.
+Qed.
+
 Definition diag2 (c1 c2 : C) : Square 2 :=
   fun x y =>
     match (x,y) with

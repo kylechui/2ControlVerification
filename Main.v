@@ -1635,13 +1635,7 @@ Proof.
       rewrite id_kron; Msimpl_light.
       unfold ccu.
       do 2 rewrite control_direct_sum.
-      (* TODO: prove kron distributes over direct sums *)
-      repeat rewrite (direct_sum_decomp _ _ 0 0); solve_WF_matrix.
-      rewrite kron_plus_distr_r.
-      rewrite kron_assoc with (C := I 2); solve_WF_matrix.
-      rewrite kron_assoc with (C := I 2); solve_WF_matrix.
-      repeat rewrite <- (direct_sum_decomp 4 4 0 0); solve_WF_matrix.
-
+      rewrite kron_direct_sum_distr_r with (A := I 2) at 1; solve_WF_matrix.
       rewrite direct_sum_simplify; solve_WF_matrix.
       split. rewrite id_kron; reflexivity.
       lma'; solve_WF_matrix.
