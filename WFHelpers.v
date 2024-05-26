@@ -29,8 +29,8 @@ Ltac solve_WF_matrix :=
       | |- WF_Unitary (adjoint _) => apply adjoint_unitary
       | |- WF_Unitary (Mopp _) => unfold Mopp
       | |- WF_Unitary (_ × _) => apply Mmult_unitary
-      (* TODO: Make this lemma *)
-      (*| |- WF_Unitary (_ .⊕ _) => apply direct_sum_unitary; try lia*)
+      (* TODO: Upstream `direct_sum_unitary`, otherwise we can't have this case *)
+      (*| |- WF_Unitary (_ .⊕ _) => apply direct_sum_unitary *)
       | [ A : Square ?m, B : Square ?n  |- WF_Unitary (?A ⊗ ?B) ] => apply (@kron_unitary m n)
       | [ A : Square ?n |- WF_Unitary (control ?A) ] => apply (@control_unitary n)
       | |- WF_Unitary ?A => match goal with
