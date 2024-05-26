@@ -427,9 +427,7 @@ Lemma WF_blockmatrix {n}: forall (P00 P01 P10 P11: Square n),
   WF_Matrix (∣0⟩⟨0∣ ⊗ P00 .+ ∣0⟩⟨1∣ ⊗ P01 .+ ∣1⟩⟨0∣ ⊗ P10 .+ ∣1⟩⟨1∣ ⊗ P11).
 Proof.
   intros.
-  repeat apply WF_plus; auto.
-  all: try apply WF_kron; auto.
-  all: show_wf.
+  solve_WF_matrix.
 Qed.
 
 Lemma isolate_inner_mult {a b c d e}: forall (A: Matrix a b) (B: Matrix b c) (C: Matrix c d) (D: Matrix d e),
@@ -448,13 +446,17 @@ Lemma block_multiply {n}: forall (U V: Square (2*n)%nat) (P00 P01 P10 P11 Q00 Q0
   U × V = ∣0⟩⟨0∣ ⊗ (P00 × Q00 .+ P01 × Q10) .+ ∣0⟩⟨1∣ ⊗ (P00 × Q01 .+ P01×Q11) .+ ∣1⟩⟨0∣ ⊗ (P10×Q00 .+ P11 × Q10) .+ ∣1⟩⟨1∣ ⊗ (P10 × Q01 .+ P11 × Q11).
 Proof.
   intros.
-  rewrite H7, H8.
+  rewrite H7, H8; clear H7 H8.
   repeat rewrite Mmult_plus_distr_l.
   repeat rewrite Mmult_plus_distr_r.
   repeat rewrite kron_mixed_product.
-  repeat rewrite isolate_inner_mult.
-  rewrite Mmult00, Mmult01, Mmult10, Mmult11.
-  solve_matrix.
+  repeat rewrite cancel00.
+  repeat rewrite cancel01.
+  repeat rewrite cancel10.
+  repeat rewrite cancel11.
+  Msimpl_light.
+  lma'.
+  all: solve_WF_matrix.
 Qed.
 
 Lemma upper_left_block_entries {n}: forall (A : Square n) (i j: nat),
