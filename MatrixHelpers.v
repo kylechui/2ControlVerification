@@ -2429,3 +2429,8 @@ Lemma notc_notc : notc × notc = I 4.
 Proof.
   lma'.
 Qed.
+
+Lemma diag_commute : forall {n} (A B : Square n), WF_Diagonal A -> WF_Diagonal B -> A × B = B × A.
+Proof.
+  admit.
+Admitted.

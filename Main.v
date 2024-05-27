@@ -2001,7 +2001,58 @@ Lemma m5_1 : forall (u0 u1 : C),
 
 Proof.
   split.
-  - admit.
+  - intros [U1 [U2 [U3 [U4 [H_U1 [H_U2 [H_U3 [H_U4]]]]]]]].
+    assert (adjoint_helper : U2 × U3 = U1† × ccu (diag2 u0 u1) × U4†).
+    {
+      admit.
+    }
+    (* commutativity *)
+    set (A := ((I 2) ⊗ U1)†).
+    set (B := (diag2 u0 u1) ⊗ (I 4)).
+    assert (WF_U_commutativity_U1 : A × B = B × A).
+    {
+      admit.
+    }
+    set (P := ((I 2) ⊗ U4)†).
+    set (Q := (diag2 u0 u1) ⊗ (I 4)).
+    assert (WF_U_commutativity_U4 : P × Q = Q × P).
+    {
+      admit.
+    }
+    (* TODO: show cc(diag2(u0, u1)) commutes with (diag2 u0 u1) ⊗ (I 4) using diag_commute helper lemma *)
+    assert (diag_commute_helper : ccu (diag2 u0 u1) × ((diag2 u0 u1) ⊗ (I 4)) = ((diag2 u0 u1) ⊗ (I 4)) × ccu (diag2 u0 u1)).
+    {
+      admit.
+    }
+    set (C := ccu (diag2 u0 u1)).
+    set (U2_ac := acgate U2).
+    set (U3_ab := abgate U3).
+    assert (U2U3_commutativity_subst : (A × B = B × A) -> (P × Q = Q × P) -> (ccu (diag2 u0 u1) × ((diag2 u0 u1) ⊗ (I 4)) = ((diag2 u0 u1) ⊗ (I 4)) × ccu (diag2 u0 u1)) -> ((U2_ac × U3_ab) × ((diag2 u0 u1) ⊗ (I 4)) = ((diag2 u0 u1) ⊗ (I 4)) × (U2_ac × U3_ab))).
+    {
+      admit.
+    }
+    assert (WF_U2U3 : WF_Unitary (U2_ac × U3_ab)).
+    {
+      admit.
+    }
+    pose proof (m3_1 u0 u1 H H0 (U2_ac × U3_ab) WF_U2U3) as [H2 H3].
+    destruct H2 as [u0_eq_u1 | u0u1_eq_1].
+    assert (kron_temp : (I 2) ⊗ (I 2) = I 4).
+    {
+      admit.
+    }
+    assert (diag_temp : (diag2 u0 u1) ⊗ I 2 ⊗ I 2 = (diag2 u0 u1) ⊗ I 4).
+    {
+      admit.
+    }
+    rewrite diag_temp.
+    apply U2U3_commutativity_subst; auto.
+    rewrite u0_eq_u1. auto.
+    destruct H3.
+    (* TODO: how to use m3_1 to conclude u0=u1 (I think I have done this) or U2_ac × U3_ab =
+∣0⟩⟨0∣ ⊗ V00 .+ ∣1⟩⟨1∣ ⊗ V11) *)
+    admit.
+    admit.
   - intros [H_eq | H_prod].
     + (* Case: u0 = u1 *)
       subst.
