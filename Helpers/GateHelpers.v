@@ -693,17 +693,8 @@ assert (case000_el_eq: abgate U 4%nat 0%nat = BL 0%nat 0%nat).
 {
     rewrite abgate_decomp.
     repeat rewrite Mplus_access.
-    rewrite upper_left_block_nonentries.
-    rewrite upper_right_block_nonentries.
-    rewrite lower_right_block_nonentries.
-    rewrite lower_left_block_entries.
-    Csimpl. simpl.
+    unfold kron, Mmult, adjoint, qubit0, qubit1, I; simpl.
     lca.
-    1,4,7,10: solve_WF_matrix.
-    1,3,5,7: lia.
-    split. lia. lia.
-    right. lia. left. lia.
-    left. lia.   
 }
 assert (case001_goal_change: forall (U: Square 4) (y: Vector 2), 
 (∣0⟩ ⊗ ∣0⟩ ⊗ y) 2%nat 0%nat = 0 -> (∣0⟩ ⊗ ∣0⟩ ⊗ y) 3%nat 0%nat = 0 ->
@@ -730,17 +721,8 @@ assert (case001_el_eq: abgate U 5%nat 1%nat = BL 0%nat 0%nat).
 {
     rewrite abgate_decomp.
     repeat rewrite Mplus_access.
-    rewrite upper_left_block_nonentries.
-    rewrite upper_right_block_nonentries.
-    rewrite lower_right_block_nonentries.
-    rewrite lower_left_block_entries.
-    Csimpl. simpl.
+    unfold kron, Mmult, adjoint, qubit0, qubit1, I; simpl.
     lca.
-    1,4,7,10: solve_WF_matrix.
-    1,3,5,7: lia.
-    split. lia. lia.
-    right. lia. left. lia.
-    left. lia.   
 }
 assert (case010_goal_change: forall (U: Square 4) (y: Vector 2), 
 (∣0⟩ ⊗ ∣1⟩ ⊗ y) 0%nat 0%nat = 0 -> (∣0⟩ ⊗ ∣1⟩ ⊗ y) 1%nat 0%nat = 0 ->
@@ -767,17 +749,8 @@ assert (case010_el_eq: abgate U 4%nat 2%nat = BL 0%nat 1%nat).
 {
     rewrite abgate_decomp.
     repeat rewrite Mplus_access.
-    rewrite upper_left_block_nonentries.
-    rewrite upper_right_block_nonentries.
-    rewrite lower_right_block_nonentries.
-    rewrite lower_left_block_entries.
-    Csimpl. simpl.
+    unfold kron, Mmult, adjoint, qubit0, qubit1, I; simpl.
     lca.
-    1,4,7,10: solve_WF_matrix.
-    1,3,5,7: lia.
-    split. lia. lia.
-    right. lia. left. lia.
-    left. lia.   
 }
 assert (case011_goal_change: forall (U: Square 4) (y: Vector 2), 
 (∣0⟩ ⊗ ∣1⟩ ⊗ y) 0%nat 0%nat = 0 -> (∣0⟩ ⊗ ∣1⟩ ⊗ y) 1%nat 0%nat = 0 ->
@@ -804,17 +777,8 @@ assert (case011_el_eq: abgate U 5%nat 3%nat = BL 0%nat 1%nat).
 {
     rewrite abgate_decomp.
     repeat rewrite Mplus_access.
-    rewrite upper_left_block_nonentries.
-    rewrite upper_right_block_nonentries.
-    rewrite lower_right_block_nonentries.
-    rewrite lower_left_block_entries.
-    Csimpl. simpl.
+    unfold kron, Mmult, adjoint, qubit0, qubit1, I; simpl.
     lca.
-    1,4,7,10: solve_WF_matrix.
-    1,3,5,7: lia.
-    split. lia. lia.
-    right. lia. left. lia.
-    left. lia.   
 }
 assert (case100_goal_change: forall (U: Square 4) (y: Vector 2), 
 (∣0⟩ ⊗ ∣0⟩ ⊗ y) 2%nat 0%nat = 0 -> (∣0⟩ ⊗ ∣0⟩ ⊗ y) 3%nat 0%nat = 0 ->
@@ -841,17 +805,8 @@ assert (case100_el_eq: abgate U 6%nat 0%nat = BL 1%nat 0%nat).
 {
     rewrite abgate_decomp.
     repeat rewrite Mplus_access.
-    rewrite upper_left_block_nonentries.
-    rewrite upper_right_block_nonentries.
-    rewrite lower_right_block_nonentries.
-    rewrite lower_left_block_entries.
-    Csimpl. simpl.
+    unfold kron, Mmult, adjoint, qubit0, qubit1, I; simpl.
     lca.
-    1,4,7,10: solve_WF_matrix.
-    1,3,5,7: lia.
-    split. lia. lia.
-    right. lia. left. lia.
-    left. lia.   
 }
 assert (case101_goal_change: forall (U: Square 4) (y: Vector 2), 
 (∣0⟩ ⊗ ∣0⟩ ⊗ y) 2%nat 0%nat = 0 -> (∣0⟩ ⊗ ∣0⟩ ⊗ y) 3%nat 0%nat = 0 ->
@@ -878,17 +833,8 @@ assert (case101_el_eq: abgate U 7%nat 1%nat = BL 1%nat 0%nat).
 {
     rewrite abgate_decomp.
     repeat rewrite Mplus_access.
-    rewrite upper_left_block_nonentries.
-    rewrite upper_right_block_nonentries.
-    rewrite lower_right_block_nonentries.
-    rewrite lower_left_block_entries.
-    Csimpl. simpl.
+    unfold kron, Mmult, adjoint, qubit0, qubit1, I; simpl.
     lca.
-    1,4,7,10: solve_WF_matrix.
-    1,3,5,7: lia.
-    split. lia. lia.
-    right. lia. left. lia.
-    left. lia.   
 }
 assert (case110_goal_change: forall (U: Square 4) (y: Vector 2), 
 (∣0⟩ ⊗ ∣1⟩ ⊗ y) 0%nat 0%nat = 0 -> (∣0⟩ ⊗ ∣1⟩ ⊗ y) 1%nat 0%nat = 0 ->
@@ -915,17 +861,8 @@ assert (case110_el_eq: abgate U 6%nat 2%nat = BL 1%nat 1%nat).
 {
     rewrite abgate_decomp.
     repeat rewrite Mplus_access.
-    rewrite upper_left_block_nonentries.
-    rewrite upper_right_block_nonentries.
-    rewrite lower_right_block_nonentries.
-    rewrite lower_left_block_entries.
-    Csimpl. simpl.
+    unfold kron, Mmult, adjoint, qubit0, qubit1, I; simpl.
     lca.
-    1,4,7,10: solve_WF_matrix.
-    1,3,5,7: lia.
-    split. lia. lia.
-    right. lia. left. lia.
-    left. lia.   
 }
 assert (case111_goal_change: forall (U: Square 4) (y: Vector 2), 
 (∣0⟩ ⊗ ∣1⟩ ⊗ y) 0%nat 0%nat = 0 -> (∣0⟩ ⊗ ∣1⟩ ⊗ y) 1%nat 0%nat = 0 ->
@@ -952,17 +889,8 @@ assert (case111_el_eq: abgate U 7%nat 3%nat = BL 1%nat 1%nat).
 {
     rewrite abgate_decomp.
     repeat rewrite Mplus_access.
-    rewrite upper_left_block_nonentries.
-    rewrite upper_right_block_nonentries.
-    rewrite lower_right_block_nonentries.
-    rewrite lower_left_block_entries.
-    Csimpl. simpl.
+    unfold kron, Mmult, adjoint, qubit0, qubit1, I; simpl.
     lca.
-    1,4,7,10: solve_WF_matrix.
-    1,3,5,7: lia.
-    split. lia. lia.
-    right. lia. left. lia.
-    left. lia.   
 }
 assert (cntrps: not (BL = Zero) -> not (forall x : Vector 2,
 WF_Qubit x -> exists phi : Vector 4,
@@ -1256,11 +1184,11 @@ assert (WF_TR_block: WF_Matrix ((TL0) † × TR0)). solve_WF_matrix.
 assert (WF_BL_block: WF_Matrix ((TR0) † × TL0)). solve_WF_matrix.
 assert (WF_BR_block: WF_Matrix ((TR0) † × TR0 .+ (BR0) † × BR0)). solve_WF_matrix.
 assert (self_eq: (abgate U) † × abgate U = (abgate U) † × abgate U). reflexivity.
-assert (neq40: 4%nat <> 0%nat). lia.
-assert (block_eq:= @block_equalities 4%nat ((abgate U) † × abgate U) ((abgate U) † × abgate U) 
-((TL0) † × TL0) ((TL0) † × TR0) ((TR0) † × TL0) ((TR0) † × TR0 .+ (BR0) † × BR0) (I 4) Zero Zero (I 4) neq40 
+rewrite abU_inv in block_mult; symmetry in block_mult.
+assert (block_eq:= @block_equalities 4%nat
+((TL0) † × TL0) ((TL0) † × TR0) ((TR0) † × TL0) ((TR0) † × TR0 .+ (BR0) † × BR0) (I 4) Zero Zero (I 4)
 WF_TL0_inv WF_TR_block WF_BL_block WF_BR_block
-(@WF_I 4) (@WF_Zero 4 4) (@WF_Zero 4 4) (@WF_I 4) block_mult abU_inv self_eq).
+(@WF_I 4) (@WF_Zero 4 4) (@WF_Zero 4 4) (@WF_I 4) block_mult).
 destruct block_eq as [TL0_inv [_ [TR_is_Zero BR0_inv]]].
 assert (TL0_unitary: WF_Unitary TL0). split. 1,2: assumption.
 apply unitary_mult_zero_cancel_r in TR_is_Zero. 2: solve_WF_matrix. 2: assumption.

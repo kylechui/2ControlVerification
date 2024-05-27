@@ -175,7 +175,7 @@ rewrite kron_assoc in V3_way2. 2,3,4: solve_WF_matrix.
 rewrite kron_assoc in V3_way2. 2,3,4: solve_WF_matrix.
 rewrite kron_assoc in V3_way2. 2,3,4: solve_WF_matrix.
 rewrite kron_assoc in V3_way2. 2,3,4: solve_WF_matrix.
-assert (block_eq := @block_equalities 4 (acgate V3) (acgate V3)
+assert (block_eq := @block_equalities 4
 ((V2) † × (I 2 ⊗ (P0) †) × U0 × (V4) †) (@Zero 4 4) (@Zero 4 4) ((V2) † × (I 2 ⊗ (P1) †) × U1 × (V4) †)
 (I 2 ⊗ Q00) (I 2 ⊗ Q01) (I 2 ⊗ Q10) (I 2 ⊗ Q11)).
 assert (eq: (V2) † × (I 2 ⊗ (P0) †) × U0 × (V4) † = I 2 ⊗ Q00 /\
@@ -184,13 +184,8 @@ Zero = I 2 ⊗ Q10 /\
 (V2) † × (I 2 ⊗ (P1) †) × U1 × (V4) † = I 2 ⊗ Q11).
 {
     apply block_eq.
-    lia.
-    2,3,5,6,7,8: solve_WF_matrix.
-    1,2: apply WF_mult. 2,4: solve_WF_matrix.
-    1,2: apply WF_mult. 2,4: solve_WF_matrix.
-    1,2: solve_WF_matrix.
-    apply V3_way1. apply V3_way2.
-    reflexivity.
+    all: solve_WF_matrix.
+    rewrite <- V3_way1. apply V3_way2.
 }
 destruct eq as [q00_val [q01_zero [q10_zero q11_val]]].
 assert (ztotens: (@Zero 4 4) = I 2 ⊗ (@Zero 2 2)). lma'.
@@ -226,17 +221,13 @@ repeat rewrite Mmult_0_r in block_unit.
 repeat rewrite Mmult_0_l in block_unit.
 repeat rewrite Mplus_0_r in block_unit.
 repeat rewrite Mplus_0_l in block_unit.
-assert (block_eq_2 := @block_equalities 2 (∣0⟩⟨0∣ ⊗ ((Q00) † × Q00) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero
-.+ ∣1⟩⟨1∣ ⊗ ((Q11) † × Q11)) (∣0⟩⟨0∣ ⊗ I 2 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ I 2)
+assert (block_eq_2 := @block_equalities 2
 ((Q00) † × Q00) (Zero) (Zero) ((Q11) † × Q11) (I 2) (Zero) (Zero) (I 2)).
 assert (unit_eq: (Q00) † × Q00 = I 2 /\
 (@Zero 2 2) = Zero /\ (@Zero 2 2) = Zero /\ (Q11) † × Q11 = I 2).
 {
     apply block_eq_2.
-    lia.
-    1,2,3,4,5,6,7,8: solve_WF_matrix.
-    reflexivity. reflexivity.
-    apply block_unit.
+    all: solve_WF_matrix.
 }
 destruct unit_eq as [Q00_unit [_ [_ Q11_unit]]].
 exists Q00,Q11.

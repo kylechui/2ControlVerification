@@ -626,10 +626,8 @@ assert (P00_decomp: P00 × P00† = P00† × P00 .+ P10† × P10).
 {
     apply block_equalities with (P00:= P00 × (P00) †) (P01 := P00 × (P10) †) (P10:= P10 × (P00) †) (P11 := P10 × (P10) † .+ P11 × (P11) †)
     (Q00:= (P00) † × P00 .+ (P10) † × P10) (Q01 := (P10) † × P11) (Q10:= (P11) † × P10) (Q11 := (P11) † × P11) in block_decomp.
-    2: lia.
-    all: solve_WF_matrix.
     destruct block_decomp as [first_block _].
-    apply first_block.
+    all: solve_WF_matrix.
 }
 clear block_decomp WF_P00 WF_P01 WF_P11.
 assert (tr_inner_sum: trace (P00 × P00†) = trace (P00† × P00 .+ P10† × P10)).

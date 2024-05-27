@@ -100,8 +100,6 @@ Proof.
       rewrite UW, WU in H; clear UW WU W_eq_blocks.
       apply (@block_equalities
         4%nat
-        (∣0⟩⟨0∣ ⊗ (u0 .* V00) .+ ∣0⟩⟨1∣ ⊗ (u1 .* V01) .+ ∣1⟩⟨0∣ ⊗ (u0 .* V10) .+ ∣1⟩⟨1∣ ⊗ (u1 .* V11))
-        (∣0⟩⟨0∣ ⊗ (u0 .* V00) .+ ∣0⟩⟨1∣ ⊗ (u0 .* V01) .+ ∣1⟩⟨0∣ ⊗ (u1 .* V10) .+ ∣1⟩⟨1∣ ⊗ (u1 .* V11))
         (u0 .* V00)
         (u1 .* V01)
         (u0 .* V10)
@@ -110,7 +108,7 @@ Proof.
         (u0 .* V01)
         (u1 .* V10)
         (u1 .* V11)
-      ) in H; try solve_WF_matrix; try lia.
+      ) in H; solve_WF_matrix.
       destruct H as [_ [V01_mult [V10_mult _]]].
       assert (H : forall {m n} (a b : C) (M : Matrix m n),
         WF_Matrix M -> a <> b -> a .* M = b .* M -> M = Zero).
@@ -172,8 +170,6 @@ Proof.
         apply (
         @block_equalities
         4%nat
-        (∣0⟩⟨0∣ ⊗ ((V00) † × V00) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ ((V11) † × V11))
-        (∣0⟩⟨0∣ ⊗ I 4 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ I 4)
         (V00† × V00)
         Zero
         Zero
@@ -182,7 +178,7 @@ Proof.
         Zero
         Zero
         (I 4)
-        ) in Unitary_U; solve_WF_matrix; try lia.
+        ) in Unitary_U; solve_WF_matrix.
         destruct Unitary_U as [Unitary_V00 [_ [_ Unitary_V11]]].
         split.
         {
