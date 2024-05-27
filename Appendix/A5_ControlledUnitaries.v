@@ -1,15 +1,14 @@
 Require Import QuantumLib.Quantum.
-Require Import QuantumLib.VecSet. 
+Require Import QuantumLib.VecSet.
 Require Import QuantumLib.Matrix.
-From Proof Require Import MatrixHelpers.
-From Proof Require Import QubitHelpers.
-From Proof Require Import UnitaryMatrices.
-From Proof Require Import Swaps.
-From Proof Require Import SwapHelpers.
-From Proof Require Import Vectors.
-From Proof Require Import GateHelpers.
-From Proof Require Import AlgebraHelpers.
-From Proof Require Import WFHelpers.
+Require Import WFHelpers.
+Require Import MatrixHelpers.
+Require Import QubitHelpers.
+Require Import SwapHelpers.
+Require Import GateHelpers.
+Require Import A2_UnitaryMatrices.
+Require Import A3_Swaps.
+Require Import A4_Vectors.
 
 Lemma a17: forall (U : Square 4) (beta beta_p : Vector 2), 
 WF_Unitary U -> WF_Qubit beta -> WF_Qubit beta_p -> ⟨ beta , beta_p ⟩ = C0 -> 

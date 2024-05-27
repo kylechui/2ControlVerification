@@ -1,16 +1,16 @@
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
-From Proof Require Import MatrixHelpers.
-From Proof Require Import QubitHelpers.
-From Proof Require Import GateHelpers.
-From Proof Require Import SwapHelpers.
-From Proof Require Import AlgebraHelpers.
-From Proof Require Import PartialTraceDefinitions.
-From Proof Require Import UnitaryMatrices.
-From Proof Require Import ExplicitDecompositions.
-From Proof Require Import Vectors.
-From Proof Require Import TraceoutHelpers.
-From Proof Require Import WFHelpers.
+Require Import WFHelpers.
+Require Import MatrixHelpers.
+Require Import QubitHelpers.
+Require Import GateHelpers.
+Require Import SwapHelpers.
+Require Import AlgebraHelpers.
+Require Import PartialTraceDefinitions.
+Require Import ExplicitDecompositions.
+Require Import TraceoutHelpers.
+Require Import A2_UnitaryMatrices.
+Require Import A4_Vectors.
 
 Lemma a20_part1: forall (w : Vector 4), 
 WF_Matrix w -> 

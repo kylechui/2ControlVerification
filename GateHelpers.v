@@ -1,10 +1,10 @@
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
-From Proof Require Import AlgebraHelpers.
-From Proof Require Import MatrixHelpers. 
-From Proof Require Import SwapHelpers.
-From Proof Require Import QubitHelpers.
-From Proof Require Import WFHelpers.
+Require Import WFHelpers.
+Require Import AlgebraHelpers.
+Require Import MatrixHelpers.
+Require Import SwapHelpers.
+Require Import QubitHelpers.
 
 Definition abgate (U : Square 4) := U ⊗ I 2.
 Definition bcgate (U : Square 4) := I 2 ⊗ U.

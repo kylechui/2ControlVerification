@@ -1,4 +1,5 @@
 Require Import QuantumLib.Matrix.
+
 Definition partial_trace_2q_a (M: Square 4): Square 2 :=
     fun x y =>
     match (x,y) with

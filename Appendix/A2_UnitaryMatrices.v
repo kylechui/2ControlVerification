@@ -1,15 +1,12 @@
 Require Import QuantumLib.Matrix.
-Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
 Require Import QuantumLib.Permutations.
-From Proof Require Import MatrixHelpers.
-From Proof Require Import PartialTraceDefinitions.
-From Proof Require Import AlgebraHelpers.
-From Proof Require Import SquareMatrices.
-From Proof Require Import Permutations.
-From Proof Require Import WFHelpers.
-Require Import List.
-Import ListNotations.
+Require Import WFHelpers.
+Require Import MatrixHelpers.
+Require Import PartialTraceDefinitions.
+Require Import AlgebraHelpers.
+Require Import Permutations.
+Require Import A1_SquareMatrices.
 
 Lemma other_unitary_decomp : forall {n : nat} (U : Square n),
   WF_Unitary U -> U × U† = I n.

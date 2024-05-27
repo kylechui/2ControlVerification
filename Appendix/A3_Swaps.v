@@ -1,8 +1,9 @@
 Require Import QuantumLib.Quantum.
-From Proof Require Import SwapHelpers.
-From Proof Require Import GateHelpers.
-From Proof Require Import MatrixHelpers.
-From Proof Require Import WFHelpers.
+Require Import WFHelpers.
+Require Import SwapHelpers.
+Require Import GateHelpers.
+Require Import MatrixHelpers.
+
 Lemma a10 : forall (a b : Vector 2),
   WF_Matrix a -> WF_Matrix b ->
     swap × (a ⊗ b) = b ⊗ a.

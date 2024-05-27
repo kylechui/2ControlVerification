@@ -1,10 +1,8 @@
-From Proof Require Import AlgebraHelpers.
-From Proof Require Import ExplicitDecompositions.
-From Proof Require Import MatrixHelpers.
-From Proof Require Import WFHelpers.
 Require Import QuantumLib.Eigenvectors.
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Complex.
+Require Import WFHelpers.
+Require Import AlgebraHelpers.
 
 Definition get_eigenpairs (A : Square 2) : (Vector 2 * C) * (Vector 2 * C) :=
   let a := A 0%nat 0%nat in

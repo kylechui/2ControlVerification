@@ -1,25 +1,20 @@
-Require Import Coq.Logic.Classical_Prop.
-Require Import Proof.UnitaryMatrices.
-Require Import Proof.Permutations.
-Require Import Proof.SquareMatrices.
-Require Import Proof.AlgebraHelpers.
-Require Import Proof.MatrixHelpers.
-Require Import Proof.GateHelpers.
-Require Import Proof.DiagonalHelpers.
-Require Import Proof.SwapHelpers.
-Require Import Proof.QubitHelpers.
-Require Import Proof.EigenvalueHelpers.
-Require Import Proof.OtherProperties.
-Require Import Proof.WFHelpers.
-Require Import Proof.Swaps.
-Require Import Proof.SwapHelpers.
-Require Import Proof.TensorProducts.
-Require Import Proof.ControlledUnitaries.
 Require Import QuantumLib.Complex.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Permutations.
+Require Import WFHelpers.
+Require Import AlgebraHelpers.
+Require Import MatrixHelpers.
+Require Import GateHelpers.
+Require Import SwapHelpers.
+Require Import EigenvalueHelpers.
+Require Import Permutations.
+Require Import A1_SquareMatrices.
+Require Import A2_UnitaryMatrices.
+Require Import A3_Swaps.
+Require Import A6_TensorProducts.
+Require Import A7_OtherProperties.
 
 Lemma m3_1 : forall (u0 u1 : C),
   Cmod u0 = 1 -> Cmod u1 = 1 ->

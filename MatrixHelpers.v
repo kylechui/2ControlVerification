@@ -3,8 +3,8 @@ Require Import Coq.Logic.Classical_Pred_Type.
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
-From Proof Require Import AlgebraHelpers.
-From Proof Require Import WFHelpers.
+Require Import WFHelpers.
+Require Import AlgebraHelpers.
 
 Lemma Mplus_cancel_l : forall {m n} (A B C : Matrix m n),
   A .+ B = A .+ C -> B = C.

@@ -1,13 +1,14 @@
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
-From Proof Require Import MatrixHelpers.
-From Proof Require Import QubitHelpers.
-From Proof Require Import PartialTraceDefinitions.
-From Proof Require Import GateHelpers.
-From Proof Require Import SwapHelpers.
-From Proof Require Import ExplicitDecompositions.
-From Proof Require Import AlgebraHelpers.
-From Proof Require Import WFHelpers.
+Require Import WFHelpers.
+Require Import MatrixHelpers.
+Require Import QubitHelpers.
+Require Import PartialTraceDefinitions.
+Require Import GateHelpers.
+Require Import SwapHelpers.
+Require Import ExplicitDecompositions.
+Require Import AlgebraHelpers.
+
 Lemma partial_trace_ac_on_acgate: forall (U : Square 4) (a b c: Vector 2), 
 WF_Unitary U -> WF_Qubit a -> WF_Qubit b -> WF_Qubit c -> 
 partial_trace_2q_a (partial_trace_3q_c (acgate U × (a ⊗ b ⊗ c) × (a ⊗ b ⊗ c)† × (acgate U)†))

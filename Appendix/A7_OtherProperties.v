@@ -1,12 +1,12 @@
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
-From Proof Require Import MatrixHelpers.
-From Proof Require Import SwapHelpers.
-From Proof Require Import QubitHelpers.
-From Proof Require Import GateHelpers.
-From Proof Require Import ControlledUnitaries.
-From Proof Require Import TensorProducts.
-From Proof Require Import WFHelpers.
+Require Import WFHelpers.
+Require Import MatrixHelpers.
+Require Import SwapHelpers.
+Require Import QubitHelpers.
+Require Import GateHelpers.
+Require Import A5_ControlledUnitaries.
+Require Import A6_TensorProducts.
 
 Lemma a27: forall (V1 V2 V3 V4 U0 U1 : Square 4) (P0 P1: Square 2), 
 WF_Unitary V1 -> WF_Unitary V2 -> WF_Unitary V3 -> WF_Unitary V4 -> 

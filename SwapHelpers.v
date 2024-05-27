@@ -1,7 +1,7 @@
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
-From Proof Require Import MatrixHelpers.
-From Proof Require Import WFHelpers.
+Require Import WFHelpers.
+Require Import MatrixHelpers.
 
 Definition swapab := swap ⊗ I 2.
 Definition swapbc := I 2 ⊗ swap.

@@ -1,24 +1,2 @@
--Q . Proof
-# Helper Lemmas and Definitions
-MatrixHelpers.v
-DiagonalHelpers.v
-PartialTraceDefinitions.v
-AlgebraHelpers.v
-SwapHelpers.v
-GateHelpers.v
-QubitHelpers.v
-ExplicitDecompositions.v
-EigenvalueHelpers.v
-TraceoutHelpers.v
-Permutations.v
-# One command to WF_Matrix them all
-WFHelpers.v
-
-# Appendix of proof
-SquareMatrices.v
-UnitaryMatrices.v
-Swaps.v
-Vectors.v
-ControlledUnitaries.v
-TensorProducts.v
-OtherProperties.v
+-R . Proof
+.

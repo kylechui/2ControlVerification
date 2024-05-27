@@ -1,10 +1,9 @@
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.CauchySchwarz.
-Require Import QuantumLib.Eigenvectors.
-From Proof Require Import MatrixHelpers.
-From Proof Require Import AlgebraHelpers.
-From Proof Require Import WFHelpers.
+Require Import WFHelpers.
+Require Import MatrixHelpers.
+Require Import AlgebraHelpers.
 
 Lemma qubit_mult_simplify {n}: forall (A B: Square n), (exists m, (2^m = n)%nat) ->
   WF_Unitary A -> WF_Unitary B ->
