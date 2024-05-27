@@ -2027,31 +2027,33 @@ Proof.
     set (C := ccu (diag2 u0 u1)).
     set (U2_ac := acgate U2).
     set (U3_ab := abgate U3).
-    assert (U2U3_commutativity_subst : (A × B = B × A) -> (P × Q = Q × P) -> (ccu (diag2 u0 u1) × ((diag2 u0 u1) ⊗ (I 4)) = ((diag2 u0 u1) ⊗ (I 4)) × ccu (diag2 u0 u1)) -> ((U2_ac × U3_ab) × ((diag2 u0 u1) ⊗ (I 4)) = ((diag2 u0 u1) ⊗ (I 4)) × (U2_ac × U3_ab))).
+    assert (U2U3_commutativity_subst : (U2_ac × U3_ab) × ((diag2 u0 u1) ⊗ (I 4)) = ((diag2 u0 u1) ⊗ (I 4)) × (U2_ac × U3_ab)).
     {
+      (* NOTE(Arsh): You don't need the commutativity in this assertion because
+         you have access to those hypotheses in this scope already. *)
       admit.
     }
     assert (WF_U2U3 : WF_Unitary (U2_ac × U3_ab)).
     {
       admit.
     }
-    pose proof (m3_1 u0 u1 H H0 (U2_ac × U3_ab) WF_U2U3) as [H2 H3].
-    destruct H2 as [u0_eq_u1 | u0u1_eq_1].
-    assert (kron_temp : (I 2) ⊗ (I 2) = I 4).
+    replace 4%nat with (2 * 2)%nat in U2U3_commutativity_subst by lia.
+    rewrite <- (id_kron 2 2), <- kron_assoc in U2U3_commutativity_subst; solve_WF_matrix.
+    assert (u0 = u1 \/ exists (V0 V1 : Square 4), WF_Unitary V0 /\ WF_Unitary V1 /\
+      U2_ac × U3_ab = ∣0⟩⟨0∣ ⊗ V0 .+ ∣1⟩⟨1∣ ⊗ V1).
     {
-      admit.
+      (* NOTE(Arsh): Oftentimes if you have already built up all the necessary
+         assumptions, it's nicer to make an assertion and apply some other lemma,
+         rather than try and do `pose proof ...` and pass all the arguments in.
+         This also gives you the flexibility of solving the individual pieces
+         as subgoals in this assertion, rather than having to prove them beforehand
+         in some other assertion. *)
+      apply m3_1; assumption.
     }
-    assert (diag_temp : (diag2 u0 u1) ⊗ I 2 ⊗ I 2 = (diag2 u0 u1) ⊗ I 4).
-    {
-      admit.
-    }
-    rewrite diag_temp.
-    apply U2U3_commutativity_subst; auto.
-    rewrite u0_eq_u1. auto.
-    destruct H3.
-    (* TODO: how to use m3_1 to conclude u0=u1 (I think I have done this) or U2_ac × U3_ab =
-∣0⟩⟨0∣ ⊗ V00 .+ ∣1⟩⟨1∣ ⊗ V11) *)
-    admit.
+    destruct H2 as [H2 | H3].
+    left; assumption.
+    destruct H3 as [V0 [V1 [Unitary_V0 [Unitary_V1 H3]]]].
+    (* TODO(Arsh): Use Lemma A.24 to actually get V0, V1 *)
     admit.
   - intros [H_eq | H_prod].
     + (* Case: u0 = u1 *)
