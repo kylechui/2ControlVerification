@@ -6,6 +6,7 @@ Require Import QuantumLib.Permutations.
 Require Import WFHelpers.
 Require Import AlgebraHelpers.
 Require Import MatrixHelpers.
+Require Import UnitaryHelpers.
 Require Import GateHelpers.
 Require Import SwapHelpers.
 Require Import EigenvalueHelpers.

@@ -3,23 +3,11 @@ Require Import QuantumLib.Eigenvectors.
 Require Import QuantumLib.Permutations.
 Require Import WFHelpers.
 Require Import MatrixHelpers.
+Require Import UnitaryHelpers.
 Require Import PartialTraceDefinitions.
 Require Import AlgebraHelpers.
 Require Import Permutations.
 Require Import A1_SquareMatrices.
-
-Lemma other_unitary_decomp : forall {n : nat} (U : Square n),
-  WF_Unitary U -> U × U† = I n.
-Proof.
-  intros n U Unitary_U.
-  assert (step : WF_Unitary U†).
-  {
-    apply adjoint_unitary, Unitary_U.
-  }
-  destruct step as [_ step].
-  rewrite <- step, adjoint_involutive.
-  reflexivity.
-Qed.
 
 Theorem a3 : forall {n} (U : Square n),
   WF_Unitary U -> exists (V D : Square n),
@@ -54,7 +42,6 @@ Proof.
   }
 Qed.
 
-
 Lemma a4: forall {n} (v: Vector n) (c: C) (U V : Square n),
     WF_Matrix v -> WF_Unitary U -> WF_Unitary V ->
     Eigenpair V (v, c) <-> Eigenpair (U × V × U†) (U × v, c).
@@ -88,31 +75,6 @@ Qed.
 (* Since we discuss eigenvalues by looking at diagonal matrices, Lemma A.5 isn't
    needed, as we just tensor two diagonal matrices representing eigenvalues. *)
 
-Lemma direct_sum_unitary : forall {n : nat} (P Q : Square n),
-  WF_Unitary P -> WF_Unitary Q -> WF_Unitary (P .⊕ Q).
-Proof.
-  intros n P Q [WF_P Unitary_P] [WF_Q Unitary_Q].
-  unfold WF_Unitary.
-  split. apply WF_direct_sum; auto.
-  rewrite direct_sum_decomp; auto.
-  replace (n + n)%nat with (2 * n)%nat by lia.
-  rewrite Mplus_adjoint.
-  rewrite Mmult_plus_distr_r.
-  repeat rewrite Mmult_plus_distr_l.
-  repeat rewrite kron_adjoint.
-  repeat rewrite kron_mixed_product.
-  rewrite adjoint00, adjoint11.
-  rewrite cancel00, cancel01, cancel10, cancel11; solve_WF_matrix.
-  repeat rewrite kron_0_l.
-  rewrite Mplus_0_l, Mplus_0_r.
-  rewrite Unitary_P, Unitary_Q.
-  rewrite <- kron_plus_distr_r.
-  rewrite Mplus01.
-  rewrite id_kron.
-  reflexivity.
-Qed.
-
-#[export] Hint Resolve direct_sum_unitary : unit_db.
 
 Lemma direct_sum_diagonal : forall {n : nat} (P Q : Square n),
   WF_Diagonal P -> WF_Diagonal Q -> WF_Diagonal (P .⊕ Q).
@@ -192,7 +154,7 @@ Proof.
   rewrite step; clear step.
   assert (Unitary_VP_plus_VQ : WF_Unitary (VP .⊕ VQ)).
   {
-    apply  direct_sum_unitary; auto.
+    apply direct_sum_unitary; auto.
   }
   pose proof Unitary_VP_plus_VQ.
   destruct H as [WF_VP_plus_VQ VPVQ_Equation].
@@ -300,16 +262,9 @@ Proof.
   rewrite <- Mmult_plus_distr_r.
   rewrite Mplus01.
   rewrite Mmult_1_l.
-  assert (Q_adjoint_unitary : WF_Unitary (Q†)).
-  {
-    apply adjoint_unitary.
-    assumption.
-  }
-  destruct Q_adjoint_unitary.
-  rewrite adjoint_involutive in H1.
-  assumption.
-  apply adjoint_unitary.
-  assumption.
+  rewrite (other_unitary_decomp Q H).
+  reflexivity.
+  solve_WF_matrix.
 Qed.
 
 Lemma a9_right: forall (V : Square 4) (P00 P01 P10 P11 : Square 2),

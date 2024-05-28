@@ -27,6 +27,7 @@ The `Helpers/` subdirectory contains proofs for some helper lemmas used in
 proving parts of the appendix or main body of the paper:
 
 - AlgebraHelpers - Helper lemmas having to do with real and complex numbers.
+- UnitaryHelpers - Helper lemmas having to do with unitary matrices.
 - EigenvalueHelpers - Helper lemmas having to do with eigenvalues, with
   hermitian and positive semi-definite matrices.
 - ExplicitDecompositions - Helper lemmas for expanding fixed size calculations.
