@@ -2054,7 +2054,43 @@ Proof.
     left; assumption.
     destruct H3 as [V0 [V1 [Unitary_V0 [Unitary_V1 H3]]]].
     (* TODO(Arsh): Use Lemma A.24 to actually get V0, V1 *)
-    admit.
+    assert(exists (P0 Q0 P1 Q1 : Square 2),
+WF_Unitary P0 /\ WF_Unitary Q0 /\ WF_Unitary P1 /\ WF_Unitary Q1 /\
+U2_ac × U3_ab = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1).
+    {
+      apply TensorProducts.a24 with (W00 := V0) (W11 := V1); assumption.
+    }
+    destruct H2 as [P0 [Q0 [P1 [Q1 [Unitary_P0 [Unitary_Q0 [Unitary_P1 [Unitary_Q1 H4]]]]]]]].
+    set (U1_bc := bcgate U1).
+    set (U4_bc := bcgate U4).
+    assert (WF_Unitary U1_bc).
+    {
+      admit.
+    }
+    assert (WF_Unitary U4_bc).
+    {
+      admit.
+    }
+    assert (ccu(diag2 u0 u1) = ∣0⟩⟨0∣ ⊗ (U1 × (P0 ⊗ Q0) × U4) .+ ∣1⟩⟨1∣ ⊗ (U1 × (P1 ⊗ Q1) × U4)).
+    {
+      admit.
+    }
+    (* TODO: apply lemma 4.1 to get the result *)
+    assert (u0 = u1 \/ u0 * u1 = 1).
+    {
+      assert (∣0⟩⟨0∣ ⊗ (U1 × (P0 ⊗ Q0) × U4) .+ ∣1⟩⟨1∣ ⊗ (U1 × (P1 ⊗ Q1) × U4) = ccu(diag2 u0 u1)). auto.
+      apply m4_1. all: try assumption.
+      intros.
+      exists U1, U4, P0, P1, Q0, Q1.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      rewrite H6. reflexivity.
+    }
+    assumption.
   - intros [H_eq | H_prod].
     + (* Case: u0 = u1 *)
       subst.
