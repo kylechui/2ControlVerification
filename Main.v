@@ -1065,9 +1065,7 @@ Proof.
       rewrite control_direct_sum.
       rewrite direct_sum_simplify; solve_WF_matrix.
       split. reflexivity.
-      lma'.
-      (* TODO: Why doesn't solve_WF_matrix work? *)
-      apply (WF_control 2), WF_diag2.
+      lma'; solve_WF_matrix.
       all: unfold diag2, control, kron; simpl; Csimpl; reflexivity.
     + exists notc, notc, (I 2), (diag2 1 u0), (I 2), (diag2 1 u1).
       split. apply notc_unitary.
@@ -1553,8 +1551,7 @@ Proof.
       exists (I 4), swap, (control (diag2 C1 u1)), swap.
       split. apply id_unitary.
       split. apply swap_unitary.
-      (* TODO(Kyle): Unsure why we need to manually apply control_unitary here *)
-      split. apply (control_unitary 2). solve_WF_matrix.
+      split. solve_WF_matrix.
       split. apply swap_unitary.
       exists (I 2), (I 2).
       split. apply id_unitary.
