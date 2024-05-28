@@ -959,7 +959,6 @@ rewrite <- Cconj_0.
 apply Cconj_simplify. do 2 rewrite Cconj_involutive. assumption.
 Qed.
 
-(* TODO(Kyle): Do the larger dimension checks first to de-duplicate *)
 Lemma block_decomp {n}: forall (U: Square (2*n)), WF_Matrix U ->
   exists (TL TR BL BR : Square n),
   WF_Matrix TL /\ WF_Matrix TR /\ WF_Matrix BL /\ WF_Matrix BR /\
@@ -989,23 +988,18 @@ Proof.
     set (BR := (fun x y => if (x <? n) && (y <? n) then U (n + x)%nat (n + y)%nat else C0 ) : Square n).
     assert (WF_TL : WF_Matrix TL).
     {
-      unfold TL.
       unfold WF_Matrix, TL.
       intros.
       destruct H0.
-      bdestruct (x <? n).
       {
-        lia.
+        rewrite <- (Nat.ltb_ge x n) in H0.
+        rewrite H0, andb_false_l.
+        reflexivity.
       }
       {
-        rewrite andb_false_l. reflexivity.
-      }
-      bdestruct (y <? n).
-      {
-        lia.
-      }
-      {
-        rewrite andb_false_r. reflexivity.
+        rewrite <- (Nat.ltb_ge y n) in H0.
+        rewrite H0, andb_false_r.
+        reflexivity.
       }
     }
     assert (WF_TR : WF_Matrix TR).
@@ -1013,19 +1007,15 @@ Proof.
       unfold WF_Matrix, TR.
       intros.
       destruct H0.
-      bdestruct (x <? n).
       {
-        lia.
+        rewrite <- (Nat.ltb_ge x n) in H0.
+        rewrite H0, andb_false_l.
+        reflexivity.
       }
       {
-        rewrite andb_false_l. reflexivity.
-      }
-      bdestruct (y <? n).
-      {
-        lia.
-      }
-      {
-        rewrite andb_false_r. reflexivity.
+        rewrite <- (Nat.ltb_ge y n) in H0.
+        rewrite H0, andb_false_r.
+        reflexivity.
       }
     }
     assert (WF_BL : WF_Matrix BL).
@@ -1033,19 +1023,15 @@ Proof.
       unfold WF_Matrix, BL.
       intros.
       destruct H0.
-      bdestruct (x <? n).
       {
-        lia.
+        rewrite <- (Nat.ltb_ge x n) in H0.
+        rewrite H0, andb_false_l.
+        reflexivity.
       }
       {
-        rewrite andb_false_l. reflexivity.
-      }
-      bdestruct (y <? n).
-      {
-        lia.
-      }
-      {
-        rewrite andb_false_r. reflexivity.
+        rewrite <- (Nat.ltb_ge y n) in H0.
+        rewrite H0, andb_false_r.
+        reflexivity.
       }
     }
     assert (WF_BR : WF_Matrix BR).
@@ -1053,19 +1039,15 @@ Proof.
       unfold WF_Matrix, BR.
       intros.
       destruct H0.
-      bdestruct (x <? n).
       {
-        lia.
+        rewrite <- (Nat.ltb_ge x n) in H0.
+        rewrite H0, andb_false_l.
+        reflexivity.
       }
       {
-        rewrite andb_false_l. reflexivity.
-      }
-      bdestruct (y <? n).
-      {
-        lia.
-      }
-      {
-        rewrite andb_false_r. reflexivity.
+        rewrite <- (Nat.ltb_ge y n) in H0.
+        rewrite H0, andb_false_r.
+        reflexivity.
       }
     }
     assert (REMOVE_ME : forall (z : nat), (z >= n * 2 -> z / n >= 2)%nat).
@@ -1084,44 +1066,37 @@ Proof.
     prep_matrix_equality.
     specialize (WF_U x y).
     unfold TL, TR, BL, BR, kron, Mplus; simpl.
+    replace (x mod n <? n) with true by (symmetry; apply Nat.ltb_lt, Nat.mod_upper_bound; assumption).
+    replace (y mod n <? n) with true by (symmetry; apply Nat.ltb_lt, Nat.mod_upper_bound; assumption).
+    simpl.
     bdestruct (x <? n).
     {
-      bdestruct (y <? n).
+      rewrite Nat.div_small, Nat.mod_small; auto.
+      bdestruct (y <? n); auto.
       {
         rewrite Nat.div_small, Nat.mod_small.
-        rewrite Nat.div_small, Nat.mod_small.
-        replace (x <? n) with true by (symmetry; apply Nat.ltb_lt; assumption).
-        replace (y <? n) with true by (symmetry; apply Nat.ltb_lt; assumption).
         unfold qubit0, qubit1, adjoint, Mmult; simpl.
         lca.
         all: assumption.
       }
       {
-        rewrite Nat.div_small, Nat.mod_small; auto.
         bdestruct (y <? n * 2); auto.
         {
-          apply Nat.Div0.div_lt_upper_bound in H2.
           apply Nat.Div0.div_le_mono with (c := n) in H1.
           rewrite Nat.div_same in H1.
+          apply Nat.Div0.div_lt_upper_bound in H2.
           assert (y / n = 1)%nat by lia; clear H1 H2.
           rewrite H3.
           unfold qubit0, qubit1, adjoint, Mmult; simpl.
           Csimpl.
-          replace (x <? n) with true by (symmetry; apply Nat.ltb_lt; assumption).
-          assert (y mod n < n)%nat.
-          {
-            apply Nat.mod_upper_bound.
-            assumption.
-          }
-          replace (y mod n <? n) with true by (symmetry; apply Nat.ltb_lt; assumption).
-          simpl.
           rewrite <- Nat.mul_1_r with (n := n) at 1.
           rewrite <- H3, <- Nat.div_mod.
           reflexivity.
           all: assumption.
         }
         {
-          pose proof (REMOVE_ME y H2).
+          pose proof (Nat.Div0.div_le_mono (n * 2) y n H2).
+          rewrite Nat.mul_comm, Nat.div_mul in H3; auto.
           destruct (y / n)%nat. lia.
           destruct n0. lia.
           rewrite WF_U.
@@ -1132,60 +1107,44 @@ Proof.
       }
     }
     {
-      bdestruct (y <? n).
+      bdestruct (x <? n * 2).
       {
-        rewrite Nat.div_small with (a := y), Nat.mod_small with (a := y); auto.
-        bdestruct (x <? n * 2).
+        apply Nat.Div0.div_le_mono with (c := n) in H0.
+        rewrite Nat.div_same in H0; auto.
+        apply Nat.Div0.div_lt_upper_bound in H1.
+        assert (x / n = 1)%nat by lia; clear H0 H1.
+        rewrite H2.
+        bdestruct (y <? n); auto.
         {
-          apply Nat.Div0.div_lt_upper_bound in H2.
-          apply Nat.Div0.div_le_mono with (c := n) in H0.
-          rewrite Nat.div_same in H0.
-          assert (x / n = 1)%nat by lia; clear H0 H2.
-          rewrite H3.
-          replace (x mod n <? n) with true by (symmetry; apply Nat.ltb_lt, Nat.mod_upper_bound; assumption).
+          rewrite Nat.mod_small with (a := y), Nat.div_small with (a := y).
           unfold qubit0, qubit1, adjoint, Mmult; simpl.
           Csimpl.
-          replace (y <? n) with true by (symmetry; apply Nat.ltb_lt; assumption).
           rewrite <- Nat.mul_1_r with (n := n) at 1.
-          rewrite <- H3, <- Nat.div_mod.
+          rewrite <- H2, <- Nat.div_mod.
           reflexivity.
           all: assumption.
         }
         {
-          pose proof (REMOVE_ME x H2).
-          destruct (x / n)%nat. lia.
-          destruct n0. lia.
-          rewrite WF_U.
-          unfold qubit0, qubit1, adjoint, Mmult; simpl.
-          lca.
-          left; lia.
-        }
-      }
-      {
-        apply Nat.Div0.div_le_mono with (c := n) in H0, H1.
-        rewrite Nat.div_same in H0, H1; auto.
-        bdestruct (x <? n * 2).
-        {
-          apply Nat.Div0.div_lt_upper_bound in H2.
           bdestruct (y <? n * 2).
           {
-            apply Nat.Div0.div_lt_upper_bound in H3.
-            assert (x / n = 1)%nat by lia; clear H0 H2.
-            assert (y / n = 1)%nat by lia; clear H1 H3.
-            replace (x mod n <? n) with true by (symmetry; apply Nat.ltb_lt, Nat.mod_upper_bound; assumption).
-            replace (y mod n <? n) with true by (symmetry; apply Nat.ltb_lt, Nat.mod_upper_bound; assumption).
-            rewrite H0, H4.
+            apply Nat.Div0.div_le_mono with (c := n) in H0.
+            rewrite Nat.div_same in H0.
+            apply Nat.Div0.div_lt_upper_bound in H1.
+            assert (y / n = 1)%nat by lia; clear H0 H1.
+            rewrite H3.
             unfold qubit0, qubit1, adjoint, Mmult; simpl.
             Csimpl.
             rewrite <- Nat.mul_1_r with (n := n) at 1 3.
-            rewrite <- H4, <- H0 at 1.
+            rewrite <- H2 at 1.
+            rewrite <- H3 at 1.
             rewrite <- Nat.div_mod.
             rewrite <- Nat.div_mod.
             reflexivity.
             all: assumption.
           }
           {
-            pose proof (REMOVE_ME y H3).
+            pose proof (Nat.Div0.div_le_mono (n * 2) y n H1).
+            rewrite Nat.mul_comm, Nat.div_mul in H3; auto.
             destruct (y / n)%nat. lia.
             destruct n0. lia.
             rewrite WF_U.
@@ -1194,15 +1153,16 @@ Proof.
             right; lia.
           }
         }
-        {
-          pose proof (REMOVE_ME x H2).
-          destruct (x / n)%nat. lia.
-          destruct n0. lia.
-          rewrite WF_U.
-          unfold qubit0, qubit1, adjoint, Mmult; simpl.
-          lca.
-          left; lia.
-        }
+      }
+      {
+        pose proof (Nat.Div0.div_le_mono (n * 2) x n H1).
+        rewrite Nat.mul_comm, Nat.div_mul in H2; auto.
+        destruct (x / n)%nat. lia.
+        destruct n0. lia.
+        rewrite WF_U.
+        unfold qubit0, qubit1, adjoint, Mmult; simpl.
+        lca.
+        left; lia.
       }
     }
   }
