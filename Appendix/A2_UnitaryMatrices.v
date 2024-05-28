@@ -85,61 +85,8 @@ Proof.
     reflexivity.
 Qed.
 
-Lemma a5_left: forall {n} (P Q: Square n),
-  WF_Unitary P -> WF_Unitary Q ->
-  forall (a p: C) (psi phi: Vector n),
-    WF_Matrix psi -> WF_Matrix phi ->
-    Eigenpair P (psi, a) -> Eigenpair Q (phi, p) ->
-    Eigenpair (P ⊗ Q) (psi ⊗ phi, a * p).
-Proof.
-intros.
-unfold Eigenpair in *; simpl in *.
-assert (Step1: P ⊗ Q × (psi ⊗ phi) = (P × psi) ⊗ (Q × phi)).
-{
-    apply kron_mixed_product.
-}
-rewrite Step1 at 1. clear Step1.
-rewrite H3.
-rewrite H4.
-rewrite Mscale_kron_dist_r.
-rewrite Mscale_kron_dist_l.
-rewrite Mscale_assoc.
-rewrite Cmult_comm.
-reflexivity.
-Qed.
-
-(* Invalid argument until number of eigenvalues is adressed
-    TODO: finish once spectral thm application is figured out
-*)
-(* Lemma a5_right: forall {n} (psi phi: Vector n) (a p: C) (P Q: Square n),
-    WF_Matrix psi -> WF_Matrix phi -> WF_Unitary P -> WF_Unitary Q ->
-    Eigenpair (P ⊗ Q) (psi ⊗ phi, a * p) -> Eigenpair P (psi, a) /\ Eigenpair Q (phi, p).
-Proof.
-intros.
-unfold Eigenpair in *; simpl in *.
-revert H3.
-assert (Step1: P ⊗ Q × (psi ⊗ phi) = (P × psi) ⊗ (Q × phi)).
-{
-    apply kron_mixed_product.
-}
-rewrite Step1 at 1. clear Step1.
-rewrite <- Mscale_assoc.
-assert (Step2: a .* (p .* (psi ⊗ phi)) = (a .* psi) ⊗ (p .* phi)).
-{
- rewrite <- Mscale_kron_dist_r.
- rewrite <- Mscale_kron_dist_l.
- reflexivity.
-}
-rewrite Step2 at 1. clear Step2.
-rewrite <- kron_simplify.
-intros H3.
-rewrite <- Mscale_kron_dist_r in H3.
-rewrite <- Mscale_kron_dist_l at 2.
-
-
-
-intros H3.
-rewrite kron_mixed_product' in H3. *)
+(* Since we discuss eigenvalues by looking at diagonal matrices, Lemma A.5 isn't
+   needed, as we just tensor two diagonal matrices representing eigenvalues. *)
 
 Lemma direct_sum_unitary : forall {n : nat} (P Q : Square n),
   WF_Unitary P -> WF_Unitary Q -> WF_Unitary (P .⊕ Q).
