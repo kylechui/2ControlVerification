@@ -42,3 +42,33 @@ Proof.
 Qed.
 
 #[export] Hint Resolve direct_sum_unitary : unit_db.
+
+Lemma diag2_unitary : forall (c1 c2 : C), Cmod c1 = 1 -> Cmod c2 = 1 -> WF_Unitary (diag2 c1 c2).
+Proof.
+  intros c1 c2 unit_c1 unit_c2.
+  split; try apply WF_diag2.
+  lma'.
+  unfold Mmult, adjoint, diag2, I; simpl.
+  Csimpl; rewrite <- Cmod_sqr, unit_c1; lca.
+  unfold Mmult, adjoint, diag2, I; simpl.
+  Csimpl; rewrite <- Cmod_sqr, unit_c2; lca.
+Qed.
+
+Lemma diag4_unitary : forall (c1 c2 c3 c4 : C),
+  Cmod c1 = 1 -> Cmod c2 = 1 -> Cmod c3 = 1 -> Cmod c4 = 1 ->
+  WF_Unitary (diag4 c1 c2 c3 c4).
+Proof.
+  intros c1 c2 c3 c4 unit_c1 unit_c2 unit_c3 unit_c4.
+  split. apply WF_diag4.
+  lma'.
+  unfold Mmult, adjoint, diag4, I; simpl.
+  Csimpl; rewrite <- Cmod_sqr, unit_c1; lca.
+  unfold Mmult, adjoint, diag4, I; simpl.
+  Csimpl; rewrite <- Cmod_sqr, unit_c2; lca.
+  unfold Mmult, adjoint, diag4, I; simpl.
+  Csimpl; rewrite <- Cmod_sqr, unit_c3; lca.
+  unfold Mmult, adjoint, diag4, I; simpl.
+  Csimpl; rewrite <- Cmod_sqr, unit_c4; lca.
+Qed.
+
+#[export] Hint Resolve diag2_unitary diag4_unitary : unit_db.
