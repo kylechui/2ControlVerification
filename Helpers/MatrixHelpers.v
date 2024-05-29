@@ -70,6 +70,12 @@ Qed.
 
 #[export] Hint Resolve WF_diag2 WF_diag4 : wf_db.
 
+Lemma diag2_decomp : forall (c1 c2 : C), diag2 c1 c2 = c1 .* ∣0⟩⟨0∣ .+ c2 .* ∣1⟩⟨1∣.
+Proof.
+  intros.
+  solve_matrix.
+Qed.
+
 Lemma Det_diag2 : forall (c1 c2 : C), Determinant (diag2 c1 c2) = c1 * c2.
 Proof.
   intros.

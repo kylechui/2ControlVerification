@@ -58,12 +58,10 @@ Proof.
         repeat rewrite Mscale_kron_dist_r.
         repeat rewrite <- Mscale_kron_dist_l.
         repeat rewrite <- kron_plus_distr_r.
-        rewrite kron_assoc, id_kron.
+        rewrite kron_assoc, id_kron; solve_WF_matrix.
         apply (kron_simplify 2 2 4 4).
-        (* TODO: Prove this as diag2_decomp *)
-        lma'.
-        1, 2: unfold diag2, scale, Mplus; simpl; lca.
-        all: solve_WF_matrix.
+        apply diag2_decomp.
+        reflexivity.
       }
       assert (UW : U × (diag2 u0 u1 ⊗ I 2 ⊗ I 2) = ∣0⟩⟨0∣ ⊗ (u0 .* V00) .+ ∣0⟩⟨1∣ ⊗ (u1 .* V01) .+ ∣1⟩⟨0∣ ⊗ (u0 .* V10) .+ ∣1⟩⟨1∣ ⊗ (u1 .* V11)).
       {
