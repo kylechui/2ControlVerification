@@ -729,27 +729,7 @@ assert (ts0 : TensorProdQubit (U × (∣0⟩ ⊗ ∣0⟩))). apply tensorProp, q
 assert (ts1 : TensorProdQubit (U × (∣1⟩ ⊗ ∣0⟩))). apply tensorProp, qubit1_qubit.
 assert (tsp : TensorProdQubit (U × (∣+⟩ ⊗ ∣0⟩))).
 {
-  apply tensorProp.
-  (* TODO(Kyle): This should be a separate lemma like qubit0_qubit *)
-  unfold WF_Qubit.
-  split.
-  {
-    exists 1%nat.
-    compute.
-    reflexivity.
-  }
-  split.
-  {
-    solve_WF_matrix.
-  }
-  {
-    unfold inner_product.
-    unfold xbasis_plus.
-    unfold Mplus, Mmult, scale, adjoint; simpl; Csimpl.
-    replace ((/ √ 2) ^*) with (/ √ 2) by lca.
-    rewrite Cinv_sqrt2_sqrt.
-    lca.
-  }
+  apply tensorProp, xbasis_plus_qubit.
 }
 unfold TensorProdQubit in ts0, ts1, tsp.
 assert (WF_Matrix (U × (∣0⟩ ⊗ ∣0⟩))). solve_WF_matrix.
@@ -851,7 +831,6 @@ destruct casework as [blindep|alindep].
         split. exact b0_qubit.
         intros x x_qubit.
         exists (x 0%nat 0%nat .* a0 .+ x 1%nat 0%nat .* (c .* a1)).
-        (* TODO(Kyle): Show that this is a qubit! *)
         assert (WF_Qubit (x 0%nat 0%nat .* a0 .+ x 1%nat 0%nat .* (c .* a1))).
         {
           unfold WF_Qubit.
@@ -867,17 +846,6 @@ destruct casework as [blindep|alindep].
               solve_WF_matrix.
             }
             {
-              (* TODO: Move me somewhere else! *)
-              (* TODO: Make me more general! *)
-              assert (inner_product_kron : forall {m n} (u : Vector m) (v : Vector n),
-                ⟨u ⊗ v, u ⊗ v⟩ = ⟨u, u⟩ * ⟨v, v⟩).
-              {
-                intros.
-                unfold inner_product.
-                rewrite (@kron_adjoint m 1 n 1).
-                rewrite (@kron_mixed_product 1 m 1 1 n 1).
-                unfold kron; reflexivity.
-              }
               assert (U × (x ⊗ ∣0⟩) = (x 0%nat 0%nat .* a0 .+ x 1%nat 0%nat .* (c .* a1)) ⊗ b0).
               {
                 rewrite qubit_decomposition1 with (phi:= x) at 1. 2: apply x_qubit.
@@ -1019,17 +987,6 @@ destruct casework as [blindep|alindep].
               solve_WF_matrix.
             }
             {
-              (* TODO: Move me somewhere else! *)
-              (* TODO: Make me more general! *)
-              assert (inner_product_kron : forall {m n} (u : Vector m) (v : Vector n),
-                ⟨u ⊗ v, u ⊗ v⟩ = ⟨u, u⟩ * ⟨v, v⟩).
-              {
-                intros.
-                unfold inner_product.
-                rewrite (@kron_adjoint m 1 n 1).
-                rewrite (@kron_mixed_product 1 m 1 1 n 1).
-                unfold kron; reflexivity.
-              }
               assert (U × (x ⊗ ∣0⟩) = a0 ⊗ (x 0%nat 0%nat .* b0 .+ x 1%nat 0%nat .* (c .* b1))).
               {
                 rewrite qubit_decomposition1 with (phi:= x) at 1. 2: apply x_qubit.

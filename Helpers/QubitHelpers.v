@@ -99,6 +99,22 @@ apply WF_qubit1.
 lca.
 Qed.
 
+Lemma xbasis_plus_qubit : WF_Qubit ∣+⟩.
+Proof.
+  unfold WF_Qubit.
+  split.
+  exists 1%nat. trivial.
+  split.
+  apply WF_xbasis_plus.
+  unfold "∣+⟩".
+  rewrite inner_product_scale_l, inner_product_scale_r.
+  replace ((/ √ 2) ^*) with (/ √ 2) by lca.
+  rewrite Cmult_assoc.
+  rewrite <- Csqrt2_inv.
+  rewrite Csqrt2_inv_sqrt2_inv.
+  lca.
+Qed.
+
 Lemma qubit_decomposition1: forall (phi : Vector 2),
 WF_Matrix phi -> phi = (phi 0%nat 0%nat) .* ∣0⟩ .+ (phi 1%nat 0%nat) .* ∣1⟩.
 Proof.
@@ -872,4 +888,14 @@ rewrite H0.
 unfold kron.
 rewrite Nat.div_small.
 lca. assumption.
+Qed.
+
+Lemma inner_product_kron : forall {m n} (u v : Vector m) (w z : Vector n),
+  ⟨u ⊗ w, v ⊗ z⟩ = ⟨u, v⟩ * ⟨w, z⟩.
+Proof.
+  intros.
+  unfold inner_product.
+  rewrite (@kron_adjoint m 1 n 1).
+  rewrite (@kron_mixed_product 1 m 1 1 n 1).
+  unfold kron; reflexivity.
 Qed.
