@@ -1,3 +1,4 @@
+Require Import Coq.Logic.Classical_Prop.
 Require Import Proof.UnitaryMatrices.
 Require Import Proof.Permutations.
 Require Import Proof.SquareMatrices.
@@ -5,6 +6,7 @@ Require Import Proof.AlgebraHelpers.
 Require Import Proof.MatrixHelpers.
 Require Import Proof.GateHelpers.
 Require Import Proof.SwapHelpers.
+Require Import Proof.QubitHelpers.
 Require Import Proof.EigenvalueHelpers.
 Require Import Proof.OtherProperties.
 Require Import Proof.WFHelpers.
@@ -1099,12 +1101,7 @@ Lemma m4_2 : forall (u0 u1 : C),
     WF_Unitary Q ->
     let beta : Vector 2 := Q × ∣0⟩ in
     let beta_perp := Q × ∣1⟩ in
-    (exists (P0 P1 : Square 2) (a b p q : C) (v1 v2 v3 v4 : Vector 2),
-      WF_Unitary P0 /\ WF_Unitary P1 /\
-      WF_Matrix v1 /\ WF_Matrix v2 /\ WF_Matrix v3 /\ WF_Matrix v4 /\
-      v1 <> Zero /\ v2 <> Zero /\ v3 <> Zero /\ v4 <> Zero /\
-      Eigenpair P0 (v1, a) /\ Eigenpair P0 (v2, b) /\
-      Eigenpair P1 (v3, p) /\ Eigenpair P1 (v4, q) /\
+    (exists (P0 P1 : Square 2), WF_Unitary P0 /\ WF_Unitary P1 /\
       I 2 ⊗ I 2 ⊗ (beta × beta†) .+ P0 ⊗ P1 ⊗ (beta_perp × beta_perp†) = ccu (diag2 u0 u1))
     <-> u0 = 1 /\ u1 = 1.
 Proof.
@@ -1127,11 +1124,7 @@ Proof.
   pose (b := beta 1%nat 0%nat).
   split.
   - intros.
-    destruct H2 as [P0 [P1 [c1 [c2 [c3 [c4 [v1 [v2 [v3 [v4 H2]]]]]]]]]].
-    destruct H2 as [Unitary_P0 [Unitary_P1 H2]].
-    destruct H2 as [WF_v1 [WF_v2 [WF_v3 [WF_v4 H2]]]].
-    destruct H2 as [v1_nonzero [v2_nonzero [v3_nonzero [v4_nonzero H2]]]].
-    destruct H2 as [epair1 [epair2 [epair3 [epair4 H2]]]].
+    destruct H2 as [P0 [P1 [Unitary_P0 [Unitary_P1 H2]]]].
     destruct (Ceq_dec a C0) as [a_zero | a_nonzero].
     + assert (unit_b : b^* * b = 1).
       {
@@ -1402,8 +1395,6 @@ Proof.
     exists (I 2), (I 2).
     destruct H2 as [u0_is_1 u1_is_1].
     rewrite u0_is_1, u1_is_1.
-    exists C1, C1, C1, C1.
-    exists ∣0⟩, ∣1⟩, ∣0⟩, ∣1⟩.
     split.
     {
       apply id_unitary.
@@ -1411,54 +1402,6 @@ Proof.
     split.
     {
       apply id_unitary.
-    }
-    split.
-    {
-      apply WF_qubit0.
-    }
-    split.
-    {
-      apply WF_qubit1.
-    }
-    split.
-    {
-      apply WF_qubit0.
-    }
-    split.
-    {
-      apply WF_qubit1.
-    }
-    split.
-    {
-      apply nonzero_qubit0.
-    }
-    split.
-    {
-      apply nonzero_qubit1.
-    }
-    split.
-    {
-      apply nonzero_qubit0.
-    }
-    split.
-    {
-      apply nonzero_qubit1.
-    }
-    split.
-    {
-      apply id2_eigenpairs.
-    }
-    split.
-    {
-      apply id2_eigenpairs.
-    }
-    split.
-    {
-      apply id2_eigenpairs.
-    }
-    split.
-    {
-      apply id2_eigenpairs.
     }
     {
       rewrite <- kron_plus_distr_l.
