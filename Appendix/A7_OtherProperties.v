@@ -206,8 +206,11 @@ assert (trans_help: (∣0⟩⟨0∣ ⊗ Q00 .+ ∣0⟩⟨1∣ ⊗ Q01 .+ ∣1⟩
     repeat rewrite Mplus_adjoint.
     repeat rewrite kron_adjoint.
     rewrite adjoint00, adjoint01, adjoint10, adjoint11.
-    lma'.
-    all: solve_WF_matrix.
+    do 2 rewrite Mplus_assoc.
+    rewrite <- Mplus_assoc with (A := ∣1⟩⟨0∣ ⊗ Q01†).
+    rewrite Mplus_comm with (A := ∣1⟩⟨0∣ ⊗ Q01†).
+    repeat rewrite <- Mplus_assoc.
+    reflexivity.
 }
 rewrite trans_help in block_unit at 1. clear trans_help.
 rewrite block_multiply with (U:= (∣0⟩⟨0∣ ⊗ (Q00) † .+ ∣0⟩⟨1∣ ⊗ (Q10) † .+ ∣1⟩⟨0∣ ⊗ (Q01) † .+ ∣1⟩⟨1∣ ⊗ (Q11) †))
@@ -243,7 +246,8 @@ split.
 }
 rewrite v3_decomp.
 rewrite <- q01_zero, <- q10_zero.
-Msimpl.
+repeat rewrite kron_0_r.
+repeat rewrite Mplus_0_r.
 reflexivity.
 Qed.
 
@@ -299,7 +303,7 @@ rewrite kron_assoc. 2,3,4,5: solve_WF_matrix.
 assert (kron_mix_help: ∣0⟩⟨0∣ ⊗ (I 2 ⊗ I 2) × (∣0⟩ ⊗ ((V4) † × (x ⊗ ∣0⟩))) = 
 (∣0⟩⟨0∣ × ∣0⟩) ⊗ ((I 2 ⊗ I 2) × ((V4) † × (x ⊗ ∣0⟩)))). apply kron_mixed_product.
 rewrite kron_mix_help at 1. clear kron_mix_help.
-replace (I 2 ⊗ I 2) with (I 4) by lma'.
+rewrite id_kron.
 rewrite Mmult_1_l. 2: solve_WF_matrix.
 rewrite Mmult_assoc. rewrite Mmult00. rewrite Mmult_1_r. 2: apply WF_qubit0.
 assert (kron_mix_help: ∣1⟩⟨1∣ ⊗ control U × (∣0⟩ ⊗ ((V4) † × (x ⊗ ∣0⟩))) = 
