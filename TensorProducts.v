@@ -715,15 +715,42 @@ split.
 apply phi_decomp.
 Qed.
 
-Lemma a23: forall (U : Square 4), WF_Unitary U -> (forall (x : Vector 2), TensorProdQubit (U × (x ⊗ ∣0⟩))) ->
-(exists (psi: Vector 2), forall (x: Vector 2), WF_Matrix x ->  exists (z: Vector 2), U × (x ⊗ ∣0⟩) = z ⊗ psi)
-\/
-(exists (psi: Vector 2), forall (x: Vector 2), WF_Matrix x -> exists (z: Vector 2), U × (x ⊗ ∣0⟩) = psi ⊗ z).
-Proof. 
+Lemma a23 : forall (U : Square 4), WF_Unitary U ->
+  (forall (x : Vector 2), WF_Qubit x -> TensorProdQubit (U × (x ⊗ ∣0⟩))) ->
+  (exists (psi: Vector 2), WF_Qubit psi /\
+    forall (x: Vector 2), WF_Qubit x ->
+      exists (z: Vector 2), WF_Qubit z /\ U × (x ⊗ ∣0⟩) = z ⊗ psi) \/
+  (exists (psi: Vector 2), WF_Qubit psi /\
+    forall (x: Vector 2), WF_Qubit x ->
+      exists (z: Vector 2), WF_Qubit z /\ U × (x ⊗ ∣0⟩) = psi ⊗ z).
+Proof.
 intros U U_unitary tensorProp.
-assert (ts0 : TensorProdQubit (U × (∣0⟩ ⊗ ∣0⟩))). apply tensorProp.
-assert (ts1 : TensorProdQubit (U × (∣1⟩ ⊗ ∣0⟩))). apply tensorProp.
-assert (tsp : TensorProdQubit (U × (∣+⟩ ⊗ ∣0⟩))). apply tensorProp.
+assert (ts0 : TensorProdQubit (U × (∣0⟩ ⊗ ∣0⟩))). apply tensorProp, qubit0_qubit.
+assert (ts1 : TensorProdQubit (U × (∣1⟩ ⊗ ∣0⟩))). apply tensorProp, qubit1_qubit.
+assert (tsp : TensorProdQubit (U × (∣+⟩ ⊗ ∣0⟩))).
+{
+  apply tensorProp.
+  (* TODO(Kyle): This should be a separate lemma like qubit0_qubit *)
+  unfold WF_Qubit.
+  split.
+  {
+    exists 1%nat.
+    compute.
+    reflexivity.
+  }
+  split.
+  {
+    solve_WF_matrix.
+  }
+  {
+    unfold inner_product.
+    unfold xbasis_plus.
+    unfold Mplus, Mmult, scale, adjoint; simpl; Csimpl.
+    replace ((/ √ 2) ^*) with (/ √ 2) by lca.
+    rewrite Cinv_sqrt2_sqrt.
+    lca.
+  }
+}
 unfold TensorProdQubit in ts0, ts1, tsp.
 assert (WF_Matrix (U × (∣0⟩ ⊗ ∣0⟩))). solve_WF_matrix.
 apply ts0 in H. clear ts0.
@@ -821,9 +848,71 @@ destruct casework as [blindep|alindep].
         destruct proportional as [c lindepeq].
         left.
         exists b0.
-        intros x WF_x.
+        split. exact b0_qubit.
+        intros x x_qubit.
         exists (x 0%nat 0%nat .* a0 .+ x 1%nat 0%nat .* (c .* a1)).
-        rewrite qubit_decomposition1 with (phi:= x) at 1. 2: assumption.
+        (* TODO(Kyle): Show that this is a qubit! *)
+        assert (WF_Qubit (x 0%nat 0%nat .* a0 .+ x 1%nat 0%nat .* (c .* a1))).
+        {
+          unfold WF_Qubit.
+          {
+            split.
+            {
+              exists 1%nat.
+              compute.
+              reflexivity.
+            }
+            split.
+            {
+              solve_WF_matrix.
+            }
+            {
+              (* TODO: Move me somewhere else! *)
+              (* TODO: Make me more general! *)
+              assert (inner_product_kron : forall {m n} (u : Vector m) (v : Vector n),
+                ⟨u ⊗ v, u ⊗ v⟩ = ⟨u, u⟩ * ⟨v, v⟩).
+              {
+                intros.
+                unfold inner_product.
+                rewrite (@kron_adjoint m 1 n 1).
+                rewrite (@kron_mixed_product 1 m 1 1 n 1).
+                unfold kron; reflexivity.
+              }
+              assert (U × (x ⊗ ∣0⟩) = (x 0%nat 0%nat .* a0 .+ x 1%nat 0%nat .* (c .* a1)) ⊗ b0).
+              {
+                rewrite qubit_decomposition1 with (phi:= x) at 1. 2: apply x_qubit.
+                rewrite kron_plus_distr_r.
+                rewrite Mmult_plus_distr_l.
+                do 2 rewrite Mscale_kron_dist_l.
+                do 2 rewrite Mscale_mult_dist_r.
+                assert (def_help: (U × (∣0⟩ ⊗ ∣0⟩)) = a0 ⊗ b0). apply a0b0_def.
+                rewrite def_help at 1. clear def_help.
+                assert (def_help: (U × (∣1⟩ ⊗ ∣0⟩)) = a1 ⊗ b1). apply a1b1_def.
+                rewrite def_help at 1. clear def_help.
+                rewrite <- lindepeq.
+                rewrite kron_plus_distr_r.
+                repeat rewrite Mscale_kron_dist_l.
+                repeat rewrite Mscale_kron_dist_r.
+                reflexivity.
+              }
+              rewrite <- Cmult_1_r at 1.
+              rewrite <- b0_unit at 1.
+              rewrite <- inner_product_kron.
+              rewrite <- H.
+              rewrite inner_product_adjoint_l.
+              destruct U_unitary as [WF_U U_unitary].
+              rewrite <- Mmult_assoc.
+              rewrite U_unitary at 1.
+              rewrite Mmult_1_l; solve_WF_matrix.
+              rewrite (@inner_product_kron 2 2)%nat.
+              destruct x_qubit as [_ [WF_x x_unit]].
+              rewrite x_unit.
+              unfold inner_product, qubit0, adjoint, Mmult; lca.
+            }
+          }
+        }
+        split. assumption.
+        rewrite qubit_decomposition1 with (phi:= x) at 1. 2: apply x_qubit.
         rewrite kron_plus_distr_r.
         rewrite Mmult_plus_distr_l.
         do 2 rewrite Mscale_kron_dist_l.
@@ -912,9 +1001,70 @@ destruct casework as [blindep|alindep].
         destruct proportional as [c prop].
         right.
         exists a0.
-        intros x WF_x.
+        split. exact a0_qubit.
+        intros x x_qubit.
         exists (x 0%nat 0%nat .* b0 .+ x 1%nat 0%nat .* (c .* b1)).
-        rewrite qubit_decomposition1 with (phi:= x) at 1. 2: assumption.
+        assert (WF_Qubit (x 0%nat 0%nat .* b0 .+ x 1%nat 0%nat .* (c .* b1))).
+        {
+          unfold WF_Qubit.
+          {
+            split.
+            {
+              exists 1%nat.
+              compute.
+              reflexivity.
+            }
+            split.
+            {
+              solve_WF_matrix.
+            }
+            {
+              (* TODO: Move me somewhere else! *)
+              (* TODO: Make me more general! *)
+              assert (inner_product_kron : forall {m n} (u : Vector m) (v : Vector n),
+                ⟨u ⊗ v, u ⊗ v⟩ = ⟨u, u⟩ * ⟨v, v⟩).
+              {
+                intros.
+                unfold inner_product.
+                rewrite (@kron_adjoint m 1 n 1).
+                rewrite (@kron_mixed_product 1 m 1 1 n 1).
+                unfold kron; reflexivity.
+              }
+              assert (U × (x ⊗ ∣0⟩) = a0 ⊗ (x 0%nat 0%nat .* b0 .+ x 1%nat 0%nat .* (c .* b1))).
+              {
+                rewrite qubit_decomposition1 with (phi:= x) at 1. 2: apply x_qubit.
+                rewrite kron_plus_distr_r.
+                rewrite Mmult_plus_distr_l.
+                do 2 rewrite Mscale_kron_dist_l.
+                do 2 rewrite Mscale_mult_dist_r.
+                assert (def_help: (U × (∣0⟩ ⊗ ∣0⟩)) = a0 ⊗ b0). apply a0b0_def.
+                rewrite def_help at 1. clear def_help.
+                assert (def_help: (U × (∣1⟩ ⊗ ∣0⟩)) = a1 ⊗ b1). apply a1b1_def.
+                rewrite def_help at 1. clear def_help.
+                rewrite <- prop.
+                rewrite kron_plus_distr_l.
+                repeat rewrite Mscale_kron_dist_l.
+                repeat rewrite Mscale_kron_dist_r.
+                reflexivity.
+              }
+              rewrite <- Cmult_1_l at 1.
+              rewrite <- a0_unit at 1.
+              rewrite <- inner_product_kron.
+              rewrite <- H.
+              rewrite inner_product_adjoint_l.
+              destruct U_unitary as [WF_U U_unitary].
+              rewrite <- Mmult_assoc.
+              rewrite U_unitary at 1.
+              rewrite Mmult_1_l; solve_WF_matrix.
+              rewrite (@inner_product_kron 2 2)%nat.
+              destruct x_qubit as [_ [WF_x x_unit]].
+              rewrite x_unit.
+              unfold inner_product, qubit0, adjoint, Mmult; lca.
+            }
+          }
+        }
+        split. assumption.
+        rewrite qubit_decomposition1 with (phi:= x) at 1. 2: apply x_qubit.
         rewrite kron_plus_distr_r.
         rewrite Mmult_plus_distr_l.
         do 2 rewrite Mscale_kron_dist_l.
