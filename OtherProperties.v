@@ -671,8 +671,9 @@ WF_Unitary V1 -> WF_Unitary V2 -> WF_Unitary V3 -> WF_Unitary V4 ->
 (exists (psi: Vector 2), WF_Qubit psi /\
  (forall (x: Vector 2), WF_Qubit x -> 
  (exists (z: Vector 2), WF_Qubit z /\ V3† × (x ⊗ ∣0⟩) = z ⊗ psi))) -> 
-(exists (W1 W3 W4: Square 4) (P3 : Square 2), 
-WF_Unitary W1 /\ WF_Unitary W3 /\ WF_Unitary W4 /\ WF_Unitary P3 /\
+(exists (W1 W3 W4: Square 4),
+WF_Unitary W1 /\ WF_Unitary W3 /\ WF_Unitary W4 /\
+  exists (P3 : Square 2), WF_Unitary P3 /\
 (acgate V1) × (bcgate V2) × (acgate V3) × (bcgate V4) = (acgate W1) × (bcgate V2) × (acgate W3) × (bcgate W4)
 /\ W3 = I 2 ⊗ ∣0⟩⟨0∣ .+ P3 ⊗ ∣1⟩⟨1∣).
 Proof.
@@ -733,11 +734,12 @@ rewrite <- acgate_alt_def in tprod. 2: solve_WF_matrix.
 rewrite <- Mmult_assoc with (A := swapab) in tprod.
 rewrite <- Mmult_assoc with (A := swapab × bcgate (W3t) †) in tprod.
 rewrite <- acgate_alt_def in tprod. 2: solve_WF_matrix.
+exists (W1t) †, (W3t) †, (W4t) †.
 repeat rewrite <- Mmult_assoc in tprod.
-exists (W1t) †, (W3t) †, (W4t) †, (P3t) †.
 split. apply adjoint_unitary. assumption.
 split. apply adjoint_unitary. assumption.
 split. apply adjoint_unitary. assumption.
+exists (P3t) †.
 split. apply adjoint_unitary. assumption.
 split. assumption.
 rewrite t_form.
