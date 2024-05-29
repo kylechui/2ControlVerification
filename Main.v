@@ -9,6 +9,7 @@ Require Import Proof.EigenvalueHelpers.
 Require Import Proof.OtherProperties.
 Require Import Proof.WFHelpers.
 Require Import Proof.Swaps.
+Require Import Proof.TensorProducts.
 Require Import QuantumLib.Complex.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
@@ -1988,5 +1989,52 @@ Proof.
       repeat rewrite a12.
       all: solve_WF_matrix.
     }
+  }
+Qed.
+
+Lemma m6_1 : forall (V : Square 4), WF_Unitary V ->
+  (exists (x : Vector 2), WF_Qubit x /\ Entangled (V × (x ⊗ ∣0⟩))) \/
+  (exists (ψ : Vector 2), WF_Qubit ψ /\
+    forall (x : Vector 2), WF_Qubit x ->
+    exists (z : Vector 2), WF_Qubit z /\ V × (x ⊗ ∣0⟩) = z ⊗ ψ) \/
+  (exists (ψ : Vector 2), WF_Qubit ψ /\
+    forall (x : Vector 2), WF_Qubit x ->
+    exists (z : Vector 2), WF_Qubit z /\ V × (x ⊗ ∣0⟩) = ψ ⊗ z).
+Proof.
+  intros V Unitary_V.
+  destruct (classic (exists (x : Vector 2), WF_Qubit x /\ Entangled (V × (x ⊗ ∣0⟩)))) as [case_A | case_B].
+  {
+    left.
+    assumption.
+  }
+  {
+    right.
+    apply a23.
+    assumption.
+    intros x x_qubit.
+    assert (~ (exists x : Vector 2, WF_Qubit x /\ Entangled (V × (x ⊗ ∣0⟩))) <-> (forall x : Vector 2, ~ (WF_Qubit x /\ Entangled (V × (x ⊗ ∣0⟩))))).
+    {
+      split.
+      - intros H x0 Hx0.
+        apply H.
+        exists x0.
+        assumption.
+      - intros H [x0 Hx0].
+        apply (H x0).
+        assumption.
+    }
+    rewrite H in case_B; clear H.
+    specialize (case_B x).
+    apply not_and_or in case_B.
+    destruct case_B.
+    contradiction.
+    unfold Entangled in H.
+    apply NNPP in H.
+    rewrite <- tensor_prod_of_qubit; auto.
+    apply Mmult_qubit.
+    assumption.
+    apply (@kron_qubit 2).
+    assumption.
+    exact qubit0_qubit.
   }
 Qed.

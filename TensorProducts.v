@@ -715,15 +715,42 @@ split.
 apply phi_decomp.
 Qed.
 
-Lemma a23: forall (U : Square 4), WF_Unitary U -> (forall (x : Vector 2), TensorProdQubit (U × (x ⊗ ∣0⟩))) ->
-(exists (psi: Vector 2), forall (x: Vector 2), WF_Matrix x ->  exists (z: Vector 2), U × (x ⊗ ∣0⟩) = z ⊗ psi)
-\/
-(exists (psi: Vector 2), forall (x: Vector 2), WF_Matrix x -> exists (z: Vector 2), U × (x ⊗ ∣0⟩) = psi ⊗ z).
-Proof. 
+Lemma a23 : forall (U : Square 4), WF_Unitary U ->
+  (forall (x : Vector 2), WF_Qubit x -> TensorProdQubit (U × (x ⊗ ∣0⟩))) ->
+  (exists (psi: Vector 2), WF_Qubit psi /\
+    forall (x: Vector 2), WF_Qubit x ->
+      exists (z: Vector 2), WF_Qubit z /\ U × (x ⊗ ∣0⟩) = z ⊗ psi) \/
+  (exists (psi: Vector 2), WF_Qubit psi /\
+    forall (x: Vector 2), WF_Qubit x ->
+      exists (z: Vector 2), WF_Qubit z /\ U × (x ⊗ ∣0⟩) = psi ⊗ z).
+Proof.
 intros U U_unitary tensorProp.
-assert (ts0 : TensorProdQubit (U × (∣0⟩ ⊗ ∣0⟩))). apply tensorProp.
-assert (ts1 : TensorProdQubit (U × (∣1⟩ ⊗ ∣0⟩))). apply tensorProp.
-assert (tsp : TensorProdQubit (U × (∣+⟩ ⊗ ∣0⟩))). apply tensorProp.
+assert (ts0 : TensorProdQubit (U × (∣0⟩ ⊗ ∣0⟩))). apply tensorProp, qubit0_qubit.
+assert (ts1 : TensorProdQubit (U × (∣1⟩ ⊗ ∣0⟩))). apply tensorProp, qubit1_qubit.
+assert (tsp : TensorProdQubit (U × (∣+⟩ ⊗ ∣0⟩))).
+{
+  apply tensorProp.
+  (* TODO(Kyle): This should be a separate lemma like qubit0_qubit *)
+  unfold WF_Qubit.
+  split.
+  {
+    exists 1%nat.
+    compute.
+    reflexivity.
+  }
+  split.
+  {
+    solve_WF_matrix.
+  }
+  {
+    unfold inner_product.
+    unfold xbasis_plus.
+    unfold Mplus, Mmult, scale, adjoint; simpl; Csimpl.
+    replace ((/ √ 2) ^*) with (/ √ 2) by lca.
+    rewrite Cinv_sqrt2_sqrt.
+    lca.
+  }
+}
 unfold TensorProdQubit in ts0, ts1, tsp.
 assert (WF_Matrix (U × (∣0⟩ ⊗ ∣0⟩))). solve_WF_matrix.
 apply ts0 in H. clear ts0.
@@ -821,9 +848,42 @@ destruct casework as [blindep|alindep].
         destruct proportional as [c lindepeq].
         left.
         exists b0.
-        intros x WF_x.
+        split. exact b0_qubit.
+        intros x x_qubit.
         exists (x 0%nat 0%nat .* a0 .+ x 1%nat 0%nat .* (c .* a1)).
-        rewrite qubit_decomposition1 with (phi:= x) at 1. 2: assumption.
+        (* TODO(Kyle): Show that this is a qubit! *)
+        assert (WF_Qubit (x 0%nat 0%nat .* a0 .+ x 1%nat 0%nat .* (c .* a1))).
+        {
+          unfold WF_Qubit.
+          {
+            split.
+            {
+              exists 1%nat.
+              compute.
+              reflexivity.
+            }
+            split.
+            {
+              solve_WF_matrix.
+            }
+            {
+              destruct x_qubit as [_ [_ x_unit]].
+              unfold inner_product in x_unit.
+              unfold adjoint, Mmult in x_unit.
+              simpl in x_unit.
+              rewrite Cplus_0_l in x_unit.
+              repeat rewrite inner_product_plus_l.
+              repeat rewrite inner_product_plus_r.
+              repeat rewrite inner_product_scale_l.
+              repeat rewrite inner_product_scale_r.
+              rewrite a0_unit, a1_unit.
+              repeat rewrite Cmult_1_r.
+              all: admit.
+            }
+          }
+        }
+        split. assumption.
+        rewrite qubit_decomposition1 with (phi:= x) at 1. 2: apply x_qubit.
         rewrite kron_plus_distr_r.
         rewrite Mmult_plus_distr_l.
         do 2 rewrite Mscale_kron_dist_l.
@@ -912,9 +972,15 @@ destruct casework as [blindep|alindep].
         destruct proportional as [c prop].
         right.
         exists a0.
-        intros x WF_x.
+        split. exact a0_qubit.
+        intros x x_qubit.
         exists (x 0%nat 0%nat .* b0 .+ x 1%nat 0%nat .* (c .* b1)).
-        rewrite qubit_decomposition1 with (phi:= x) at 1. 2: assumption.
+        assert (WF_Qubit (x 0%nat 0%nat .* b0 .+ x 1%nat 0%nat .* (c .* b1))).
+        {
+          admit.
+        }
+        split. assumption.
+        rewrite qubit_decomposition1 with (phi:= x) at 1. 2: apply x_qubit.
         rewrite kron_plus_distr_r.
         rewrite Mmult_plus_distr_l.
         do 2 rewrite Mscale_kron_dist_l.
@@ -933,7 +999,7 @@ destruct casework as [blindep|alindep].
         lma'.
     }
 }
-Qed.
+Admitted.
 
 Lemma a24: forall (U V W00 W11 : Square 4), 
 WF_Unitary U -> WF_Unitary V -> WF_Unitary W00 -> WF_Unitary W11 -> 
