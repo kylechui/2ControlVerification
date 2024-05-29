@@ -10,6 +10,7 @@ Require Import Proof.OtherProperties.
 Require Import Proof.WFHelpers.
 Require Import Proof.Swaps.
 Require Import Proof.SwapHelpers.
+Require Import Proof.TensorProducts.
 Require Import QuantumLib.Complex.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
@@ -2002,9 +2003,39 @@ Lemma m5_1 : forall (u0 u1 : C),
 Proof.
   split.
   - intros [U1 [U2 [U3 [U4 [H_U1 [H_U2 [H_U3 [H_U4]]]]]]]].
-    assert (adjoint_helper : U2 × U3 = U1† × ccu (diag2 u0 u1) × U4†).
+    assert (adjoint_helper : acgate U2 × abgate U3 = (bcgate U1)† × ccu (diag2 u0 u1) × (bcgate U4)†).
     {
-      admit.
+      rewrite <- H1.
+      repeat rewrite <- Mmult_assoc.
+      rewrite Mmult_assoc with (A := adjoint (bcgate U1) × bcgate U1 × acgate U2
+× abgate U3) (B := bcgate U4) (C := adjoint (bcgate U4)).
+      assert(bcgate U4 × adjoint (bcgate U4) = I 8).
+      {
+        unfold bcgate.
+        Msimpl.
+        rewrite other_unitary_decomp.
+        rewrite id_kron.
+        reflexivity.
+        assumption.
+      }
+      rewrite H2 at 1.
+      rewrite Mmult_1_r.
+      repeat rewrite Mmult_assoc.
+      rewrite <- Mmult_assoc with (C := acgate U2 × abgate U3).
+      assert(adjoint (bcgate U1) × bcgate U1 = I 8).
+      {
+        unfold bcgate.
+        Msimpl.
+        destruct H_U1.
+        rewrite H4.
+        rewrite id_kron.
+        reflexivity.
+      }
+      rewrite H3.
+      rewrite Mmult_1_l.
+      auto.
+      solve_WF_matrix.
+      solve_WF_matrix.
     }
     (* commutativity *)
     set (A := ((I 2) ⊗ U1)†).
@@ -2058,7 +2089,7 @@ Proof.
 WF_Unitary P0 /\ WF_Unitary Q0 /\ WF_Unitary P1 /\ WF_Unitary Q1 /\
 U2_ac × U3_ab = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1).
     {
-      apply TensorProducts.a24 with (W00 := V0) (W11 := V1); assumption.
+      apply a24 with (W00 := V0) (W11 := V1); assumption.
     }
     destruct H2 as [P0 [Q0 [P1 [Q1 [Unitary_P0 [Unitary_Q0 [Unitary_P1 [Unitary_Q1 H4]]]]]]]].
     set (U1_bc := bcgate U1).
