@@ -1,3 +1,4 @@
+Require Import Coq.Logic.Classical_Prop.
 Require Import QuantumLib.Complex.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
@@ -10,6 +11,7 @@ Require Import UnitaryHelpers.
 Require Import GateHelpers.
 Require Import SwapHelpers.
 Require Import EigenvalueHelpers.
+Require Import QubitHelpers.
 Require Import Permutations.
 Require Import A1_SquareMatrices.
 Require Import A2_UnitaryMatrices.
