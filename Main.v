@@ -2039,52 +2039,67 @@ Proof.
     }
     (* commutativity *)
     set (A := ((I 2) ⊗ U1)†).
-    set (B := (diag2 u0 u1) ⊗ (I 4)).
-    assert (WF_U_commutativity_U1 : A × B = B × A).
-    {
-      admit.
-    }
-    set (P := ((I 2) ⊗ U4)†).
     set (Q := (diag2 u0 u1) ⊗ (I 4)).
-    assert (WF_U_commutativity_U4 : P × Q = Q × P).
+    assert (WF_U_commutativity_U1 : A × Q = Q × A).
     {
-      admit.
+      subst A. subst Q.
+      Msimpl.
+      reflexivity.
+      solve_WF_matrix.
+      solve_WF_matrix.
     }
-    (* TODO: show cc(diag2(u0, u1)) commutes with (diag2 u0 u1) ⊗ (I 4) using diag_commute helper lemma *)
-    assert (diag_commute_helper : ccu (diag2 u0 u1) × ((diag2 u0 u1) ⊗ (I 4)) = ((diag2 u0 u1) ⊗ (I 4)) × ccu (diag2 u0 u1)).
+    set (B := ((I 2) ⊗ U4)†).
+    assert (WF_U_commutativity_U4 : B × Q = Q × B).
     {
-      admit.
+      subst B. subst Q.
+      Msimpl.
+      reflexivity.
+      solve_WF_matrix.
+      solve_WF_matrix.
     }
     set (C := ccu (diag2 u0 u1)).
+    (* TODO: show cc(diag2(u0, u1)) commutes with (diag2 u0 u1) ⊗ (I 4) using diag_commute helper lemma *)
+    assert (diag_commute_helper : C × Q = Q × C).
+    {
+      admit.
+    }
     set (U2_ac := acgate U2).
     set (U3_ab := abgate U3).
-    assert (U2U3_commutativity_subst : (U2_ac × U3_ab) × ((diag2 u0 u1) ⊗ (I 4)) = ((diag2 u0 u1) ⊗ (I 4)) × (U2_ac × U3_ab)).
+    assert (H_Mmult_transitivity: (A × C × B) × Q = Q × (A × C × B)).
     {
-      (* NOTE(Arsh): You don't need the commutativity in this assertion because
-         you have access to those hypotheses in this scope already. *)
-      admit.
+      repeat rewrite Mmult_assoc.
+      rewrite WF_U_commutativity_U4 at 1.
+      rewrite <- Mmult_assoc with (A := C) (B := Q) (C := B).
+      rewrite diag_commute_helper at 1.
+      rewrite Mmult_assoc with (A := Q) (B := C) (C := B).
+      repeat rewrite <- Mmult_assoc.
+      rewrite WF_U_commutativity_U1.
+      reflexivity.
+    }
+    assert (U2U3_commutativity_subst : (U2_ac × U3_ab) × Q = Q × (U2_ac × U3_ab)).
+    {
+      subst U2_ac U3_ab.
+      rewrite adjoint_helper.
+      subst A B Q C.
+      unfold bcgate.
+      assumption.
     }
     assert (WF_U2U3 : WF_Unitary (U2_ac × U3_ab)).
     {
       admit.
     }
+    subst Q.
     replace 4%nat with (2 * 2)%nat in U2U3_commutativity_subst by lia.
     rewrite <- (id_kron 2 2), <- kron_assoc in U2U3_commutativity_subst; solve_WF_matrix.
     assert (u0 = u1 \/ exists (V0 V1 : Square 4), WF_Unitary V0 /\ WF_Unitary V1 /\
       U2_ac × U3_ab = ∣0⟩⟨0∣ ⊗ V0 .+ ∣1⟩⟨1∣ ⊗ V1).
     {
-      (* NOTE(Arsh): Oftentimes if you have already built up all the necessary
-         assumptions, it's nicer to make an assertion and apply some other lemma,
-         rather than try and do `pose proof ...` and pass all the arguments in.
-         This also gives you the flexibility of solving the individual pieces
-         as subgoals in this assertion, rather than having to prove them beforehand
-         in some other assertion. *)
       apply m3_1; assumption.
     }
     destruct H2 as [H2 | H3].
     left; assumption.
     destruct H3 as [V0 [V1 [Unitary_V0 [Unitary_V1 H3]]]].
-    (* TODO(Arsh): Use Lemma A.24 to actually get V0, V1 *)
+    (* Use Lemma A.24 to actually get V0, V1 *)
     assert(exists (P0 Q0 P1 Q1 : Square 2),
 WF_Unitary P0 /\ WF_Unitary Q0 /\ WF_Unitary P1 /\ WF_Unitary Q1 /\
 U2_ac × U3_ab = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1).
@@ -2096,11 +2111,11 @@ U2_ac × U3_ab = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1).
     set (U4_bc := bcgate U4).
     assert (WF_Unitary U1_bc).
     {
-      admit.
+      apply bcgate_unitary; assumption.
     }
     assert (WF_Unitary U4_bc).
     {
-      admit.
+      apply bcgate_unitary; assumption.
     }
     assert (ccu(diag2 u0 u1) = ∣0⟩⟨0∣ ⊗ (U1 × (P0 ⊗ Q0) × U4) .+ ∣1⟩⟨1∣ ⊗ (U1 × (P1 ⊗ Q1) × U4)).
     {
