@@ -632,8 +632,8 @@ assert (v2q_prop: forall (phi: Vector 2), WF_Matrix phi -> V2 × (phi ⊗ ∣0�
     reflexivity.
 }
 assert (a18_partial:= a18 W2 W2_unitary).
-assert (w2_form: exists P2 : Square 2,
-W2 = I 2 ⊗ ∣0⟩⟨0∣ .+ P2 ⊗ ∣1⟩⟨1∣ /\ WF_Unitary P2).
+assert (w2_form: exists P2 : Square 2, WF_Unitary P2 /\
+W2 = I 2 ⊗ ∣0⟩⟨0∣ .+ P2 ⊗ ∣1⟩⟨1∣).
 {
     apply a18_partial.
     intros beta WF_beta.
