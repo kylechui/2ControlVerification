@@ -221,7 +221,6 @@ Lemma a7_2q_a : forall (P : Square 2) (Q: Square 2),
 Proof.
 intros.
 lma'.
-apply WF_partial_trace_2q_a.
 Qed.
 
 Lemma a7_2q_b : forall (P : Square 2) (Q: Square 2),
@@ -230,7 +229,6 @@ Lemma a7_2q_b : forall (P : Square 2) (Q: Square 2),
 Proof.
 intros.
 lma'.
-apply WF_partial_trace_2q_b.
 Qed.
 
 Lemma a7_3q_a : forall (A: Square 2) (B: Square 4),
@@ -239,7 +237,6 @@ Lemma a7_3q_a : forall (A: Square 2) (B: Square 4),
 Proof.
 intros.
 lma'.
-apply WF_partial_trace_3q_a.
 Qed.
 
 Lemma a7_3q_c : forall (A: Square 4) (B: Square 2),
@@ -248,7 +245,6 @@ Lemma a7_3q_c : forall (A: Square 4) (B: Square 2),
 Proof.
 intros.
 lma'.
-apply WF_partial_trace_3q_c.
 Qed.
 
 Lemma a8 : forall (Q : Square 2),
