@@ -2061,6 +2061,12 @@ Proof.
     (* TODO: show cc(diag2(u0, u1)) commutes with (diag2 u0 u1) ⊗ (I 4) using diag_commute helper lemma *)
     assert (diag_commute_helper : C × Q = Q × C).
     {
+      apply diag_commute.
+      subst C.
+      apply ccu_diag.
+      solve_WF_matrix.
+      subst Q.
+      solve_matrix.
       admit.
     }
     set (U2_ac := acgate U2).
@@ -2086,6 +2092,8 @@ Proof.
     }
     assert (WF_U2U3 : WF_Unitary (U2_ac × U3_ab)).
     {
+      (* apply Mmult_unitary.
+      apply Mmult_unitary. *)
       admit.
     }
     subst Q.

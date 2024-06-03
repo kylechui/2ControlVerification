@@ -2432,5 +2432,29 @@ Qed.
 
 Lemma diag_commute : forall {n} (A B : Square n), WF_Diagonal A -> WF_Diagonal B -> A × B = B × A.
 Proof.
-  admit.
+  intros.
+  lma'.
+  solve_WF_matrix.
+  apply H.
+  apply H0.
+  solve_WF_matrix.
+  apply H0.
+  apply H.
+  unfold WF_Diagonal in *.
+  destruct H as [WF_A].
+  destruct H0 as [WF_B].
+  specialize (H i j).
+  specialize (H0 i j).
+  bdestruct (i =? j).
+  {
+    rewrite H1.
+    unfold Mmult; simpl.
+    admit.
+  }
+  {
+    specialize (H H1).
+    specialize (H0 H1).
+    unfold Mmult; simpl.
+    admit.
+  }
 Admitted.

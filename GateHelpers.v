@@ -1332,3 +1332,54 @@ rewrite kron_mixed_product.
 rewrite Mmult_1_l. 2: solve_WF_matrix.
 reflexivity.
 Qed.
+
+Lemma control_diag: forall (n: nat) (U: Square n), WF_Diagonal U -> WF_Diagonal (control U).
+Proof.
+    intros.
+    unfold WF_Diagonal.
+    split.
+    apply WF_control.
+    apply H.
+    intros i j Hneq.
+    unfold control.
+    bdestruct (i <? n).
+    {
+        bdestruct (j =? i).
+        {
+            lia.
+        }
+        {
+            simpl.
+            bdestruct (n <=? j).
+            {
+                (* change the other boolean to true *)
+                admit.
+            }
+            {
+                rewrite andb_false_r.
+                reflexivity.
+            }
+        }
+    }
+    {
+        rewrite andb_false_l.
+        bdestruct (n <=? i).
+        {
+            (* Nat.ltb_lt for the left one*)
+            admit.
+        }
+        {
+            rewrite andb_false_l.
+            reflexivity.
+        }
+    }
+Admitted.
+
+Lemma ccu_diag: forall (U: Square 2), WF_Diagonal U -> WF_Diagonal (ccu U).
+Proof.
+    intros.
+    unfold ccu.
+    apply control_diag.
+    apply control_diag.
+    assumption.
+Qed.
