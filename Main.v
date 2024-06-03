@@ -2302,7 +2302,7 @@ Proof.
     rewrite <- tensor_prod_of_qubit; auto.
     apply Mmult_qubit.
     assumption.
-    apply (@kron_qubit 2).
+    apply (@kron_qubit 2 2).
     assumption.
     exact qubit0_qubit.
   }

@@ -1409,12 +1409,11 @@ Lemma unitary_preserves_inner_prod {n}: forall (U: Square n) (a b: Vector n), WF
 Proof.
 intros.
 destruct H as [WF_U u_inv].
-unfold inner_product.
-rewrite Mmult_adjoint.
-rewrite Mmult_assoc.
-rewrite <- Mmult_assoc with (B := U).
-rewrite u_inv. rewrite Mmult_1_l. 2: assumption.
+rewrite inner_product_adjoint_l.
+rewrite <- Mmult_assoc.
+rewrite u_inv, Mmult_1_l.
 reflexivity.
+assumption.
 Qed.
 
 Lemma kron_11_r_is_scale {m n}: forall (A : Matrix m n) (B : Vector 1),

@@ -1099,7 +1099,7 @@ assert (v4_tens: forall (x: Vector 2), WF_Qubit x ->
     apply qubit0_qubit.
     apply Mmult_qubit.
     apply adjoint_unitary. assumption.
-    apply (@kron_qubit 2).
+    apply (@kron_qubit 2 2).
     assumption. apply qubit0_qubit.
     apply intermediary_step.
     assumption.
