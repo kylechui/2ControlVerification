@@ -1,6 +1,7 @@
 -Q . Proof
 # Helper Lemmas and Definitions
 MatrixHelpers.v
+DiagonalHelpers.v
 PartialTraceDefinitions.v
 AlgebraHelpers.v
 SwapHelpers.v
