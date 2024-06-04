@@ -38,3 +38,6 @@ proving parts of the appendix or main body of the paper:
 - PartialTraceDefinitions - Adding the functions for tracing out qubits, and
   properties of the function.
 - TraceoutHelpers - Contains helper lemmas for tracing out qubits.
+- DiagonalHelpers.v - Helper lemmas for diagonal matrices.
+- WFHelpers.v - Helper lemmas for well-formed matrices.
+- Permutations.v - Helper lemmas for permutations.
