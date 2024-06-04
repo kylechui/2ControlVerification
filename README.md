@@ -38,3 +38,6 @@ proving parts of the appendix or main body of the paper:
 - PartialTraceDefinitions - Adding the functions for tracing out qubits, and
   properties of the function.
 - TraceoutHelpers - Contains helper lemmas for tracing out qubits.
+- DiagonalHelpers.v - Contains helpers lemmas that verify commutativity properties of diagonal matrices and diagonal properties control U and ccu U, where U is a diagonal matrix.
+- WFHelpers.v - Contains the solve_WF_matrix automation tactic for solving well-formedness goals.
+- Permutations.v - Helper lemmas for handling permutations, particularly useful in validating eigenvalue rearrangements and matrix decompositions.
