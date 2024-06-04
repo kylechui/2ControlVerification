@@ -1,3 +1,4 @@
+Require Import Coq.Logic.Classical_Prop.
 Require Import Proof.UnitaryMatrices.
 Require Import Proof.Permutations.
 Require Import Proof.SquareMatrices.
@@ -6,12 +7,14 @@ Require Import Proof.MatrixHelpers.
 Require Import Proof.GateHelpers.
 Require Import Proof.DiagonalHelpers.
 Require Import Proof.SwapHelpers.
+Require Import Proof.QubitHelpers.
 Require Import Proof.EigenvalueHelpers.
 Require Import Proof.OtherProperties.
 Require Import Proof.WFHelpers.
 Require Import Proof.Swaps.
 Require Import Proof.SwapHelpers.
 Require Import Proof.TensorProducts.
+Require Import Proof.ControlledUnitaries.
 Require Import QuantumLib.Complex.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
@@ -1101,12 +1104,7 @@ Lemma m4_2 : forall (u0 u1 : C),
     WF_Unitary Q ->
     let beta : Vector 2 := Q × ∣0⟩ in
     let beta_perp := Q × ∣1⟩ in
-    (exists (P0 P1 : Square 2) (a b p q : C) (v1 v2 v3 v4 : Vector 2),
-      WF_Unitary P0 /\ WF_Unitary P1 /\
-      WF_Matrix v1 /\ WF_Matrix v2 /\ WF_Matrix v3 /\ WF_Matrix v4 /\
-      v1 <> Zero /\ v2 <> Zero /\ v3 <> Zero /\ v4 <> Zero /\
-      Eigenpair P0 (v1, a) /\ Eigenpair P0 (v2, b) /\
-      Eigenpair P1 (v3, p) /\ Eigenpair P1 (v4, q) /\
+    (exists (P0 P1 : Square 2), WF_Unitary P0 /\ WF_Unitary P1 /\
       I 2 ⊗ I 2 ⊗ (beta × beta†) .+ P0 ⊗ P1 ⊗ (beta_perp × beta_perp†) = ccu (diag2 u0 u1))
     <-> u0 = 1 /\ u1 = 1.
 Proof.
@@ -1129,11 +1127,7 @@ Proof.
   pose (b := beta 1%nat 0%nat).
   split.
   - intros.
-    destruct H2 as [P0 [P1 [c1 [c2 [c3 [c4 [v1 [v2 [v3 [v4 H2]]]]]]]]]].
-    destruct H2 as [Unitary_P0 [Unitary_P1 H2]].
-    destruct H2 as [WF_v1 [WF_v2 [WF_v3 [WF_v4 H2]]]].
-    destruct H2 as [v1_nonzero [v2_nonzero [v3_nonzero [v4_nonzero H2]]]].
-    destruct H2 as [epair1 [epair2 [epair3 [epair4 H2]]]].
+    destruct H2 as [P0 [P1 [Unitary_P0 [Unitary_P1 H2]]]].
     destruct (Ceq_dec a C0) as [a_zero | a_nonzero].
     + assert (unit_b : b^* * b = 1).
       {
@@ -1404,8 +1398,6 @@ Proof.
     exists (I 2), (I 2).
     destruct H2 as [u0_is_1 u1_is_1].
     rewrite u0_is_1, u1_is_1.
-    exists C1, C1, C1, C1.
-    exists ∣0⟩, ∣1⟩, ∣0⟩, ∣1⟩.
     split.
     {
       apply id_unitary.
@@ -1413,54 +1405,6 @@ Proof.
     split.
     {
       apply id_unitary.
-    }
-    split.
-    {
-      apply WF_qubit0.
-    }
-    split.
-    {
-      apply WF_qubit1.
-    }
-    split.
-    {
-      apply WF_qubit0.
-    }
-    split.
-    {
-      apply WF_qubit1.
-    }
-    split.
-    {
-      apply nonzero_qubit0.
-    }
-    split.
-    {
-      apply nonzero_qubit1.
-    }
-    split.
-    {
-      apply nonzero_qubit0.
-    }
-    split.
-    {
-      apply nonzero_qubit1.
-    }
-    split.
-    {
-      apply id2_eigenpairs.
-    }
-    split.
-    {
-      apply id2_eigenpairs.
-    }
-    split.
-    {
-      apply id2_eigenpairs.
-    }
-    split.
-    {
-      apply id2_eigenpairs.
     }
     {
       rewrite <- kron_plus_distr_l.
@@ -2327,4 +2271,847 @@ U2_ac × U3_ab = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1).
       all: repeat reflexivity.
       repeat simplify_match.
       all: repeat reflexivity.   
+
+Lemma m6_1 : forall (V : Square 4), WF_Unitary V ->
+  (exists (x : Vector 2), WF_Qubit x /\ Entangled (V × (x ⊗ ∣0⟩))) \/
+  (exists (ψ : Vector 2), WF_Qubit ψ /\
+    forall (x : Vector 2), WF_Qubit x ->
+    exists (z : Vector 2), WF_Qubit z /\ V × (x ⊗ ∣0⟩) = z ⊗ ψ) \/
+  (exists (ψ : Vector 2), WF_Qubit ψ /\
+    forall (x : Vector 2), WF_Qubit x ->
+    exists (z : Vector 2), WF_Qubit z /\ V × (x ⊗ ∣0⟩) = ψ ⊗ z).
+Proof.
+  intros V Unitary_V.
+  destruct (classic (exists (x : Vector 2), WF_Qubit x /\ Entangled (V × (x ⊗ ∣0⟩)))) as [case_A | case_B].
+  {
+    left.
+    assumption.
+  }
+  {
+    right.
+    apply a23.
+    assumption.
+    intros x x_qubit.
+    assert (~ (exists x : Vector 2, WF_Qubit x /\ Entangled (V × (x ⊗ ∣0⟩))) <-> (forall x : Vector 2, ~ (WF_Qubit x /\ Entangled (V × (x ⊗ ∣0⟩))))).
+    {
+      split.
+      - intros H x0 Hx0.
+        apply H.
+        exists x0.
+        assumption.
+      - intros H [x0 Hx0].
+        apply (H x0).
+        assumption.
+    }
+    rewrite H in case_B; clear H.
+    specialize (case_B x).
+    apply not_and_or in case_B.
+    destruct case_B.
+    contradiction.
+    unfold Entangled in H.
+    apply NNPP in H.
+    rewrite <- tensor_prod_of_qubit; auto.
+    apply Mmult_qubit.
+    assumption.
+    apply (@kron_qubit 2).
+    assumption.
+    exact qubit0_qubit.
+  }
+Qed.
+
+Lemma m6_2 : forall (u0 u1 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
+  forall (U1 W2 V3 U4 : Square 4), WF_Unitary U1 -> WF_Unitary W2 -> WF_Unitary V3 -> WF_Unitary U4 ->
+    ((acgate U1 × bcgate W2 × acgate V3 × bcgate U4) = ccu (diag2 u0 u1) /\
+    V3 × (∣0⟩ ⊗ ∣0⟩) = ∣0⟩ ⊗ ∣0⟩ /\
+    (forall (x : Vector 2), WF_Qubit x ->
+      acgate U1 × (x ⊗ ∣0⟩ ⊗ ∣0⟩) = bcgate U4† × acgate V3† × (x ⊗ ∣0⟩ ⊗ ∣0⟩))) ->
+  u0 = u1 \/ u0 * u1 = C1 \/ exists (W1 W3 W4 : Square 4), WF_Unitary W1 /\ WF_Unitary W3 /\ WF_Unitary W4 /\
+  exists (P3 : Square 2), WF_Unitary P3 /\
+    acgate U1 × bcgate W2 × acgate V3 × bcgate U4 = acgate W1 × bcgate W2 × acgate W3 × bcgate W4 /\
+    W3 = I 2 ⊗ ∣0⟩⟨0∣ .+ P3 ⊗ ∣1⟩⟨1∣.
+Proof.
+  intros u0 u1 unit_u0 unit_u1 U1 W2 V3 U4 U1_unitary W2_unitary V3_unitary U4_unitary.
+  intros [H [H0 H1]].
+  assert (V3_d_unitary : WF_Unitary (V3†)) by solve_WF_matrix.
+  pose proof (m6_1 V3† V3_d_unitary).
+  destruct H2 as [case_A | [case_B | case_C]].
+  {
+    destruct case_A as [x [x_qubit entangled]].
+    specialize (H1 x x_qubit).
+    assert (swapab × acgate U1 × swapab × swapab × (x ⊗ ∣0⟩ ⊗ ∣0⟩) = swapab × bcgate U4† × swapab × (swapab × acgate V3† × swapab) × swapab × (x ⊗ ∣0⟩ ⊗ ∣0⟩)).
+    {
+      repeat rewrite Mmult_assoc.
+      repeat rewrite <- Mmult_assoc with (A := swapab) (B := swapab).
+      repeat rewrite swapab_inverse at 1.
+      repeat rewrite Mmult_1_l.
+      rewrite H1 at 1; clear H1.
+      repeat rewrite <- Mmult_assoc.
+      all: solve_WF_matrix.
+    }
+    assert (bcgate U1 × (∣0⟩ ⊗ x ⊗ ∣0⟩) = acgate U4† × bcgate V3† × (∣0⟩ ⊗ x ⊗ ∣0⟩)).
+    {
+      do 2 rewrite a12 in H2.
+      unfold swapab in H2.
+      rewrite Mmult_assoc with (A := bcgate U1) in H2.
+      rewrite kron_mixed_product in H2.
+      rewrite Mmult_1_l in H2.
+      rewrite a10 in H2.
+      rewrite H2 at 1; clear H2.
+      fold swapab.
+      rewrite <- a12 with (U := U4†).
+      repeat rewrite <- Mmult_assoc.
+      rewrite swapab_inverse.
+      repeat rewrite Mmult_assoc.
+      rewrite <- Mmult_assoc with (A := swapab).
+      rewrite swapab_inverse at 1.
+      unfold swapab.
+      rewrite kron_mixed_product.
+      rewrite a10.
+      Msimpl_light.
+      all: solve_WF_matrix.
+    }
+    assert (exists (Q0 Q1 : Square 2), U4† = ∣0⟩⟨0∣ ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ Q1 /\ WF_Unitary Q0 /\ WF_Unitary Q1).
+    {
+      (* TODO(Kyle): Use the one in the refactoring PR!! *)
+      assert (inner_product_kron : forall {m n} (u : Vector m) (v : Vector n),
+      ⟨u ⊗ v, u ⊗ v⟩ = ⟨u, u⟩ * ⟨v, v⟩).
+      {
+        intros.
+        unfold inner_product.
+        rewrite (@kron_adjoint m 1 n 1).
+        rewrite (@kron_mixed_product 1 m 1 1 n 1).
+        unfold kron; reflexivity.
+      }
+      assert (⟨ x ⊗ ∣0⟩, x ⊗ ∣0⟩ ⟩ = C1).
+      {
+        rewrite inner_product_kron.
+        destruct x_qubit as [_ [_ x_unit]].
+        rewrite x_unit.
+        lca.
+      }
+      assert (U4_d_unitary : WF_Unitary (U4†)) by solve_WF_matrix.
+      apply (a19 U4† (V3† × (x ⊗ ∣0⟩)) (U1 × (x ⊗ ∣0⟩))); solve_WF_matrix.
+      {
+        rewrite inner_product_adjoint_r, adjoint_involutive.
+        rewrite <- Mmult_assoc.
+        rewrite (other_unitary_decomp V3), Mmult_1_l.
+        all: solve_WF_matrix.
+      }
+      {
+        rewrite inner_product_adjoint_r.
+        rewrite <- Mmult_assoc.
+        destruct U1_unitary as [_ U1_unitary].
+        rewrite U1_unitary, Mmult_1_l.
+        all: solve_WF_matrix.
+      }
+      {
+        unfold bcgate in H3.
+        rewrite kron_assoc in H3.
+        rewrite Mmult_assoc in H3.
+        repeat rewrite kron_mixed_product in H3.
+        rewrite Mmult_1_l in H3.
+        symmetry.
+        all: solve_WF_matrix.
+      }
+    }
+    destruct H4 as [Q0 [Q1 [U4_decomp [Q0_unitary Q1_unitary]]]].
+    apply (f_equal (fun f => f†)) in U4_decomp.
+    rewrite adjoint_involutive in U4_decomp.
+    rewrite Mplus_adjoint in U4_decomp.
+    do 2 rewrite kron_adjoint in U4_decomp.
+    rewrite adjoint00, adjoint11 in U4_decomp.
+    assert (u0 = u1 \/ u0 * u1 = C1).
+    {
+      apply m4_4; auto.
+      exists U1, W2, V3, U4.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      exists Q0†, Q1†.
+      split. solve_WF_matrix.
+      split. solve_WF_matrix.
+      split; assumption.
+    }
+    destruct H4.
+    left; assumption.
+    right; left; assumption.
+  }
+  {
+    right; right.
+    apply a31; auto.
+  }
+  {
+    destruct case_C as [ψ [ψ_qubit case_C]].
+    assert (exists (P0 : Square 2), WF_Unitary P0 /\
+      forall (x : Vector 2), WF_Qubit x -> V3† × (x ⊗ ∣0⟩) = ψ ⊗ (P0 × x)).
+    {
+      apply (a25 V3† ψ); solve_WF_matrix.
+    }
+    destruct H2 as [P0 [P0_unitary H2]].
+    assert (forall (x : Vector 2), WF_Qubit x -> acgate U1 × (x ⊗ ∣0⟩ ⊗ ∣0⟩) = ψ ⊗ (U4† × (∣0⟩ ⊗ (P0 × x)))).
+    {
+      intros x x_qubit.
+      specialize (H1 x x_qubit).
+      specialize (H2 x x_qubit).
+      rewrite H1; clear H1.
+      unfold acgate, abgate, swapbc.
+      repeat rewrite Mmult_assoc.
+      rewrite kron_assoc.
+      rewrite (@kron_mixed_product 2 2 1 4 4 1).
+      rewrite a10.
+      rewrite Mmult_1_l.
+      rewrite <- (@kron_assoc 2 1 2 1 2 1).
+      rewrite (@kron_mixed_product 4 4 1 2 2 1).
+      rewrite H2 at 1.
+      rewrite Mmult_1_l.
+      rewrite (@kron_assoc 2 1 2 1 2 1).
+      rewrite (@kron_mixed_product 2 2 1 4 4 1).
+      rewrite a10.
+      unfold bcgate.
+      rewrite kron_mixed_product.
+      repeat rewrite Mmult_1_l.
+      all: solve_WF_matrix.
+    }
+    assert (forall (x : Vector 2), WF_Qubit x ->
+      exists (w : Vector 2), WF_Qubit w /\ U4† × (∣0⟩ ⊗ (P0 × x)) = ∣0⟩ ⊗ w).
+    {
+      intros x x_qubit.
+      apply (a22 U1 x ∣0⟩ ∣0⟩ ψ); solve_WF_matrix.
+      (* TODO: Integrate this into solve_WF_matrix *)
+      apply qubit0_qubit.
+      apply qubit0_qubit.
+      apply Mmult_qubit.
+      solve_WF_matrix.
+      apply (@kron_qubit 2).
+      apply qubit0_qubit.
+      apply Mmult_qubit; assumption.
+      specialize (H3 x x_qubit).
+      assumption.
+    }
+    assert (exists (Q0 Q1 : Square 2), U4† = ∣0⟩⟨0∣ ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ Q1 /\ WF_Unitary Q0 /\ WF_Unitary Q1).
+    {
+      apply (a17 U4† (P0 × ∣0⟩) (P0 × ∣1⟩)); solve_WF_matrix.
+      (* TODO: Integrate this into solve_WF_matrix *)
+      apply Mmult_qubit.
+      assumption.
+      apply qubit0_qubit.
+      apply Mmult_qubit.
+      assumption.
+      apply qubit1_qubit.
+      rewrite inner_product_adjoint_r.
+      destruct P0_unitary as [_ P0_unitary].
+      rewrite <- Mmult_assoc, P0_unitary, Mmult_1_l.
+      lca.
+      solve_WF_matrix.
+      pose proof H4.
+      specialize (H4 ∣0⟩ qubit0_qubit).
+      specialize (H5 ∣1⟩ qubit1_qubit).
+      destruct H4 as [w [w_qubit H4]].
+      destruct H5 as [φ [φ_qubit H5]].
+      exists w, φ.
+      split. apply w_qubit.
+      split. apply φ_qubit.
+      split; assumption.
+    }
+    destruct H5 as [Q0 [Q1 [U4_decomp [Q0_unitary Q1_unitary]]]].
+    apply (f_equal (fun f => f†)) in U4_decomp.
+    rewrite adjoint_involutive in U4_decomp.
+    rewrite Mplus_adjoint in U4_decomp.
+    do 2 rewrite kron_adjoint in U4_decomp.
+    rewrite adjoint00, adjoint11 in U4_decomp.
+    assert (u0 = u1 \/ u0 * u1 = C1).
+    {
+      apply m4_4; auto.
+      exists U1, W2, V3, U4.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      exists Q0†, Q1†.
+      split. solve_WF_matrix.
+      split. solve_WF_matrix.
+      split; assumption.
+    }
+    destruct H5.
+    left; assumption.
+    right; left; assumption.
+  }
+Qed.
+
+Lemma m6_3 : forall (u0 u1 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
+  forall (V1 V2 V3 V4 : Square 4), WF_Unitary V1 -> WF_Unitary V2 -> WF_Unitary V3 -> WF_Unitary V4 ->
+  (acgate V1 × bcgate V2 × acgate V3 × bcgate V4 = ccu (diag2 u0 u1) /\
+  (exists (ψ : Vector 2), WF_Qubit ψ /\
+    forall (x : Vector 2), WF_Qubit x ->
+      exists (z : Vector 2), WF_Qubit z /\
+        V2 × (x ⊗ ∣0⟩) = z ⊗ ψ) /\
+  V3 × (∣0⟩ ⊗ ∣0⟩) = ∣0⟩ ⊗ ∣0⟩) ->
+  u0 = u1 \/ u0 * u1 = C1 \/ exists (W1 W2 W3 W4 : Square 4),
+    WF_Unitary W1 /\ WF_Unitary W2 /\ WF_Unitary W3 /\ WF_Unitary W4 /\
+    exists (P1 P2 P3 P4 Q : Square 2),
+    WF_Unitary P1 /\ WF_Unitary P2 /\ WF_Unitary P3 /\ WF_Unitary P4 /\ WF_Unitary Q /\
+      acgate W1 × bcgate W2 × acgate W3 × bcgate W4 = ccu (diag2 u0 u1) /\
+      W1 = I 2 ⊗ (Q × ∣0⟩⟨0∣) .+ P1 ⊗ (Q × ∣1⟩⟨1∣) /\
+      W2 = I 2 ⊗ ∣0⟩⟨0∣ .+ P2 ⊗ ∣1⟩⟨1∣ /\
+      W3 = I 2 ⊗ ∣0⟩⟨0∣ .+ P3 ⊗ ∣1⟩⟨1∣ /\
+      W4 = I 2 ⊗ (∣0⟩⟨0∣ × Q†) .+ P4 ⊗ (∣1⟩⟨1∣ × Q†).
+Proof.
+  intros u0 u1 unit_u0 unit_u1 V1 V2 V3 V4 V1_unitary V2_unitary V3_unitary V4_unitary [eq2 [eq3 eq4]].
+  pose proof (a30 V1 V2 V3 V4 V1_unitary V2_unitary V3_unitary V4_unitary eq3) as eq5; clear eq3.
+  destruct eq5 as [U1 [W2 [U4 [P2 [U1_unitary [W2_unitary [U4_unitary [P2_unitary [eq5 eq6]]]]]]]]].
+  rewrite eq5 in eq2; clear eq5; rename eq2 into eq7.
+  assert (eq8: forall (x : Vector 2), WF_Qubit x -> acgate U1 × (x ⊗ ∣0⟩ ⊗ ∣0⟩) = bcgate U4† × acgate V3† × (x ⊗ ∣0⟩ ⊗ ∣0⟩)).
+  {
+    symmetry.
+    rewrite <- acgate_adjoint, <- bcgate_adjoint.
+    apply (a29 U1 W2 V3 U4 (diag2 u0 u1)).
+    all: solve_WF_matrix.
+    rewrite eq6.
+    lma'; solve_WF_matrix.
+  }
+  pose proof (
+m6_2 u0 u1 unit_u0 unit_u1 U1 W2 V3 U4
+    U1_unitary W2_unitary V3_unitary U4_unitary
+  ) as H.
+  assert (tmp : acgate U1 × bcgate W2 × acgate V3 × bcgate U4 = ccu (diag2 u0 u1) /\
+    V3 × (∣0⟩ ⊗ ∣0⟩) = ∣0⟩ ⊗ ∣0⟩ /\
+    (forall x : Vector 2, WF_Qubit x ->
+      acgate U1 × (x ⊗ ∣0⟩ ⊗ ∣0⟩) = bcgate (U4) † × acgate (V3) † × (x ⊗ ∣0⟩ ⊗ ∣0⟩))).
+  {
+    split. assumption.
+    split. assumption.
+    intros x x_qubit.
+    apply (eq8 x x_qubit).
+  }
+  specialize (H tmp); clear tmp.
+  destruct H as [u0_eq_u1 | [u0_u1_eq_C1 | H]].
+  {
+    left; assumption.
+  }
+  {
+    right; left; assumption.
+  }
+  {
+    destruct H as [W1 [W3 [W4 [W1_unitary [W3_unitary [W4_unitary [P3 [P3_unitary [eq9 eq10]]]]]]]]].
+    rewrite eq9 in eq7; rename eq7 into eq11; clear eq9.
+    assert (eq12 : forall (z : Vector 2), WF_Qubit z ->
+      acgate W1 × bcgate W2 × (∣0⟩ ⊗ z ⊗ ∣0⟩) = bcgate W4† × (∣0⟩ ⊗ z ⊗ ∣0⟩)).
+    {
+      rewrite <- bcgate_adjoint; solve_WF_matrix.
+      apply (a28 W1 W2 W3 W4 (diag2 u0 u1)); solve_WF_matrix.
+      rewrite eq10.
+      lma'; solve_WF_matrix.
+    }
+    assert (eq13 : exists (β : Vector 2), WF_Qubit β /\
+      forall (z : Vector 2), WF_Qubit z -> W4† × (z ⊗ ∣0⟩) = z ⊗ β).
+    {
+      assert (forall (z : Vector 2), WF_Qubit z ->
+        acgate W1 × (∣0⟩ ⊗ z ⊗ ∣0⟩) = bcgate W4† × (∣0⟩ ⊗ z ⊗ ∣0⟩)).
+      {
+        intros z z_qubit.
+        specialize (eq12 z z_qubit).
+        rewrite <- eq12; clear eq12.
+        rewrite eq6; clear eq6.
+        unfold bcgate.
+        rewrite kron_plus_distr_l.
+        rewrite Mmult_assoc.
+        rewrite Mmult_plus_distr_r.
+        repeat rewrite <- kron_assoc.
+        repeat rewrite (@kron_mixed_product 4 4 1 2 2 1).
+        replace (∣1⟩⟨1∣ × ∣0⟩) with (@Zero 2 1) by lma'.
+        replace (∣0⟩⟨0∣ × ∣0⟩) with ∣0⟩ by lma'.
+        rewrite kron_0_r, Mplus_0_r.
+        rewrite (@kron_mixed_product 2 2 1 2 2 1).
+        repeat rewrite Mmult_1_l.
+        all: solve_WF_matrix.
+      }
+      assert (forall (z : Vector 2), WF_Qubit z ->
+        exists (w : Vector 2), WF_Qubit w /\ W4† × (z ⊗ ∣0⟩) = z ⊗ w).
+      {
+        intros z z_qubit.
+        apply (a22 W1 ∣0⟩ z ∣0⟩ ∣0⟩); solve_WF_matrix.
+        apply qubit0_qubit.
+        apply qubit0_qubit.
+        apply qubit0_qubit.
+        apply Mmult_qubit.
+        solve_WF_matrix.
+        apply (@kron_qubit 2).
+        assumption.
+        apply qubit0_qubit.
+        specialize (H z z_qubit).
+        rewrite H; clear H.
+        unfold bcgate.
+        rewrite kron_assoc.
+        rewrite kron_mixed_product.
+        rewrite Mmult_1_l.
+        all: solve_WF_matrix.
+      }
+      apply a26; solve_WF_matrix.
+    }
+    destruct eq13 as [β [β_qubit eq13]].
+    assert (eq13_adjoint : forall (z : Vector 2), WF_Qubit z -> W4 × (z ⊗ β) = z ⊗ ∣0⟩).
+    {
+      intros z z_qubit.
+      specialize (eq13 z z_qubit).
+      rewrite <- eq13; clear eq13.
+      rewrite <- Mmult_assoc.
+      rewrite (other_unitary_decomp W4), Mmult_1_l.
+      all: solve_WF_matrix.
+    }
+    set (β_perp := (fun x y => match x, y with
+                                | 0, 0 => -(β 1 0)^*%nat
+                                | 1, 0 => (β 0 0)^*%nat
+                                | _, _ => C0
+                                end) : Vector 2).
+    assert (β_perp_qubit : WF_Qubit β_perp).
+    {
+      unfold WF_Qubit.
+      split. exists 1%nat; trivial.
+      split. show_wf.
+      destruct β_qubit as [_ [_ β_unit]].
+      rewrite <- β_unit; clear β_unit.
+      lca.
+    }
+    assert (β_mult : β† × β = I 1).
+    {
+      lma'; solve_WF_matrix.
+      destruct β_qubit as [_ [_ β_unit]].
+      unfold I; simpl.
+      rewrite <- β_unit; lca.
+    }
+    assert (β_perp_mult : β_perp† × β_perp = I 1).
+    {
+      lma'; solve_WF_matrix.
+      destruct β_perp_qubit as [_ [_ β_perp_unit]].
+      unfold I; simpl.
+      rewrite <- β_perp_unit; lca.
+    }
+    set (Q := β × ⟨0∣ .+ β_perp × ⟨1∣).
+    assert (Q_unitary : WF_Unitary Q).
+    {
+      assert (WF_Q : WF_Matrix Q) by solve_WF_matrix.
+      unfold WF_Unitary.
+      split. assumption.
+      subst Q.
+      distribute_adjoint.
+      repeat rewrite adjoint_involutive.
+      rewrite Mmult_plus_distr_l.
+      do 2 rewrite Mmult_plus_distr_r.
+      repeat rewrite <- Mmult_assoc.
+      do 2 rewrite Mmult_assoc with (A := ∣0⟩).
+      do 2 rewrite Mmult_assoc with (B := β_perp †).
+      rewrite β_mult, β_perp_mult.
+      assert (∣1⟩ × ((β_perp) † × β) × ⟨0∣ = Zero).
+      {
+        lma'; solve_WF_matrix.
+      }
+      assert (∣0⟩ × (β) † × β_perp × ⟨1∣ = Zero).
+      {
+        lma'; solve_WF_matrix.
+      }
+      rewrite H, H0.
+      Msimpl_light.
+      rewrite Mplus01.
+      reflexivity.
+    }
+    assert (forall z, WF_Qubit z ->
+      W4 × (I 2 ⊗ Q) × (z ⊗ ∣0⟩) = z ⊗ ∣0⟩).
+    {
+      intros z z_qubit.
+      rewrite Mmult_assoc.
+      rewrite (@kron_mixed_product 2 2 1 2 2 1).
+      assert (Q × ∣0⟩ = β).
+      {
+        lma'; solve_WF_matrix.
+      }
+      rewrite H; clear H.
+      rewrite Mmult_1_l.
+      rewrite (eq13_adjoint z z_qubit).
+      all: solve_WF_matrix.
+    }
+    assert (exists (P4 : Square 2), WF_Unitary P4 /\
+        W4 × (I 2 ⊗ Q) = I 2 ⊗ ∣0⟩⟨0∣ .+ P4 ⊗ ∣1⟩⟨1∣).
+    {
+      apply (a18 (W4 × (I 2 ⊗ Q))); solve_WF_matrix.
+    }
+    assert (exists (P4 : Square 2), WF_Unitary P4 /\
+      W4 = I 2 ⊗ (∣0⟩⟨0∣ × Q†) .+ P4 ⊗ (∣1⟩⟨1∣ × Q†)).
+    {
+      destruct H0 as [P4 [P4_unitary H0]].
+      exists P4.
+      split. assumption.
+      apply (f_equal (fun x => x × (I 2 ⊗ Q)†)) in H0.
+      rewrite kron_adjoint in H0.
+      rewrite Mmult_assoc in H0.
+      rewrite (@kron_mixed_product 2 2 2 2 2 2) in H0.
+      rewrite (other_unitary_decomp Q) in H0.
+      rewrite id_adjoint_eq, Mmult_1_l, id_kron, Mmult_1_r in H0.
+      rewrite H0; clear H0.
+      rewrite Mmult_plus_distr_r.
+      do 2 rewrite kron_mixed_product.
+      Msimpl_light.
+      all: solve_WF_matrix.
+    }
+    assert (eq14 : forall (x : Vector 2), WF_Qubit x ->
+      acgate W1 × (x ⊗ ∣0⟩ ⊗ ∣0⟩) = bcgate W4† × acgate W3† × (x ⊗ ∣0⟩ ⊗ ∣0⟩)).
+    {
+      intros x x_qubit.
+      symmetry.
+      rewrite <- bcgate_adjoint, <- acgate_adjoint.
+      apply (a29 W1 W2 W3 W4 (diag2 u0 u1)).
+      all: solve_WF_matrix.
+      rewrite eq6.
+      lma'; solve_WF_matrix.
+    }
+    assert (forall (x : Vector 2), WF_Qubit x ->
+      (I 4 ⊗ Q†) × acgate W1 × (x ⊗ ∣0⟩ ⊗ ∣0⟩) = x ⊗ ∣0⟩ ⊗ ∣0⟩).
+    {
+      intros x x_qubit.
+      rewrite Mmult_assoc.
+      rewrite (eq14 x x_qubit) at 1; clear eq14.
+      assert (acgate (W3) † × (x ⊗ ∣0⟩ ⊗ ∣0⟩) = x ⊗ ∣0⟩ ⊗ ∣0⟩).
+      {
+        unfold acgate, abgate, swapbc.
+        repeat rewrite Mmult_assoc.
+        rewrite kron_assoc.
+        rewrite (@kron_mixed_product 2 2 1 4 4 1).
+        rewrite a10.
+        rewrite Mmult_1_l.
+        rewrite <- Mmult_assoc.
+        rewrite eq10.
+        rewrite Mplus_adjoint.
+        do 2 rewrite kron_adjoint.
+        rewrite id_adjoint_eq, adjoint00, adjoint11.
+        rewrite kron_plus_distr_r.
+        rewrite Mmult_plus_distr_l.
+        rewrite Mmult_plus_distr_r.
+        repeat rewrite kron_assoc.
+        repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
+        repeat rewrite Mmult_1_l.
+        do 2 rewrite (@kron_mixed_product 2 2 1 4 4 1).
+        do 2 rewrite Mmult_assoc.
+        do 2 rewrite (@kron_mixed_product 2 2 1 2 2 1).
+        replace ((∣1⟩⟨1∣ × ∣0⟩)) with (@Zero 2 1)%nat by lma'.
+        replace ((∣0⟩⟨0∣ × ∣0⟩)) with ∣0⟩ by lma'.
+        Msimpl_light.
+        repeat rewrite a10.
+        all: solve_WF_matrix.
+      }
+      rewrite Mmult_assoc.
+      rewrite H2 at 1; clear H2.
+      unfold bcgate.
+      rewrite kron_assoc, kron_mixed_product.
+      rewrite (eq13 ∣0⟩) at 1.
+      rewrite Mmult_1_l.
+      rewrite <- kron_assoc.
+      rewrite <- (@kron_assoc 2 1 2 1 2 1) at 1.
+      rewrite (@kron_mixed_product 4 4 1 2 2 1).
+      rewrite Mmult_1_l.
+      unfold Q.
+      distribute_adjoint.
+      repeat rewrite adjoint_involutive.
+      rewrite Mmult_plus_distr_r.
+      repeat rewrite Mmult_assoc.
+      rewrite β_mult.
+      replace (β_perp† × β) with (@Zero 1 1).
+      Msimpl_light.
+      all: solve_WF_matrix.
+      lma'; solve_WF_matrix.
+      apply qubit0_qubit.
+    }
+    assert (forall (x : Vector 2), WF_Qubit x ->
+      ((I 2 ⊗ Q†) × W1) × (x ⊗ ∣0⟩) = x ⊗ ∣0⟩).
+    {
+      intros x x_qubit.
+      apply (@kron_cancel_r _ _ 2 1) with (C := ∣0⟩); solve_WF_matrix.
+      apply nonzero_qubit0.
+      specialize (H2 x x_qubit).
+      apply (f_equal (fun x => (I 2 ⊗ swap) × x)) in H2.
+      rewrite kron_assoc in H2.
+      rewrite kron_mixed_product in H2.
+      rewrite a10 in H2.
+      rewrite Mmult_1_l in H2.
+      rewrite kron_assoc, <- H2 at 1; clear H2.
+      unfold acgate, abgate, swapbc.
+      rewrite <- (@id_kron 2 2) at 1.
+      repeat rewrite <- Mmult_assoc.
+      repeat rewrite (@kron_assoc 2 2 2 2 2 2).
+      repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
+      rewrite a11.
+      repeat rewrite Mmult_1_l.
+      rewrite Mmult_assoc with (B := I 2 ⊗ swap).
+      rewrite (@kron_mixed_product 2 2 1 4 4 1).
+      rewrite a10, Mmult_1_l.
+      rewrite <- (@kron_assoc 2 2 2 2 2 2).
+      rewrite (@kron_mixed_product 4 4 4 2 2 2).
+      rewrite Mmult_1_r.
+      rewrite <- (@kron_assoc 2 1 2 1 2 1).
+      rewrite (@kron_mixed_product 4 4 1 2 2 1).
+      rewrite Mmult_1_l.
+      all: solve_WF_matrix.
+    }
+    assert (exists (P1 : Square 2), WF_Unitary P1 /\
+      (I 2 ⊗ Q†) × W1 = I 2 ⊗ ∣0⟩⟨0∣ .+ P1 ⊗ ∣1⟩⟨1∣).
+    {
+      apply a18.
+      solve_WF_matrix.
+      intros x x_qubit.
+      apply H3; solve_WF_matrix.
+    }
+    assert (exists (P1 : Square 2), WF_Unitary P1 /\
+      W1 = I 2 ⊗ (Q × ∣0⟩⟨0∣) .+ P1 ⊗ (Q × ∣1⟩⟨1∣)).
+    {
+      destruct H4 as [P1 [P1_unitary H4]].
+      exists P1.
+      split. assumption.
+      apply (f_equal (fun x => (I 2 ⊗ Q†)† × x)) in H4.
+      assert (WF_Unitary (I 2 ⊗ Q†)) by solve_WF_matrix.
+      destruct H5 as [_ H5].
+      rewrite <- Mmult_assoc in H4.
+      rewrite H5 in H4; clear H5.
+      rewrite Mmult_1_l in H4.
+      rewrite H4; clear H4.
+      rewrite kron_adjoint.
+      rewrite id_adjoint_eq, adjoint_involutive.
+      rewrite Mmult_plus_distr_l.
+      repeat rewrite kron_mixed_product.
+      Msimpl_light.
+      all: solve_WF_matrix.
+    }
+    right; right.
+    exists W1, W2, W3, W4.
+    split. assumption.
+    split. assumption.
+    split. assumption.
+    split. assumption.
+    destruct H5 as [P1 [P1_unitary W1_decomp]].
+    destruct H1 as [P4 [P4_unitary W4_decomp]].
+    exists P1, P2, P3, P4, Q.
+    split. assumption.
+    split. assumption.
+    split. assumption.
+    split. assumption.
+    split. assumption.
+    split. assumption.
+    split. assumption.
+    split. assumption.
+    split. assumption.
+    assumption.
+  }
+Qed.
+
+Lemma m6_4 : forall (u0 u1 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
+  (exists (U1 U2 U3 U4 : Square 4),
+    WF_Unitary U1 /\ WF_Unitary U2 /\ WF_Unitary U3 /\ WF_Unitary U4 /\
+    acgate U1 × bcgate U2 × acgate U3 × bcgate U4 = ccu (diag2 u0 u1))
+  <-> u0 = u1 \/ u0 * u1 = C1.
+Proof.
+  intros.
+  split.
+  {
+    intro.
+    destruct H1 as [U1 [U2 [U3 [U4 [U1_unitary [U2_unitary [U3_unitary [U4_unitary H1]]]]]]]].
+    pose proof (a32 U1 U2 U3 U4 U1_unitary U2_unitary U3_unitary U4_unitary) as H2.
+    destruct H2 as [V1 [V2 [V3 [V4 [V1_unitary [V2_unitary [V3_unitary [V4_unitary [H2 H3]]]]]]]]].
+    rewrite H2 in H1; clear H2.
+    assert (WF_Unitary (diag2 u0 u1)).
+    {
+      apply diag2_unitary; auto.
+    }
+    pose proof (
+      a28 V1 V2 V3 V4 (diag2 u0 u1)
+      V1_unitary V2_unitary V3_unitary V4_unitary H2
+      H1 H3
+    ).
+    pose proof (m6_1 V2 V2_unitary).
+    destruct H5 as [case_A | [case_B | case_C]].
+    {
+      destruct case_A as [x [x_qubit entangled]].
+      specialize (H4 x x_qubit).
+      (* TODO(Kyle): Reorder these arguments (in a19 as well) *)
+      assert (exists (P0 P1 : Square 2),
+        V1 = ∣0⟩⟨0∣ ⊗ P0 .+ ∣1⟩⟨1∣ ⊗ P1 /\  WF_Unitary P0 /\ WF_Unitary P1).
+      {
+        (* TODO(Kyle): Use the one in the refactoring PR!! *)
+        assert (inner_product_kron : forall {m n} (u : Vector m) (v : Vector n),
+        ⟨u ⊗ v, u ⊗ v⟩ = ⟨u, u⟩ * ⟨v, v⟩).
+        {
+          intros.
+          unfold inner_product.
+          rewrite (@kron_adjoint m 1 n 1).
+          rewrite (@kron_mixed_product 1 m 1 1 n 1).
+          unfold kron; reflexivity.
+        }
+        assert (⟨ x ⊗ ∣0⟩, x ⊗ ∣0⟩ ⟩ = C1).
+        {
+          rewrite inner_product_kron.
+          destruct x_qubit as [_ [_ x_unit]].
+          rewrite x_unit.
+          lca.
+        }
+        apply (a19 V1 (V2 × (x ⊗ ∣0⟩)) (V4† × (x ⊗ ∣0⟩))); solve_WF_matrix.
+        rewrite inner_product_adjoint_l.
+        rewrite <- Mmult_assoc.
+        destruct V2_unitary as [_ V2_unitary].
+        rewrite V2_unitary, Mmult_1_l.
+        all: solve_WF_matrix.
+        rewrite inner_product_adjoint_r, adjoint_involutive.
+        repeat rewrite <- Mmult_assoc.
+        rewrite (other_unitary_decomp V4), Mmult_1_l.
+        all: solve_WF_matrix.
+        rewrite <- Mmult_1_l with (A := ∣0⟩) at 1.
+        rewrite <- kron_mixed_product.
+        fold (bcgate V2).
+        rewrite <- Mmult_assoc.
+        rewrite <- kron_assoc with (A := ∣0⟩) (B := x) (C := ∣0⟩) at 1.
+        rewrite H4 at 1.
+        unfold bcgate.
+        rewrite kron_adjoint, id_adjoint_eq.
+        rewrite kron_assoc.
+        rewrite kron_mixed_product.
+        rewrite Mmult_1_l.
+        all: solve_WF_matrix.
+      }
+      destruct H5 as [P0 [P1 [V1_decomp [P0_unitary P1_unitary]]]].
+      apply (m4_3 u0 u1 H H0); auto.
+      exists V1, V2, V3, V4.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      exists P0, P1.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      assumption.
+    }
+    {
+      destruct case_B as [ψ [ψ_qubit H5]].
+      assert (acgate V1 × bcgate V2 × acgate V3 × bcgate V4 = ccu (diag2 u0 u1) /\
+        (exists ψ0 : Vector 2, WF_Qubit ψ0 /\
+          (forall x : Vector 2, WF_Qubit x ->
+            exists z : Vector 2, WF_Qubit z /\
+            V2 × (x ⊗ ∣0⟩) = z ⊗ ψ0)) /\ V3 × (∣0⟩ ⊗ ∣0⟩) = ∣0⟩ ⊗ ∣0⟩).
+      {
+        split.
+        - assumption.
+        - split.
+          * exists ψ.
+            split. assumption.
+            assumption.
+          * assumption.
+      }
+      pose proof (
+        m6_3 u0 u1 H H0
+        V1 V2 V3 V4
+        V1_unitary V2_unitary V3_unitary V4_unitary
+        H6
+      ); clear H6.
+      destruct H7 as [u0_eq_u1 | [u0u1_eq_C1 | H7]].
+      {
+        left; assumption.
+      }
+      {
+        right; assumption.
+      }
+      {
+        destruct H7 as [W1 [W2 [W3 [W4 [W1_unitary [W2_unitary [W3_unitary [W4_unitary H7]]]]]]]].
+        destruct H7 as [P1 [P2 [P3 [P4 [Q [P1_unitary [P2_unitary [P3_unitary [P4_unitary [Q_unitary H7]]]]]]]]]].
+        destruct H7 as [H7 [W1_decomp [W2_decomp [W3_decomp W4_decomp]]]].
+        assert (ccu (diag2 u0 u1) = I 2 ⊗ I 2 ⊗ (Q × ∣0⟩⟨0∣ × Q†) .+ (P1 × P3) ⊗ (P2 × P4) ⊗ (Q × ∣1⟩⟨1∣ × Q†)).
+        {
+          rewrite <- H7; clear H7.
+          rewrite W1_decomp, W2_decomp, W3_decomp, W4_decomp; clear W1_decomp W2_decomp W3_decomp W4_decomp.
+          unfold acgate, bcgate, abgate, swapbc.
+          repeat rewrite kron_plus_distr_l.
+          repeat rewrite kron_plus_distr_r.
+          repeat rewrite Mmult_plus_distr_l.
+          repeat rewrite Mmult_plus_distr_r.
+          repeat rewrite kron_assoc.
+          repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
+          repeat rewrite swap_2gate.
+          repeat rewrite Mmult_1_l.
+          repeat rewrite (@kron_mixed_product 2 2 2 2 2 2).
+          repeat rewrite Mmult_assoc with (B := ∣0⟩⟨0∣).
+          rewrite cancel00.
+          rewrite cancel01.
+          Msimpl_light.
+          repeat rewrite Mmult_plus_distr_l.
+          repeat rewrite Mmult_plus_distr_r.
+          repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
+          repeat rewrite (@kron_mixed_product 2 2 2 2 2 2).
+          repeat rewrite Mmult_assoc with (A := Q).
+          repeat rewrite cancel00.
+          repeat rewrite cancel01.
+          repeat rewrite cancel10.
+          repeat rewrite cancel11.
+          Msimpl_light.
+          rewrite <- Mmult_assoc with (A := ∣0⟩⟨0∣) (B := ∣0⟩⟨0∣).
+          rewrite <- Mmult_assoc with (A := ∣0⟩⟨0∣) (B := ∣1⟩⟨1∣).
+          rewrite <- Mmult_assoc with (A := ∣1⟩⟨1∣) (B := ∣0⟩⟨0∣).
+          rewrite <- Mmult_assoc with (A := ∣1⟩⟨1∣) (B := ∣1⟩⟨1∣).
+          rewrite cancel00, cancel11.
+          rewrite cancel01.
+          repeat rewrite cancel10.
+          Msimpl_light.
+          all: solve_WF_matrix.
+        }
+        assert (u0 = C1 /\ u1 = C1).
+        {
+          rewrite <- (m4_2 u0 u1 H H0 Q Q_unitary).
+          exists (P1 × P3), (P2 × P4).
+          split. solve_WF_matrix.
+          split. solve_WF_matrix.
+          rewrite H6.
+          repeat rewrite Mmult_adjoint.
+          repeat rewrite <- Mmult_assoc.
+          reflexivity.
+        }
+        destruct H8.
+        rewrite H8, H9.
+        left; reflexivity.
+      }
+    }
+    {
+      destruct case_C as [ψ [ψ_qubit H5]].
+      assert (exists (P0 P1 : Square 2),
+        V1 = ∣0⟩⟨0∣ ⊗ P0 .+ ∣1⟩⟨1∣ ⊗ P1 /\  WF_Unitary P0 /\ WF_Unitary P1).
+      {
+        apply (a33 V1 V2 V4); auto.
+        exists ψ.
+        split. assumption.
+        intros x x_qubit.
+        specialize (H5 x x_qubit).
+        destruct H5 as [z [z_qubit H5]].
+        exists z.
+        split; assumption.
+      }
+      destruct H6 as [P0 [P1 [V1_decomp [P0_unitary P1_unitary]]]].
+      apply (m4_3 u0 u1 H H0); auto.
+      exists V1, V2, V3, V4.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      exists P0, P1.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      assumption.
+    }
+  }
+  {
+    intros.
+    rewrite <- (m4_3 u0 u1) in H1.
+    destruct H1 as [V1 [V2 [V3 [V4 [V1_unitary [V2_unitary [V3_unitary [V4_unitary [_ [_ [_ [_ [_ H1]]]]]]]]]]]]].
+    exists V1, V2, V3, V4.
+    split. assumption.
+    split. assumption.
+    split. assumption.
+    split. assumption.
+    assumption.
+    assumption.
+    assumption.
+  }
 Qed.

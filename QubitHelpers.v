@@ -1,9 +1,53 @@
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.CauchySchwarz.
+Require Import QuantumLib.Eigenvectors.
 From Proof Require Import MatrixHelpers.
 From Proof Require Import AlgebraHelpers.
 From Proof Require Import WFHelpers.
+
+Lemma qubit_mult_simplify {n}: forall (A B: Square n), (exists m, (2^m = n)%nat) ->
+  WF_Unitary A -> WF_Unitary B ->
+  (forall (w : Vector n), WF_Qubit w -> A × w = B × w) -> A = B.
+Proof.
+intros.
+apply column_equal_implies_equal. 1,2: solve_WF_matrix.
+intros.
+destruct (PeanoNat.Nat.lt_total j n).
+rewrite matrix_by_basis. rewrite matrix_by_basis. 2,3: assumption.
+apply H2.
+{
+  unfold WF_Qubit.
+  split. assumption.
+  split. solve_WF_matrix.
+  rewrite <- I_is_eis.
+  rewrite inner_product_is_mult.
+  Msimpl_light.
+  unfold I; simpl.
+  bdestruct (j =? j).
+  rewrite <- Nat.ltb_lt in H3.
+  rewrite H3.
+  lca.
+  lia.
+}
+unfold get_col.
+apply functional_extensionality. intros.
+apply functional_extensionality. intros y.
+destruct (y =? 0). 2: reflexivity.
+destruct H0 as [WF_A H0].
+destruct H1 as [WF_B H1].
+destruct H3.
+unfold WF_Matrix in *.
+rewrite WF_A. rewrite WF_B. reflexivity.
+1,2: right.
+1,2: rewrite H3.
+1,2: apply Nat.le_refl.
+unfold WF_Matrix in *.
+rewrite WF_A. rewrite WF_B. reflexivity.
+1,2: right.
+1,2: apply Nat.lt_le_incl in H3.
+1,2: apply H3.
+Qed.
 
 Lemma qubit_prop_explicit: forall (a: Vector 2), 
 WF_Qubit a -> 

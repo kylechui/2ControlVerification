@@ -210,20 +210,18 @@ split.
 }
 Qed.
 
-Lemma a18: forall (U : Square 4), 
-WF_Unitary U -> 
-(forall (beta: Vector 2), WF_Matrix beta -> U × (beta ⊗ ∣0⟩) = beta ⊗ ∣0⟩) -> 
-exists (P1 : Square 2), 
-U = I 2 ⊗ ∣0⟩⟨0∣ .+ P1 ⊗ ∣1⟩⟨1∣ /\ WF_Unitary P1.
+Lemma a18: forall (U : Square 4), WF_Unitary U ->
+  (forall (β : Vector 2), WF_Qubit β -> U × (β ⊗ ∣0⟩) = β ⊗ ∣0⟩) ->
+  exists (P1 : Square 2), WF_Unitary P1 /\ U = I 2 ⊗ ∣0⟩⟨0∣ .+ P1 ⊗ ∣1⟩⟨1∣.
 Proof.
 intros U U_unitary tens_eigenvec.
-assert (SUS_tens_eigenvec: forall (beta: Vector 2), WF_Matrix beta -> (swap × U × swap)× (∣0⟩⊗ beta) = ∣0⟩⊗ beta).
+assert (SUS_tens_eigenvec: forall (beta: Vector 2), WF_Qubit beta -> (swap × U × swap)× (∣0⟩⊗ beta) = ∣0⟩⊗ beta).
 {
     intros.
     repeat rewrite Mmult_assoc.
-    rewrite a10. 2: apply WF_qubit0. 2: assumption.
+    rewrite a10. 2: apply WF_qubit0. 2: apply H.
     rewrite tens_eigenvec.
-    rewrite a10. 2: assumption. 2: apply WF_qubit0.
+    rewrite a10. 2: apply H. 2: apply WF_qubit0.
     reflexivity.
     assumption.
 }
@@ -236,8 +234,8 @@ WF_Unitary P0 /\ WF_Unitary P1).
     exists ∣0⟩,∣1⟩.
     split. apply WF_qubit0.
     split. apply WF_qubit1.
-    split. apply SUS_tens_eigenvec. apply WF_qubit0.
-    apply SUS_tens_eigenvec. apply WF_qubit1.
+    split. apply SUS_tens_eigenvec. apply qubit0_qubit.
+    apply SUS_tens_eigenvec. apply qubit1_qubit.
 }
 destruct SUS_block_decomp as [P0 [P1 [SUS_block_decomp [P0_unitary P1_unitary]]]].
 assert (U_block_decomp: exists (P0 P1 : Square 2), U = P0 ⊗ ∣0⟩⟨0∣ .+ P1 ⊗ ∣1⟩⟨1∣ /\ WF_Unitary P0 /\ WF_Unitary P1).
@@ -261,7 +259,7 @@ assert (U_block_decomp: exists (P0 P1 : Square 2), U = P0 ⊗ ∣0⟩⟨0∣ .+ 
 }
 clear P0 P1 P0_unitary P1_unitary SUS_block_decomp.
 destruct U_block_decomp as [P0 [P1 [U_block_decomp [P0_unitary P1_unitary]]]].
-assert (U_P0_tens_decomp: forall (w: Vector 2),  U × (w ⊗ ∣0⟩) = (P0 × w)⊗ ∣0⟩).
+assert (U_P0_tens_decomp: forall (w: Vector 2), WF_Qubit w -> U × (w ⊗ ∣0⟩) = (P0 × w)⊗ ∣0⟩).
 {
     intros.
     rewrite U_block_decomp.
@@ -273,26 +271,26 @@ assert (U_P0_tens_decomp: forall (w: Vector 2),  U × (w ⊗ ∣0⟩) = (P0 × w
     rewrite kron_0_r. rewrite Mplus_0_r.
     reflexivity.
 }
-assert (P0_I_same_transform: forall (w: Vector 2), WF_Matrix w -> P0 × w = w).
+assert (P0_I_same_transform: forall (w: Vector 2), WF_Qubit w -> P0 × w = w).
 {
     intros.
-    apply kron_0_cancel_r. 2: assumption.
-    apply WF_mult. apply P0_unitary. assumption.
+    apply kron_0_cancel_r; solve_WF_matrix.
     rewrite <- U_P0_tens_decomp.
     rewrite tens_eigenvec.
     reflexivity.
-    assumption. 
+    assumption.
+    assumption.
 }
 assert (P0_I: P0 = I 2).
 {
-    apply vector_mult_simplify. apply P0_unitary. apply WF_I.
+    apply qubit_mult_simplify. exists 1%nat; trivial. apply P0_unitary. apply id_unitary.
     intros.
-    rewrite Mmult_1_l. 2: assumption.
+    rewrite Mmult_1_l. 2: apply H.
     apply P0_I_same_transform. assumption.
 }
 exists P1.
-split.
-rewrite <- P0_I. all: assumption.
+split. assumption.
+rewrite <- P0_I. assumption.
 Qed.
 
 Lemma a19: forall (U : Square 4) (phi2q w : Vector 4), 
