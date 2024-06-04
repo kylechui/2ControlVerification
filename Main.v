@@ -2180,8 +2180,7 @@ U2_ac × U3_ab = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1).
       set (X := ∣0⟩⟨0∣ ⊗ diag2 C1 C1 .+ ∣1⟩⟨1∣ ⊗ diag2 C1 u1 : Square 4).
       set (Y := ∣0⟩⟨0∣ ⊗ diag2 C1 C1 .+ ∣1⟩⟨1∣ ⊗ diag2 C1 u0 : Square 4).
 
-      (* do this last bit -- follow the scientific proof *)
-      assert (ac_ab_simpl : (acgate X × abgate Y) = ∣0⟩⟨0∣ ⊗ (diag4 1 1 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag4 1 u1 u0 (u0*u1))).
+      assert (ac_ab_simpl : acgate X × abgate Y = ∣0⟩⟨0∣ ⊗ I 4 .+ ∣1⟩⟨1∣ ⊗ diag2 C1 u0 ⊗ diag2 C1 u1).
       {
         subst X.
         subst Y.
@@ -2205,36 +2204,39 @@ U2_ac × U3_ab = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1).
         apply direct_sum_simplify; solve_WF_matrix.
         split.
         {
-          lma'.
+          reflexivity.
         }
         {
           rewrite <- Mmult_assoc.
           rewrite swap_2gate; solve_WF_matrix.
-          lma'.
-          all: unfold I, diag2, diag4, Mmult, kron; simpl; lca.
+          rewrite kron_mixed_product.
+          Msimpl_light; reflexivity.
         }
         all: solve_WF_matrix.
       }
       repeat rewrite Mmult_assoc.
       repeat rewrite <- Mmult_assoc with (C := bcgate notc).
-      rewrite ac_ab_simpl at 1.
-      
-      rewrite H_prod.
-      unfold diag2, diag4, kron, I; simpl.
-      unfold bcgate; simpl.
-      unfold notc, kron; simpl.
-      unfold ccu; simpl.
-      unfold control, diag2, I; simpl.
-      Msimpl.
-      solve_matrix.
-      Ltac simplify_match :=
-        match goal with
-        | [ |- context[match ?x with _ => _ end] ] => destruct x
-        end.
-      repeat simplify_match.
-      all: repeat reflexivity.
-      repeat simplify_match.
-      all: repeat reflexivity.
+      rewrite ac_ab_simpl at 1; clear ac_ab_simpl.
+      rewrite kron_assoc.
+      assert (diag_helper : diag2 C1 u0 ⊗ diag2 C1 u1 = diag4 C1 u1 u0 (u0 * u1)).
+      {
+        lma'.
+        all: unfold diag2, diag4, kron; lca.
+      }
+      rewrite diag_helper; clear diag_helper.
+      rewrite H_prod; clear H_prod.
+      rewrite Mmult_plus_distr_l, Mmult_plus_distr_r.
+      unfold bcgate.
+      repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
+      Msimpl_light.
+      rewrite notc_notc.
+      unfold ccu.
+      rewrite control_direct_sum, <- (@direct_sum_decomp _ _ 0 0).
+      rewrite direct_sum_simplify.
+      split. reflexivity.
+      lma'.
+      all: solve_WF_matrix.
+      all: unfold diag2, diag4, notc, Mmult, control; simpl; lca.
 Qed.
 
 Lemma m6_1 : forall (V : Square 4), WF_Unitary V ->
