@@ -1,10 +1,10 @@
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
-Require Import QuantumLib.CauchySchwarz.
 Require Import QuantumLib.Eigenvectors.
-From Proof Require Import MatrixHelpers.
-From Proof Require Import AlgebraHelpers.
-From Proof Require Import WFHelpers.
+Require Import QuantumLib.CauchySchwarz.
+Require Import WFHelpers.
+Require Import MatrixHelpers.
+Require Import AlgebraHelpers.
 
 Lemma qubit_mult_simplify {n}: forall (A B: Square n), (exists m, (2^m = n)%nat) ->
   WF_Unitary A -> WF_Unitary B ->
@@ -98,6 +98,22 @@ exists 1%nat. trivial.
 split. 
 apply WF_qubit1.
 lca.
+Qed.
+
+Lemma xbasis_plus_qubit : WF_Qubit ∣+⟩.
+Proof.
+  unfold WF_Qubit.
+  split.
+  exists 1%nat. trivial.
+  split.
+  apply WF_xbasis_plus.
+  unfold "∣+⟩".
+  rewrite inner_product_scale_l, inner_product_scale_r.
+  replace ((/ √ 2) ^*) with (/ √ 2) by lca.
+  rewrite Cmult_assoc.
+  rewrite <- Csqrt2_inv.
+  rewrite Csqrt2_inv_sqrt2_inv.
+  lca.
 Qed.
 
 Lemma qubit_decomposition1: forall (phi : Vector 2),
@@ -748,44 +764,31 @@ split.
 }
 Qed.
 
-Lemma orth_qubit_unitary: forall (a b: Vector 2), 
-WF_Qubit a -> WF_Qubit b -> ⟨ a, b ⟩ = 0 -> 
-WF_Unitary (a × ⟨0∣ .+ b × ⟨1∣).
+Lemma orth_qubit_unitary: forall (a b: Vector 2),
+  WF_Qubit a -> WF_Qubit b -> ⟨ a, b ⟩ = 0 -> WF_Unitary (a × ⟨0∣ .+ b × ⟨1∣).
 Proof.
-intros a b a_qubit b_qubit orth.
-assert (temp: WF_Qubit a). assumption. 
-destruct temp as [_ [WF_a a_unit]].
-assert (temp: WF_Qubit b). assumption. 
-destruct temp as [_ [WF_b b_unit]].
-unfold WF_Unitary.
-split. solve_WF_matrix.
-assert (a00: (a × ⟨0∣) 0%nat 0%nat = a 0%nat 0%nat). lca.
-assert (a01: (a × ⟨0∣) 0%nat 1%nat = C0). lca.
-assert (a10: (a × ⟨0∣) 1%nat 0%nat = a 1%nat 0%nat). lca.
-assert (a11: (a × ⟨0∣) 1%nat 1%nat = C0). lca.
-assert (b01: (b × ⟨1∣) 0%nat 1%nat = b 0%nat 0%nat). lca.
-assert (b00: (b × ⟨1∣) 0%nat 0%nat = C0). lca.
-assert (b11: (b × ⟨1∣) 1%nat 1%nat = b 1%nat 0%nat). lca.
-assert (b10: (b × ⟨1∣) 1%nat 0%nat = C0). lca.
-lma'.
-all: rewrite Mmult_square2_explicit. 2,3,5,6,8,9,11,12: solve_WF_matrix.
-all: repeat rewrite Madj_explicit_decomp.
-all: repeat rewrite Mplus_access.
-all: try rewrite a00.
-all: try rewrite a01.
-all: try rewrite a10.
-all: try rewrite a11.
-all: try rewrite b00.
-all: try rewrite b01.
-all: try rewrite b10.
-all: try rewrite b11.
-all: unfold I.
-all: simpl.
-all: Csimpl.
-rewrite <- a_unit. lca.
-rewrite <- orth. lca.
-rewrite <- Cconj_0. rewrite <- orth. lca.
-rewrite <- b_unit. lca.
+  intros a b a_qubit b_qubit ab_perp.
+  destruct a_qubit as [_ [WF_a a_unit]].
+  destruct b_qubit as [_ [WF_b b_unit]].
+  assert (a † × a = I 1) by (lma'; solve_WF_matrix).
+  assert (b † × b = I 1) by (lma'; solve_WF_matrix).
+  assert (a† × b = Zero) by (lma'; solve_WF_matrix).
+  assert (b† × a = Zero).
+  {
+    apply (f_equal (fun f => f†)) in H1.
+    rewrite Mmult_adjoint, adjoint_involutive, zero_adjoint_eq in H1.
+    exact H1.
+  }
+  split. solve_WF_matrix.
+  distribute_adjoint.
+  repeat rewrite adjoint_involutive.
+  rewrite Mmult_plus_distr_l.
+  do 2 rewrite Mmult_plus_distr_r.
+  repeat rewrite <- Mmult_assoc.
+  do 2 rewrite Mmult_assoc with (B := a†).
+  do 2 rewrite Mmult_assoc with (B := b†).
+  rewrite H, H0, H1, H2; Msimpl_light.
+  exact Mplus01.
 Qed.
 
 Lemma Mmult_qubit {n}: forall (U : Square n) (x : Vector n), 
@@ -799,19 +802,27 @@ rewrite <- unitary_preserves_inner_prod.
 all: assumption.
 Qed. 
 
-Lemma kron_qubit {n}: forall (u v : Vector n), 
-WF_Qubit u -> WF_Qubit v -> WF_Qubit (u ⊗ v).
+Lemma kron_qubit {m n}: forall (u : Vector m) (v : Vector n),
+  WF_Qubit u -> WF_Qubit v -> WF_Qubit (u ⊗ v).
 Proof.
-intros.
-destruct H as [pow_prop [WF_u u_unit]].
-destruct H0 as [_ [WF_v v_unit]].
-destruct pow_prop as [m m_prop].
-split. exists (m*2)%nat. rewrite <- m_prop.
-rewrite Nat.pow_mul_r. rewrite Nat.pow_2_r. reflexivity.
-split. solve_WF_matrix.
-rewrite kron_inner_prod.
-rewrite u_unit, v_unit.
-apply Cmult_1_r.
+  intros.
+  destruct H as [[m' m_eq] [WF_u u_unit]].
+  destruct H0 as [[n' n_eq] [WF_v v_unit]].
+  split.
+  {
+    exists (m' + n')%nat.
+    rewrite Nat.pow_add_r, m_eq, n_eq.
+    reflexivity.
+  }
+  split.
+  {
+    solve_WF_matrix.
+  }
+  {
+    rewrite kron_inner_prod.
+    rewrite u_unit, v_unit.
+    apply Cmult_1_r.
+  }
 Qed.
 
 Lemma qubit_implies_nonzero {n}: forall (q : Vector n), 
@@ -873,4 +884,14 @@ rewrite H0.
 unfold kron.
 rewrite Nat.div_small.
 lca. assumption.
+Qed.
+
+Lemma inner_product_kron : forall {m n} (u v : Vector m) (w z : Vector n),
+  ⟨u ⊗ w, v ⊗ z⟩ = ⟨u, v⟩ * ⟨w, z⟩.
+Proof.
+  intros.
+  unfold inner_product.
+  rewrite (@kron_adjoint m 1 n 1).
+  rewrite (@kron_mixed_product 1 m 1 1 n 1).
+  unfold kron; reflexivity.
 Qed.

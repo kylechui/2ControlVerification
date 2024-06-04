@@ -1,7 +1,6 @@
-Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Eigenvectors.
-Require Import Proof.MatrixHelpers.
-Require Import Proof.GateHelpers.
+Require Import MatrixHelpers.
+Require Import GateHelpers.
 
 Lemma diag00 :  WF_Diagonal ∣0⟩⟨0∣.
 Proof.
@@ -42,6 +41,49 @@ Proof.
   apply diag_kron.
   apply diag11.
   apply D_diag.
+Qed.
+
+Lemma ccu_diag: forall (U: Square 2), WF_Diagonal U -> WF_Diagonal (ccu U).
+Proof.
+    intros.
+    unfold ccu.
+    apply diag_control.
+    apply diag_control.
+    assumption.
+Qed.
+
+Lemma direct_sum_diagonal : forall {n : nat} (P Q : Square n),
+  WF_Diagonal P -> WF_Diagonal Q -> WF_Diagonal (P .⊕ Q).
+Proof.
+  intros n P Q [WF_P Diagonal_P] [WF_Q Diagonal_Q].
+  split.
+  {
+    apply WF_direct_sum; try lia; assumption.
+  }
+  {
+    intros i j i_neq_j.
+    specialize (Diagonal_P i j i_neq_j).
+    specialize (Diagonal_Q (i - n) (j - n))%nat.
+    unfold direct_sum.
+    destruct (i <? n) eqn:L1.
+    {
+      simpl; exact Diagonal_P.
+    }
+    {
+      destruct (j <? n) eqn:L2.
+      {
+        simpl; exact Diagonal_P.
+      }
+      {
+        apply Nat.ltb_ge in L1, L2.
+        simpl; apply Diagonal_Q.
+        intro in_eq_jn.
+        apply i_neq_j.
+        apply (f_equal (fun x => x + n)%nat) in in_eq_jn.
+        do 2 rewrite Nat.sub_add in in_eq_jn; auto.
+      }
+    }
+  }
 Qed.
 
 Lemma diag_commute : forall {n} (D : Square n) (E : Square n),
@@ -94,11 +136,3 @@ Proof.
   }
 Qed.
 
-Lemma ccu_diag: forall (U: Square 2), WF_Diagonal U -> WF_Diagonal (ccu U).
-Proof.
-    intros.
-    unfold ccu.
-    apply diag_control.
-    apply diag_control.
-    assumption.
-Qed.

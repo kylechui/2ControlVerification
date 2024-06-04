@@ -1,15 +1,14 @@
 Require Import QuantumLib.Quantum.
-Require Import QuantumLib.VecSet. 
+Require Import QuantumLib.VecSet.
 Require Import QuantumLib.Matrix.
-From Proof Require Import MatrixHelpers.
-From Proof Require Import QubitHelpers.
-From Proof Require Import UnitaryMatrices.
-From Proof Require Import Swaps.
-From Proof Require Import SwapHelpers.
-From Proof Require Import Vectors.
-From Proof Require Import GateHelpers.
-From Proof Require Import AlgebraHelpers.
-From Proof Require Import WFHelpers.
+Require Import WFHelpers.
+Require Import MatrixHelpers.
+Require Import QubitHelpers.
+Require Import SwapHelpers.
+Require Import GateHelpers.
+Require Import A2_UnitaryMatrices.
+Require Import A3_Swaps.
+Require Import A4_Vectors.
 
 Lemma a17: forall (U : Square 4) (beta beta_p : Vector 2), 
 WF_Unitary U -> WF_Qubit beta -> WF_Qubit beta_p -> ⟨ beta , beta_p ⟩ = C0 -> 
@@ -187,8 +186,8 @@ assert (I_4_block_decomp: I 4 = ∣0⟩⟨0∣ ⊗ I 2 .+ ∣0⟩⟨1∣ ⊗ Zer
 assert (equal_blocks: (P00) † × P00 = I 2 /\ (Zero (m:= 2) (n:=2)) = (Zero (m:= 2) (n:=2)) 
 /\ (Zero (m:= 2) (n:=2)) = (Zero (m:= 2) (n:=2)) /\ (P11) † × P11 = I 2).
 {
-    apply block_equalities with (U := (U) † × U) (V := I 4); solve_WF_matrix.
-    lia.
+    apply block_equalities; solve_WF_matrix.
+    rewrite <- U_adj_mult_1, <- I_4_block_decomp.
     apply U_unitary.
 }
 split.
@@ -246,11 +245,10 @@ assert (U_block_decomp: exists (P0 P1 : Square 2), U = P0 ⊗ ∣0⟩⟨0∣ .+ 
     assert (swap_inverse_helper: swap × (swap × U × swap) × swap = U).
     {
         repeat rewrite <- Mmult_assoc.
-        rewrite swap_swap.
-        rewrite Mmult_1_l. 2: apply U_unitary.
         rewrite Mmult_assoc.
-        (* TODO: Figure out why swap_swap doesn't work here *)
-        lma'; solve_WF_matrix.
+        rewrite swap_swap.
+        rewrite swap_swap at 1.
+        rewrite Mmult_1_l, Mmult_1_r; solve_WF_matrix.
     }
     rewrite swap_inverse_helper in SUS_block_decomp.
     rewrite SUS_block_decomp.

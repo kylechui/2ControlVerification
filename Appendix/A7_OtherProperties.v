@@ -1,12 +1,12 @@
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
-From Proof Require Import MatrixHelpers.
-From Proof Require Import SwapHelpers.
-From Proof Require Import QubitHelpers.
-From Proof Require Import GateHelpers.
-From Proof Require Import ControlledUnitaries.
-From Proof Require Import TensorProducts.
-From Proof Require Import WFHelpers.
+Require Import WFHelpers.
+Require Import MatrixHelpers.
+Require Import SwapHelpers.
+Require Import QubitHelpers.
+Require Import GateHelpers.
+Require Import A5_ControlledUnitaries.
+Require Import A6_TensorProducts.
 
 Lemma a27: forall (V1 V2 V3 V4 U0 U1 : Square 4) (P0 P1: Square 2), 
 WF_Unitary V1 -> WF_Unitary V2 -> WF_Unitary V3 -> WF_Unitary V4 -> 
@@ -175,7 +175,7 @@ rewrite kron_assoc in V3_way2. 2,3,4: solve_WF_matrix.
 rewrite kron_assoc in V3_way2. 2,3,4: solve_WF_matrix.
 rewrite kron_assoc in V3_way2. 2,3,4: solve_WF_matrix.
 rewrite kron_assoc in V3_way2. 2,3,4: solve_WF_matrix.
-assert (block_eq := @block_equalities 4 (acgate V3) (acgate V3)
+assert (block_eq := @block_equalities 4
 ((V2) † × (I 2 ⊗ (P0) †) × U0 × (V4) †) (@Zero 4 4) (@Zero 4 4) ((V2) † × (I 2 ⊗ (P1) †) × U1 × (V4) †)
 (I 2 ⊗ Q00) (I 2 ⊗ Q01) (I 2 ⊗ Q10) (I 2 ⊗ Q11)).
 assert (eq: (V2) † × (I 2 ⊗ (P0) †) × U0 × (V4) † = I 2 ⊗ Q00 /\
@@ -184,13 +184,8 @@ Zero = I 2 ⊗ Q10 /\
 (V2) † × (I 2 ⊗ (P1) †) × U1 × (V4) † = I 2 ⊗ Q11).
 {
     apply block_eq.
-    lia.
-    2,3,5,6,7,8: solve_WF_matrix.
-    1,2: apply WF_mult. 2,4: solve_WF_matrix.
-    1,2: apply WF_mult. 2,4: solve_WF_matrix.
-    1,2: solve_WF_matrix.
-    apply V3_way1. apply V3_way2.
-    reflexivity.
+    all: solve_WF_matrix.
+    rewrite <- V3_way1. apply V3_way2.
 }
 destruct eq as [q00_val [q01_zero [q10_zero q11_val]]].
 assert (ztotens: (@Zero 4 4) = I 2 ⊗ (@Zero 2 2)). lma'.
@@ -211,8 +206,11 @@ assert (trans_help: (∣0⟩⟨0∣ ⊗ Q00 .+ ∣0⟩⟨1∣ ⊗ Q01 .+ ∣1⟩
     repeat rewrite Mplus_adjoint.
     repeat rewrite kron_adjoint.
     rewrite adjoint00, adjoint01, adjoint10, adjoint11.
-    lma'.
-    all: solve_WF_matrix.
+    do 2 rewrite Mplus_assoc.
+    rewrite <- Mplus_assoc with (A := ∣1⟩⟨0∣ ⊗ Q01†).
+    rewrite Mplus_comm with (A := ∣1⟩⟨0∣ ⊗ Q01†).
+    repeat rewrite <- Mplus_assoc.
+    reflexivity.
 }
 rewrite trans_help in block_unit at 1. clear trans_help.
 rewrite block_multiply with (U:= (∣0⟩⟨0∣ ⊗ (Q00) † .+ ∣0⟩⟨1∣ ⊗ (Q10) † .+ ∣1⟩⟨0∣ ⊗ (Q01) † .+ ∣1⟩⟨1∣ ⊗ (Q11) †))
@@ -226,17 +224,13 @@ repeat rewrite Mmult_0_r in block_unit.
 repeat rewrite Mmult_0_l in block_unit.
 repeat rewrite Mplus_0_r in block_unit.
 repeat rewrite Mplus_0_l in block_unit.
-assert (block_eq_2 := @block_equalities 2 (∣0⟩⟨0∣ ⊗ ((Q00) † × Q00) .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero
-.+ ∣1⟩⟨1∣ ⊗ ((Q11) † × Q11)) (∣0⟩⟨0∣ ⊗ I 2 .+ ∣0⟩⟨1∣ ⊗ Zero .+ ∣1⟩⟨0∣ ⊗ Zero .+ ∣1⟩⟨1∣ ⊗ I 2)
+assert (block_eq_2 := @block_equalities 2
 ((Q00) † × Q00) (Zero) (Zero) ((Q11) † × Q11) (I 2) (Zero) (Zero) (I 2)).
 assert (unit_eq: (Q00) † × Q00 = I 2 /\
 (@Zero 2 2) = Zero /\ (@Zero 2 2) = Zero /\ (Q11) † × Q11 = I 2).
 {
     apply block_eq_2.
-    lia.
-    1,2,3,4,5,6,7,8: solve_WF_matrix.
-    reflexivity. reflexivity.
-    apply block_unit.
+    all: solve_WF_matrix.
 }
 destruct unit_eq as [Q00_unit [_ [_ Q11_unit]]].
 exists Q00,Q11.
@@ -252,7 +246,8 @@ split.
 }
 rewrite v3_decomp.
 rewrite <- q01_zero, <- q10_zero.
-Msimpl.
+repeat rewrite kron_0_r.
+repeat rewrite Mplus_0_r.
 reflexivity.
 Qed.
 
@@ -290,7 +285,7 @@ rewrite <- acv3_id at 1.
 rewrite <- Mmult_1_r with (A := acgate V3). 2: apply WF_acgate. 2: assumption.
 assert (temp: WF_Unitary (bcgate V4)†). apply adjoint_unitary. apply bcgate_unitary. assumption.
 destruct temp as [WF_bcv4dag bcv4dag_inv].
-replace (2*2)%nat with 4%nat by lia.
+replace 8%nat with (2 * 4)%nat by lia.
 rewrite <- bcv4dag_inv.
 rewrite adjoint_involutive.
 repeat rewrite <- Mmult_assoc.
@@ -308,7 +303,7 @@ rewrite kron_assoc. 2,3,4,5: solve_WF_matrix.
 assert (kron_mix_help: ∣0⟩⟨0∣ ⊗ (I 2 ⊗ I 2) × (∣0⟩ ⊗ ((V4) † × (x ⊗ ∣0⟩))) = 
 (∣0⟩⟨0∣ × ∣0⟩) ⊗ ((I 2 ⊗ I 2) × ((V4) † × (x ⊗ ∣0⟩)))). apply kron_mixed_product.
 rewrite kron_mix_help at 1. clear kron_mix_help.
-replace (I 2 ⊗ I 2) with (I 4) by lma'.
+rewrite id_kron.
 rewrite Mmult_1_l. 2: solve_WF_matrix.
 rewrite Mmult_assoc. rewrite Mmult00. rewrite Mmult_1_r. 2: apply WF_qubit0.
 assert (kron_mix_help: ∣1⟩⟨1∣ ⊗ control U × (∣0⟩ ⊗ ((V4) † × (x ⊗ ∣0⟩))) = 
@@ -1104,7 +1099,7 @@ assert (v4_tens: forall (x: Vector 2), WF_Qubit x ->
     apply qubit0_qubit.
     apply Mmult_qubit.
     apply adjoint_unitary. assumption.
-    apply (@kron_qubit 2).
+    apply (@kron_qubit 2 2).
     assumption. apply qubit0_qubit.
     apply intermediary_step.
     assumption.

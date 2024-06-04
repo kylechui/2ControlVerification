@@ -1,8 +1,9 @@
 Require Import QuantumLib.Quantum.
-From Proof Require Import SwapHelpers.
-From Proof Require Import GateHelpers.
-From Proof Require Import MatrixHelpers.
-From Proof Require Import WFHelpers.
+Require Import WFHelpers.
+Require Import SwapHelpers.
+Require Import GateHelpers.
+Require Import MatrixHelpers.
+
 Lemma a10 : forall (a b : Vector 2),
   WF_Matrix a -> WF_Matrix b ->
     swap × (a ⊗ b) = b ⊗ a.
@@ -48,12 +49,12 @@ Proof.
   rewrite control_decomp.
   rewrite Mmult_plus_distr_l.
   rewrite Mmult_plus_distr_r.
-  repeat rewrite kron_mixed_product.
+  repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
   repeat rewrite Mmult_1_l.
   repeat rewrite Mmult_1_r.
-  rewrite swap_swap.
+  rewrite swap_swap at 1.
   assert (swap × control (diag2 C1 c1) × swap = control (diag2 C1 c1)) by lma'.
-  rewrite H.
+  rewrite H at 1.
   all: solve_WF_matrix.
 Qed.
 

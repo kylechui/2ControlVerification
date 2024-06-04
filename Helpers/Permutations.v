@@ -1,7 +1,5 @@
 Require Import Lia.
 Require Import QuantumLib.Permutations.
-Require Import QuantumLib.Matrix.
-Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
 Require Import Coq.Sets.Ensembles.
 Require Import Coq.Logic.Classical_Pred_Type.

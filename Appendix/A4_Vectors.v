@@ -2,11 +2,11 @@ Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.VectorStates.
 Require Import QuantumLib.Eigenvectors.
-From Proof Require Import QubitHelpers.
-From Proof Require Import MatrixHelpers.
-From Proof Require Import AlgebraHelpers.
-From Proof Require Import Swaps.
-From Proof Require Import WFHelpers.
+Require Import WFHelpers.
+Require Import QubitHelpers.
+Require Import MatrixHelpers.
+Require Import AlgebraHelpers.
+Require Import A3_Swaps.
 
 Lemma a14 : forall (psi : Vector 4), 
 WF_Matrix psi -> ⟨ psi , psi ⟩ = 1 -> 

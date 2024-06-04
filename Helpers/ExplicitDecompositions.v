@@ -1,10 +1,7 @@
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
-From Proof Require Import MatrixHelpers.
-From Proof Require Import SwapHelpers.
-From Proof Require Import GateHelpers.
-From Proof Require Import AlgebraHelpers. 
-From Proof Require Import PartialTraceDefinitions.
+Require Import SwapHelpers.
+Require Import AlgebraHelpers.
 
 Lemma swapbc_decomp_l: forall (B : Square 8),
 WF_Matrix B -> 
