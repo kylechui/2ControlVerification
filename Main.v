@@ -5,12 +5,14 @@ Require Import Proof.SquareMatrices.
 Require Import Proof.AlgebraHelpers.
 Require Import Proof.MatrixHelpers.
 Require Import Proof.GateHelpers.
+Require Import Proof.DiagonalHelpers.
 Require Import Proof.SwapHelpers.
 Require Import Proof.QubitHelpers.
 Require Import Proof.EigenvalueHelpers.
 Require Import Proof.OtherProperties.
 Require Import Proof.WFHelpers.
 Require Import Proof.Swaps.
+Require Import Proof.SwapHelpers.
 Require Import Proof.TensorProducts.
 Require Import Proof.ControlledUnitaries.
 Require Import QuantumLib.Complex.
@@ -1935,6 +1937,340 @@ Proof.
     }
   }
 Qed.
+
+Lemma m5_1 : forall (u0 u1 : C),
+  Cmod u0 = 1 -> Cmod u1 = 1 ->
+    (exists (U1 U2 U3 U4 : Square 4),
+      WF_Unitary U1 /\ WF_Unitary U2 /\ WF_Unitary U3 /\ WF_Unitary U4 /\
+      (bcgate U1 × acgate U2 × abgate U3 × bcgate U4) = ccu (diag2 u0 u1))
+    <-> u0 = u1 \/ u0 * u1 = 1.
+
+Proof.
+  split.
+  - intros [U1 [U2 [U3 [U4 [H_U1 [H_U2 [H_U3 [H_U4]]]]]]]].
+    assert (adjoint_helper : acgate U2 × abgate U3 = (bcgate U1)† × ccu (diag2 u0 u1) × (bcgate U4)†).
+    {
+      rewrite <- H1.
+      repeat rewrite <- Mmult_assoc.
+      rewrite Mmult_assoc with (A := adjoint (bcgate U1) × bcgate U1 × acgate U2
+× abgate U3) (B := bcgate U4) (C := adjoint (bcgate U4)).
+      assert(bcgate U4 × adjoint (bcgate U4) = I 8).
+      {
+        unfold bcgate.
+        Msimpl.
+        rewrite other_unitary_decomp.
+        rewrite id_kron.
+        reflexivity.
+        assumption.
+      }
+      rewrite H2 at 1.
+      rewrite Mmult_1_r.
+      repeat rewrite Mmult_assoc.
+      rewrite <- Mmult_assoc with (C := acgate U2 × abgate U3).
+      assert(adjoint (bcgate U1) × bcgate U1 = I 8).
+      {
+        unfold bcgate.
+        Msimpl.
+        destruct H_U1.
+        rewrite H4.
+        rewrite id_kron.
+        reflexivity.
+      }
+      rewrite H3.
+      rewrite Mmult_1_l.
+      auto.
+      solve_WF_matrix.
+      solve_WF_matrix.
+    }
+    (* commutativity *)
+    set (A := ((I 2) ⊗ U1)†).
+    set (Q := (diag2 u0 u1) ⊗ (I 4)).
+    assert (WF_U_commutativity_U1 : A × Q = Q × A).
+    {
+      subst A. subst Q.
+      Msimpl.
+      reflexivity.
+      solve_WF_matrix.
+      solve_WF_matrix.
+    }
+    set (B := ((I 2) ⊗ U4)†).
+    assert (WF_U_commutativity_U4 : B × Q = Q × B).
+    {
+      subst B. subst Q.
+      Msimpl.
+      reflexivity.
+      solve_WF_matrix.
+      solve_WF_matrix.
+    }
+    set (C := ccu (diag2 u0 u1)).
+    assert (diag2_diagonal : WF_Diagonal (diag2 u0 u1)).
+      {
+        unfold WF_Diagonal.
+        split.
+        solve_WF_matrix.
+        intros i j H_neq.
+        bdestruct (i =? j).
+        {
+          rewrite <- H2.
+          unfold diag2.
+          destruct i, j.
+          all: try contradiction.
+        }
+        {
+          unfold diag2.
+          destruct i, j.
+          contradiction.
+          reflexivity.
+          destruct i.
+          all: try reflexivity.
+          destruct i, j.
+          contradiction.
+          all: try reflexivity.
+        }
+      }
+    assert (diag_commute_helper : C × Q = Q × C).
+    {
+      apply diag_commute.
+      subst Q.
+      apply diag_kron.
+      assumption.
+      apply diag_I.
+      subst C.
+      apply ccu_diag.
+      assumption.
+    }
+    set (U2_ac := acgate U2).
+    set (U3_ab := abgate U3).
+    assert (H_Mmult_transitivity: (A × C × B) × Q = Q × (A × C × B)).
+    {
+      repeat rewrite Mmult_assoc.
+      rewrite WF_U_commutativity_U4 at 1.
+      rewrite <- Mmult_assoc with (A := C) (B := Q) (C := B).
+      rewrite diag_commute_helper at 1.
+      rewrite Mmult_assoc with (A := Q) (B := C) (C := B).
+      repeat rewrite <- Mmult_assoc.
+      rewrite WF_U_commutativity_U1.
+      reflexivity.
+    }
+    assert (U2U3_commutativity_subst : (U2_ac × U3_ab) × Q = Q × (U2_ac × U3_ab)).
+    {
+      subst U2_ac U3_ab.
+      rewrite adjoint_helper.
+      subst A B Q C.
+      unfold bcgate.
+      assumption.
+    }
+    assert (WF_U2U3 : WF_Unitary (U2_ac × U3_ab)).
+    {
+      solve_WF_matrix.
+    }
+    subst Q.
+    replace 4%nat with (2 * 2)%nat in U2U3_commutativity_subst by lia.
+    rewrite <- (id_kron 2 2), <- kron_assoc in U2U3_commutativity_subst; solve_WF_matrix.
+    assert (u0 = u1 \/ exists (V0 V1 : Square 4), WF_Unitary V0 /\ WF_Unitary V1 /\
+      U2_ac × U3_ab = ∣0⟩⟨0∣ ⊗ V0 .+ ∣1⟩⟨1∣ ⊗ V1).
+    {
+      apply m3_1; assumption.
+    }
+    destruct H2 as [H2 | H3].
+    left; assumption.
+    destruct H3 as [V0 [V1 [Unitary_V0 [Unitary_V1 H3]]]].
+    (* Use Lemma A.24 to actually get V0, V1 *)
+    assert(exists (P0 Q0 P1 Q1 : Square 2),
+WF_Unitary P0 /\ WF_Unitary Q0 /\ WF_Unitary P1 /\ WF_Unitary Q1 /\
+U2_ac × U3_ab = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1).
+    {
+      apply a24 with (W00 := V0) (W11 := V1); assumption.
+    }
+    destruct H2 as [P0 [Q0 [P1 [Q1 [Unitary_P0 [Unitary_Q0 [Unitary_P1 [Unitary_Q1 H4]]]]]]]].
+    set (U1_bc := bcgate U1).
+    set (U4_bc := bcgate U4).
+    assert (WF_Unitary U1_bc).
+    {
+      apply bcgate_unitary; assumption.
+    }
+    assert (WF_Unitary U4_bc).
+    {
+      apply bcgate_unitary; assumption.
+    }
+    assert (ccu(diag2 u0 u1) = ∣0⟩⟨0∣ ⊗ (U1 × (P0 ⊗ Q0) × U4) .+ ∣1⟩⟨1∣ ⊗ (U1 × (P1 ⊗ Q1) × U4)).
+    {
+      rewrite <- H1.
+      unfold bcgate.
+      repeat rewrite id_tens_equiv_block_diag.
+      subst U2_ac U3_ab.
+      repeat rewrite <- kron_plus_distr_r.
+      rewrite Mplus01.
+      repeat rewrite Mmult_assoc.
+      rewrite <- Mmult_assoc with (A := acgate U2).
+      rewrite <- Mmult_assoc with (B := acgate U2 × abgate U3).
+      rewrite H4.
+      repeat rewrite kron_assoc.
+      repeat rewrite kron_plus_distr_l.
+      repeat rewrite kron_plus_distr_r.
+      repeat rewrite kron_mixed_product.
+      rewrite <- Mmult_assoc.
+      Msimpl_light.
+      rewrite Mmult_plus_distr_l.
+      rewrite Mmult_plus_distr_r.
+      repeat rewrite kron_mixed_product.
+      Msimpl_light.
+      rewrite <- Mmult_assoc.
+      reflexivity.
+      all: repeat solve_WF_matrix.
+    }
+    (* apply lemma 4.1 to get the result *)
+    assert (u0 = u1 \/ u0 * u1 = 1).
+    {
+      assert (∣0⟩⟨0∣ ⊗ (U1 × (P0 ⊗ Q0) × U4) .+ ∣1⟩⟨1∣ ⊗ (U1 × (P1 ⊗ Q1) × U4) = ccu(diag2 u0 u1)). auto.
+      apply m4_1. all: try assumption.
+      intros.
+      exists U1, U4, P0, P1, Q0, Q1.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      rewrite H6. reflexivity.
+    }
+    assumption.
+  - intros [H_eq | H_prod].
+    + (* Case: u0 = u1 *)
+      subst.
+      exists (I 4), (I 4), (control (diag2 1 u1)) , (I 4).
+      assert (control_diag2_unitary : WF_Unitary (control (diag2 C1 u1))).
+      {
+        apply control_unitary, diag2_unitary.
+        exact Cmod_1.
+        assumption.
+      }
+      split. apply id_unitary.
+      split. apply id_unitary.
+      split. apply control_diag2_unitary.
+      split. apply id_unitary.
+      assert (temp_bc : bcgate (I 4) = I 8).
+      {
+       unfold bcgate; simpl.
+       apply id_kron.
+      }
+      rewrite temp_bc.
+      Msimpl; solve_WF_matrix.
+      assert (temp_ac : acgate (I 4) = I 8).
+      {
+       unfold acgate; simpl.
+       unfold abgate; simpl.
+       unfold swapbc; simpl.
+       replace 4%nat with (2 * 2)%nat by lia.
+       rewrite <- (id_kron 2 2).
+       rewrite kron_assoc.
+       repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
+       rewrite id_kron; Msimpl_light.
+       rewrite swap_swap.
+       rewrite id_kron.
+       reflexivity.
+       all: apply WF_I.
+      }
+      rewrite temp_ac.
+      Msimpl; solve_WF_matrix.
+      unfold abgate; simpl.
+      lma'; solve_WF_matrix.
+      {
+        unfold ccu, kron, diag2, kron, control, I; simpl.
+        Csimpl.
+        reflexivity.
+      }
+      {
+        unfold kron, Mmult, ccu, control, diag2, I; simpl.
+        Csimpl.
+        reflexivity.
+      }
+    + (* Case: u0 * u1 = 1 *)
+      exists notc, (∣0⟩⟨0∣ ⊗ (diag2 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u1)), (∣0⟩⟨0∣ ⊗ (diag2 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u0)), notc.
+      split. apply notc_unitary.
+      assert (WF_diag4_unitary_u1 : WF_Unitary (∣0⟩⟨0∣ ⊗ (diag2 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u1))).
+      {
+       split.
+       - solve_WF_matrix.
+       - unfold adjoint, diag2, kron; simpl.
+         solve_matrix.
+         rewrite <- Cmod_sqr.
+         rewrite H0.
+         lca.
+      }
+      assert (WF_diag4_unitary_u0 : WF_Unitary (∣0⟩⟨0∣ ⊗ (diag2 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u0))).
+      {
+        split.
+        - solve_WF_matrix.
+        - unfold adjoint, diag2, kron; simpl.
+          solve_matrix.
+          rewrite <- Cmod_sqr.
+          rewrite H.
+          lca.
+      }
+      split. apply WF_diag4_unitary_u1.
+      split. apply WF_diag4_unitary_u0.
+      split. apply notc_unitary.
+
+      (* Define smaller pieces for better readability and easier manipulation *)
+      set (X := ∣0⟩⟨0∣ ⊗ diag2 C1 C1 .+ ∣1⟩⟨1∣ ⊗ diag2 C1 u1 : Square 4).
+      set (Y := ∣0⟩⟨0∣ ⊗ diag2 C1 C1 .+ ∣1⟩⟨1∣ ⊗ diag2 C1 u0 : Square 4).
+
+      (* do this last bit -- follow the scientific proof *)
+      assert (ac_ab_simpl : (acgate X × abgate Y) = ∣0⟩⟨0∣ ⊗ (diag4 1 1 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag4 1 u1 u0 (u0*u1))).
+      {
+        subst X.
+        subst Y.
+        unfold acgate, abgate; simpl.
+        unfold swapbc; simpl.
+        repeat rewrite kron_plus_distr_r.
+        repeat rewrite Mmult_plus_distr_l.
+        repeat rewrite (@kron_assoc 2 2 2 2).
+        repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
+        repeat rewrite Mmult_1_l.
+        repeat rewrite Mmult_assoc.
+        repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
+        Msimpl_light.
+        repeat rewrite Mmult_plus_distr_r.
+        repeat rewrite kron_mixed_product.
+        replace (diag2 C1 C1 ⊗ I 2) with (I 4) by lma'.
+        rewrite cancel00, cancel01, cancel10, cancel11.
+        Msimpl.
+        rewrite swap_swap.
+        repeat rewrite <- (@direct_sum_decomp _ _ 0 0).
+        apply direct_sum_simplify; solve_WF_matrix.
+        split.
+        {
+          lma'.
+        }
+        {
+          rewrite <- Mmult_assoc.
+          rewrite swap_2gate; solve_WF_matrix.
+          lma'.
+          all: unfold I, diag2, diag4, Mmult, kron; simpl; lca.
+        }
+        all: solve_WF_matrix.
+      }
+      repeat rewrite Mmult_assoc.
+      repeat rewrite <- Mmult_assoc with (C := bcgate notc).
+      rewrite ac_ab_simpl at 1.
+      
+      rewrite H_prod.
+      unfold diag2, diag4, kron, I; simpl.
+      unfold bcgate; simpl.
+      unfold notc, kron; simpl.
+      unfold ccu; simpl.
+      unfold control, diag2, I; simpl.
+      Msimpl.
+      solve_matrix.
+      Ltac simplify_match :=
+        match goal with
+        | [ |- context[match ?x with _ => _ end] ] => destruct x
+        end.
+      repeat simplify_match.
+      all: repeat reflexivity.
+      repeat simplify_match.
+      all: repeat reflexivity.   
 
 Lemma m6_1 : forall (V : Square 4), WF_Unitary V ->
   (exists (x : Vector 2), WF_Qubit x /\ Entangled (V × (x ⊗ ∣0⟩))) \/

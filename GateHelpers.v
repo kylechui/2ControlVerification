@@ -1332,3 +1332,4 @@ rewrite kron_mixed_product.
 rewrite Mmult_1_l. 2: solve_WF_matrix.
 reflexivity.
 Qed.
+
