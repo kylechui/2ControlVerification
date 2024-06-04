@@ -16,6 +16,7 @@ Require Import Permutations.
 Require Import A1_SquareMatrices.
 Require Import A2_UnitaryMatrices.
 Require Import A3_Swaps.
+Require Import A5_ControlledUnitaries.
 Require Import A6_TensorProducts.
 Require Import A7_OtherProperties.
 
@@ -2445,7 +2446,7 @@ Proof.
       apply qubit0_qubit.
       apply Mmult_qubit.
       solve_WF_matrix.
-      apply (@kron_qubit 2).
+      apply (@kron_qubit 2 2).
       apply qubit0_qubit.
       apply Mmult_qubit; assumption.
       specialize (H3 x x_qubit).
@@ -2598,7 +2599,7 @@ m6_2 u0 u1 unit_u0 unit_u1 U1 W2 V3 U4
         apply qubit0_qubit.
         apply Mmult_qubit.
         solve_WF_matrix.
-        apply (@kron_qubit 2).
+        apply (@kron_qubit 2 2).
         assumption.
         apply qubit0_qubit.
         specialize (H z z_qubit).

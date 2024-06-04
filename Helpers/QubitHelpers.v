@@ -1,5 +1,6 @@
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
+Require Import QuantumLib.Eigenvectors.
 Require Import QuantumLib.CauchySchwarz.
 Require Import WFHelpers.
 Require Import MatrixHelpers.
