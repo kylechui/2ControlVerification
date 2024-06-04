@@ -7,6 +7,7 @@ Require Import QuantumLib.Permutations.
 Require Import WFHelpers.
 Require Import AlgebraHelpers.
 Require Import MatrixHelpers.
+Require Import DiagonalHelpers.
 Require Import UnitaryHelpers.
 Require Import GateHelpers.
 Require Import SwapHelpers.
@@ -2233,7 +2234,8 @@ U2_ac × U3_ab = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1).
       repeat simplify_match.
       all: repeat reflexivity.
       repeat simplify_match.
-      all: repeat reflexivity.   
+      all: repeat reflexivity.
+Qed.
 
 Lemma m6_1 : forall (V : Square 4), WF_Unitary V ->
   (exists (x : Vector 2), WF_Qubit x /\ Entangled (V × (x ⊗ ∣0⟩))) \/
