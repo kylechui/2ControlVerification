@@ -586,16 +586,16 @@ apply (f_equal (fun f => swapbc × f)) in acgate_c.
 repeat rewrite <- Mmult_assoc in acgate_c.
 rewrite swapbc_inverse in acgate_c. rewrite Mmult_1_l in acgate_c. 2: apply WF_abgate; solve_WF_matrix.
 rewrite Mmult_plus_distr_l in acgate_c.
-unfold swapbc in acgate_c at 2. rewrite kron_mixed_product in acgate_c.
-unfold swapbc in acgate_c at 2. rewrite kron_mixed_product in acgate_c.
+unfold swapbc in acgate_c at 2. rewrite (@kron_mixed_product 2 2 2 4 4 4) in acgate_c.
+unfold swapbc in acgate_c at 2. rewrite (@kron_mixed_product 2 2 2 4 4 4) in acgate_c.
 rewrite Mmult_1_l in acgate_c. 2: solve_WF_matrix.
 rewrite Mmult_1_l in acgate_c. 2: solve_WF_matrix.
 apply (f_equal (fun f => f × swapbc)) in acgate_c.
 rewrite Mmult_assoc in acgate_c.
 rewrite swapbc_inverse in acgate_c at 1. rewrite Mmult_1_r in acgate_c. 2: apply WF_abgate; solve_WF_matrix.
 rewrite Mmult_plus_distr_r in acgate_c.
-unfold swapbc in acgate_c at 2. rewrite kron_mixed_product in acgate_c.
-unfold swapbc in acgate_c at 1. rewrite kron_mixed_product in acgate_c.
+unfold swapbc in acgate_c at 2. rewrite (@kron_mixed_product 2 2 2 4 4 4) in acgate_c.
+unfold swapbc in acgate_c at 1. rewrite (@kron_mixed_product 2 2 2 4 4 4) in acgate_c.
 rewrite Mmult_1_r in acgate_c. 2: solve_WF_matrix.
 rewrite Mmult_1_r in acgate_c. 2: solve_WF_matrix.
 assert (swapW0_unit: WF_Unitary (swap × W0 × swap)). 
@@ -1229,10 +1229,10 @@ acgate U = ∣0⟩⟨0∣ ⊗ TL .+ ∣1⟩⟨1∣ ⊗ BR).
     rewrite abs.
     unfold swapbc.
     rewrite Mmult_plus_distr_l.
-    repeat rewrite kron_mixed_product.
+    repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
     repeat rewrite Mmult_1_l. 2,3: solve_WF_matrix.
     rewrite Mmult_plus_distr_r.
-    repeat rewrite kron_mixed_product.
+    repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
     repeat rewrite Mmult_1_r. 2,3: solve_WF_matrix.
     reflexivity.
 }
@@ -1256,7 +1256,7 @@ rewrite Mmult_assoc in zeropassthrough.
 rewrite swapbc_3q in zeropassthrough. 2: solve_WF_matrix. 2: apply x_qubit. 2: apply y_qubit.
 rewrite zeropassthrough at 1.
 unfold swapbc.
-rewrite kron_mixed_product.
+rewrite (@kron_mixed_product 2 2 1 4 4 1).
 rewrite Mmult_1_l. 2: solve_WF_matrix.
 reflexivity.
 Qed.

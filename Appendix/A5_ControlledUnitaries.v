@@ -245,11 +245,10 @@ assert (U_block_decomp: exists (P0 P1 : Square 2), U = P0 ⊗ ∣0⟩⟨0∣ .+ 
     assert (swap_inverse_helper: swap × (swap × U × swap) × swap = U).
     {
         repeat rewrite <- Mmult_assoc.
-        rewrite swap_swap.
-        rewrite Mmult_1_l. 2: apply U_unitary.
         rewrite Mmult_assoc.
-        (* TODO: Figure out why swap_swap doesn't work here *)
-        lma'; solve_WF_matrix.
+        rewrite swap_swap.
+        rewrite swap_swap at 1.
+        rewrite Mmult_1_l, Mmult_1_r; solve_WF_matrix.
     }
     rewrite swap_inverse_helper in SUS_block_decomp.
     rewrite SUS_block_decomp.

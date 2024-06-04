@@ -49,12 +49,12 @@ Proof.
   rewrite control_decomp.
   rewrite Mmult_plus_distr_l.
   rewrite Mmult_plus_distr_r.
-  repeat rewrite kron_mixed_product.
+  repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
   repeat rewrite Mmult_1_l.
   repeat rewrite Mmult_1_r.
-  rewrite swap_swap.
+  rewrite swap_swap at 1.
   assert (swap × control (diag2 C1 c1) × swap = control (diag2 C1 c1)) by lma'.
-  rewrite H.
+  rewrite H at 1.
   all: solve_WF_matrix.
 Qed.
 

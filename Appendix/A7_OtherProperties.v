@@ -285,7 +285,7 @@ rewrite <- acv3_id at 1.
 rewrite <- Mmult_1_r with (A := acgate V3). 2: apply WF_acgate. 2: assumption.
 assert (temp: WF_Unitary (bcgate V4)†). apply adjoint_unitary. apply bcgate_unitary. assumption.
 destruct temp as [WF_bcv4dag bcv4dag_inv].
-replace (2*2)%nat with 4%nat by lia.
+replace 8%nat with (2 * 4)%nat by lia.
 rewrite <- bcv4dag_inv.
 rewrite adjoint_involutive.
 repeat rewrite <- Mmult_assoc.

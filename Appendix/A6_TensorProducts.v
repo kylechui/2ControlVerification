@@ -613,7 +613,7 @@ assert (outer_prod_equiv : acgate U × (a ⊗ b ⊗ g) × (a ⊗ b ⊗ g)† × 
     rewrite <- Mmult_adjoint.
     assert (app_helper: acgate U × (a ⊗ b ⊗ g) = psi ⊗ phi). apply acU_app.
     rewrite app_helper at 1. clear app_helper.
-    rewrite kron_adjoint.
+    rewrite (@kron_adjoint 2 1 4 1).
     reflexivity.
 }
 (* trace out ac qubits *)

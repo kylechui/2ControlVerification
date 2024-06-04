@@ -1374,7 +1374,24 @@ Proof.
       rewrite <- kron_plus_distr_l.
       unfold beta, beta_perp.
       rewrite a8; auto.
+      assert (forall {n}, I 2 ⊗ I n = I n .⊕ I n).
+      {
+        intro n.
+        rewrite <- Mplus01, kron_plus_distr_r, <- (direct_sum_decomp _ _ 0 0).
+        all: solve_WF_matrix.
+      }
+      unfold ccu.
+      rewrite kron_assoc.
+      rewrite id_kron.
+      rewrite H2, control_direct_sum.
+      rewrite direct_sum_simplify.
+      split. reflexivity.
+      rewrite <- id_kron.
+      rewrite H2, control_direct_sum.
+      rewrite direct_sum_simplify.
+      split. reflexivity.
       lma'.
+      all: solve_WF_matrix.
     }
 Qed.
 
@@ -1825,9 +1842,9 @@ Proof.
       rewrite <- a12 with (U := V4).
       repeat rewrite Mmult_adjoint.
       repeat rewrite <- Mmult_assoc.
-      (* PERF: Why does it lag here? *)
-      repeat rewrite swapab_hermitian at 1.
-      rewrite swapab_inverse at 1.
+      restore_dims.
+      repeat rewrite swapab_hermitian.
+      rewrite swapab_inverse.
       rewrite Mmult_1_l.
       repeat rewrite Mmult_assoc.
       rewrite <- Mmult_assoc with (A := swapab).
@@ -1888,8 +1905,9 @@ Proof.
       rewrite <- a12 with (U := V4).
       repeat rewrite Mmult_adjoint.
       repeat rewrite <- Mmult_assoc.
-      repeat rewrite swapab_hermitian at 1.
-      rewrite swapab_inverse at 1.
+      restore_dims.
+      repeat rewrite swapab_hermitian.
+      rewrite swapab_inverse.
       rewrite Mmult_1_l.
       repeat rewrite Mmult_assoc.
       rewrite <- Mmult_assoc with (A := swapab).
@@ -2323,7 +2341,8 @@ Proof.
     {
       repeat rewrite Mmult_assoc.
       repeat rewrite <- Mmult_assoc with (A := swapab) (B := swapab).
-      repeat rewrite swapab_inverse at 1.
+      restore_dims.
+      repeat rewrite swapab_inverse.
       repeat rewrite Mmult_1_l.
       rewrite H1 at 1; clear H1.
       repeat rewrite <- Mmult_assoc.
@@ -2334,7 +2353,7 @@ Proof.
       do 2 rewrite a12 in H2.
       unfold swapab in H2.
       rewrite Mmult_assoc with (A := bcgate U1) in H2.
-      rewrite kron_mixed_product in H2.
+      rewrite (@kron_mixed_product 4 4 1 2 2 1) in H2.
       rewrite Mmult_1_l in H2.
       rewrite a10 in H2.
       rewrite H2 at 1; clear H2.
@@ -2346,23 +2365,13 @@ Proof.
       rewrite <- Mmult_assoc with (A := swapab).
       rewrite swapab_inverse at 1.
       unfold swapab.
-      rewrite kron_mixed_product.
+      rewrite (@kron_mixed_product 4 4 1 2 2 1).
       rewrite a10.
       Msimpl_light.
       all: solve_WF_matrix.
     }
     assert (exists (Q0 Q1 : Square 2), U4† = ∣0⟩⟨0∣ ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ Q1 /\ WF_Unitary Q0 /\ WF_Unitary Q1).
     {
-      (* TODO(Kyle): Use the one in the refactoring PR!! *)
-      assert (inner_product_kron : forall {m n} (u : Vector m) (v : Vector n),
-      ⟨u ⊗ v, u ⊗ v⟩ = ⟨u, u⟩ * ⟨v, v⟩).
-      {
-        intros.
-        unfold inner_product.
-        rewrite (@kron_adjoint m 1 n 1).
-        rewrite (@kron_mixed_product 1 m 1 1 n 1).
-        unfold kron; reflexivity.
-      }
       assert (⟨ x ⊗ ∣0⟩, x ⊗ ∣0⟩ ⟩ = C1).
       {
         rewrite inner_product_kron.
@@ -2389,7 +2398,7 @@ Proof.
         unfold bcgate in H3.
         rewrite kron_assoc in H3.
         rewrite Mmult_assoc in H3.
-        repeat rewrite kron_mixed_product in H3.
+        repeat rewrite (@kron_mixed_product 2 2 1 4 4 1) in H3.
         rewrite Mmult_1_l in H3.
         symmetry.
         all: solve_WF_matrix.
@@ -2914,16 +2923,6 @@ Proof.
       assert (exists (P0 P1 : Square 2),
         V1 = ∣0⟩⟨0∣ ⊗ P0 .+ ∣1⟩⟨1∣ ⊗ P1 /\  WF_Unitary P0 /\ WF_Unitary P1).
       {
-        (* TODO(Kyle): Use the one in the refactoring PR!! *)
-        assert (inner_product_kron : forall {m n} (u : Vector m) (v : Vector n),
-        ⟨u ⊗ v, u ⊗ v⟩ = ⟨u, u⟩ * ⟨v, v⟩).
-        {
-          intros.
-          unfold inner_product.
-          rewrite (@kron_adjoint m 1 n 1).
-          rewrite (@kron_mixed_product 1 m 1 1 n 1).
-          unfold kron; reflexivity.
-        }
         assert (⟨ x ⊗ ∣0⟩, x ⊗ ∣0⟩ ⟩ = C1).
         {
           rewrite inner_product_kron.

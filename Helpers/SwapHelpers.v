@@ -3,9 +3,9 @@ Require Import QuantumLib.Quantum.
 Require Import WFHelpers.
 Require Import MatrixHelpers.
 
-Definition swapab := swap ⊗ I 2.
-Definition swapbc := I 2 ⊗ swap.
-Definition swapac := swapab × swapbc × swapab.
+Definition swapab : Square 8 := swap ⊗ I 2.
+Definition swapbc : Square 8 := I 2 ⊗ swap.
+Definition swapac : Square 8 := swapab × swapbc × swapab.
 
 #[global] Hint Unfold swapab swapbc swapac : M_db.
 
@@ -28,21 +28,17 @@ Qed.
 
 Lemma swapab_unitary : WF_Unitary swapab.
 Proof.
-  autounfold with M_db; auto with unit_db.
+  solve_WF_matrix.
 Qed.
 
 Lemma swapbc_unitary : WF_Unitary swapbc.
 Proof.
-  autounfold with M_db; auto with unit_db.
+  solve_WF_matrix.
 Qed.
 
 Lemma swapac_unitary : WF_Unitary swapac.
 Proof.
-  apply Mmult_unitary.
-  apply Mmult_unitary.
-  apply swapab_unitary.
-  apply swapbc_unitary.
-  apply swapab_unitary.
+  solve_WF_matrix.
 Qed.
 
 #[export] Hint Resolve swapab_unitary swapbc_unitary swapac_unitary : unit_db.
@@ -50,46 +46,39 @@ Qed.
 Lemma swapab_inverse : swapab × swapab = I 8.
 Proof.
   unfold swapab.
-  rewrite kron_mixed_product, swap_swap.
-  Msimpl_light.
-  rewrite id_kron.
-  replace (2 * 2 * 2)%nat with 8%nat by lia.
+  rewrite (@kron_mixed_product 4 4 4 2 2 2).
+  rewrite swap_swap at 1.
+  rewrite Mmult_1_l, id_kron.
   reflexivity.
+  apply WF_I.
 Qed.
 
 Lemma swapbc_inverse : swapbc × swapbc = I 8.
 Proof.
   unfold swapbc.
-  rewrite kron_mixed_product, swap_swap.
-  Msimpl_light.
-  rewrite id_kron.
-  replace (2 * (2 * 2))%nat with 8%nat by lia.
+  rewrite (@kron_mixed_product 2 2 2 4 4 4).
+  rewrite swap_swap at 1.
+  rewrite Mmult_1_l, id_kron.
   reflexivity.
+  apply WF_I.
 Qed.
 
 Lemma swapac_inverse : swapac × swapac = I 8.
 Proof.
-  apply mat_equiv_eq.
-  apply WF_mult. apply WF_swapac. apply WF_swapac.
-  apply WF_I.
   unfold swapac.
   repeat rewrite Mmult_assoc.
-  rewrite <- Mmult_assoc with (A := swapab) (B := swapab) (C:= swapbc × swapab).
-  rewrite <- Mmult_assoc with (A := swapbc) (B := swapab × swapab) (C:= swapbc × swapab).
-  rewrite swapab_inverse.
-  rewrite Mmult_1_r. 2: apply WF_swapbc.
-  rewrite <- Mmult_assoc with (A := swapbc) (B:= swapbc) (C:=swapab).
-  rewrite <- Mmult_assoc with (A := swapab) (B:= swapbc × swapbc) (C:=swapab).
-  rewrite swapbc_inverse.
-  rewrite Mmult_1_r. 2: apply WF_swapab.
-  rewrite <- swapab_inverse.
-  apply mat_equiv_refl.
+  rewrite <- Mmult_assoc with (A := swapab) (B := swapab).
+  rewrite swapab_inverse, Mmult_1_l.
+  rewrite <- Mmult_assoc with (A := swapbc).
+  rewrite swapbc_inverse, Mmult_1_l.
+  exact swapab_inverse.
+  all: solve_WF_matrix.
 Qed.
 
 Lemma swapab_hermitian : swapab† = swapab.
 Proof.
   unfold swapab.
-  rewrite kron_adjoint.
+  rewrite (@kron_adjoint 4 4 2 2).
   rewrite swap_hermitian, id_adjoint_eq.
   reflexivity.
 Qed.
@@ -116,7 +105,7 @@ WF_Matrix a -> WF_Matrix b -> WF_Matrix c ->
 Proof.
 intros.
 unfold swapab.
-rewrite kron_mixed_product.
+rewrite (@kron_mixed_product 4 4 1 2 2 1).
 rewrite Mmult_1_l. 2: assumption.
 rewrite swap_2q. 2,3: assumption.
 reflexivity.
@@ -128,26 +117,21 @@ Lemma swapab_3gate : forall (A B C : Square 2),
 Proof.
   intros.
   unfold swapab.
-  rewrite kron_mixed_product.
-  rewrite Mmult_1_l. 2: assumption.
-  rewrite kron_mixed_product.
-  rewrite Mmult_1_r. 2: assumption.
-  rewrite swap_2gate. 2: assumption. 2: assumption.
-  reflexivity.
+  do 2 rewrite (@kron_mixed_product 4 4 4 2 2 2).
+  rewrite swap_2gate, Mmult_1_l, Mmult_1_r.
+  all: solve_WF_matrix.
 Qed.
 
 Lemma swapbc_3q : forall (a b c : Vector 2),
 WF_Matrix a -> WF_Matrix b -> WF_Matrix c ->
     swapbc × (a ⊗ b ⊗ c) = (a ⊗ c ⊗ b).
 Proof.
-intros.
-unfold swapbc.
-rewrite kron_assoc. 2,3,4: assumption.
-rewrite kron_mixed_product.
-rewrite Mmult_1_l. 2: assumption.
-rewrite swap_2q. 2,3: assumption.
-rewrite kron_assoc. 2,3,4: assumption.
-reflexivity.
+  intros.
+  unfold swapbc.
+  repeat rewrite kron_assoc.
+  rewrite (@kron_mixed_product 2 2 1 4 4 1).
+  rewrite swap_2q, Mmult_1_l.
+  all: solve_WF_matrix.
 Qed.
 
 Lemma swapbc_3gate : forall (A B C : Square 2),
@@ -193,7 +177,7 @@ Qed.
 Lemma swapbc_sa: swapbc = (swapbc) †.
 Proof.
   unfold swapbc.
-  rewrite kron_adjoint.
+  rewrite (@kron_adjoint 2 2 4 4).
   rewrite id_adjoint_eq.
   rewrite swap_hermitian.
   reflexivity.
