@@ -1,6 +1,7 @@
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Eigenvectors.
 Require Import Proof.MatrixHelpers.
+Require Import Proof.GateHelpers.
 
 Lemma diag00 :  WF_Diagonal ∣0⟩⟨0∣.
 Proof.
@@ -91,4 +92,13 @@ Proof.
       rewrite D_zero, E_zero; lca.
     }
   }
+Qed.
+
+Lemma ccu_diag: forall (U: Square 2), WF_Diagonal U -> WF_Diagonal (ccu U).
+Proof.
+    intros.
+    unfold ccu.
+    apply diag_control.
+    apply diag_control.
+    assumption.
 Qed.

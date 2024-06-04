@@ -4,6 +4,7 @@ Require Import Proof.SquareMatrices.
 Require Import Proof.AlgebraHelpers.
 Require Import Proof.MatrixHelpers.
 Require Import Proof.GateHelpers.
+Require Import Proof.DiagonalHelpers.
 Require Import Proof.SwapHelpers.
 Require Import Proof.EigenvalueHelpers.
 Require Import Proof.OtherProperties.
@@ -2058,16 +2059,41 @@ Proof.
       solve_WF_matrix.
     }
     set (C := ccu (diag2 u0 u1)).
-    (* TODO: show cc(diag2(u0, u1)) commutes with (diag2 u0 u1) ⊗ (I 4) using diag_commute helper lemma *)
+    assert (diag2_diagonal : WF_Diagonal (diag2 u0 u1)).
+      {
+        unfold WF_Diagonal.
+        split.
+        solve_WF_matrix.
+        intros i j H_neq.
+        bdestruct (i =? j).
+        {
+          rewrite <- H2.
+          unfold diag2.
+          destruct i, j.
+          all: try contradiction.
+        }
+        {
+          unfold diag2.
+          destruct i, j.
+          contradiction.
+          reflexivity.
+          destruct i.
+          all: try reflexivity.
+          destruct i, j.
+          contradiction.
+          all: try reflexivity.
+        }
+      }
     assert (diag_commute_helper : C × Q = Q × C).
     {
       apply diag_commute.
+      subst Q.
+      apply diag_kron.
+      assumption.
+      apply diag_I.
       subst C.
       apply ccu_diag.
-      solve_WF_matrix.
-      subst Q.
-      solve_matrix.
-      admit.
+      assumption.
     }
     set (U2_ac := acgate U2).
     set (U3_ab := abgate U3).
@@ -2092,6 +2118,7 @@ Proof.
     }
     assert (WF_U2U3 : WF_Unitary (U2_ac × U3_ab)).
     {
+      (* TODO *)
       (* apply Mmult_unitary.
       apply Mmult_unitary. *)
       admit.
@@ -2127,9 +2154,10 @@ U2_ac × U3_ab = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1).
     }
     assert (ccu(diag2 u0 u1) = ∣0⟩⟨0∣ ⊗ (U1 × (P0 ⊗ Q0) × U4) .+ ∣1⟩⟨1∣ ⊗ (U1 × (P1 ⊗ Q1) × U4)).
     {
+      (* TODO *)
       admit.
     }
-    (* TODO: apply lemma 4.1 to get the result *)
+    (* apply lemma 4.1 to get the result *)
     assert (u0 = u1 \/ u0 * u1 = 1).
     {
       assert (∣0⟩⟨0∣ ⊗ (U1 × (P0 ⊗ Q0) × U4) .+ ∣1⟩⟨1∣ ⊗ (U1 × (P1 ⊗ Q1) × U4) = ccu(diag2 u0 u1)). auto.
