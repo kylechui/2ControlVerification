@@ -2150,35 +2150,49 @@ U2_ac × U3_ab = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1).
         reflexivity.
       }
     + (* Case: u0 * u1 = 1 *)
-      exists notc, (∣0⟩⟨0∣ ⊗ (diag2 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u1)), (∣0⟩⟨0∣ ⊗ (diag2 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u0)), notc.
+      exists notc, (∣0⟩⟨0∣ ⊗ I 2 .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u1)), (∣0⟩⟨0∣ ⊗ I 2 .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u0)), notc.
       split. apply notc_unitary.
-      assert (WF_diag4_unitary_u1 : WF_Unitary (∣0⟩⟨0∣ ⊗ (diag2 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u1))).
-      {
-       split.
-       - solve_WF_matrix.
-       - unfold adjoint, diag2, kron; simpl.
-         solve_matrix.
-         rewrite <- Cmod_sqr.
-         rewrite H0.
-         lca.
-      }
-      assert (WF_diag4_unitary_u0 : WF_Unitary (∣0⟩⟨0∣ ⊗ (diag2 1 1) .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u0))).
+      assert (WF_diag4_unitary_u1 : WF_Unitary (∣0⟩⟨0∣ ⊗ I 2 .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u1))).
       {
         split.
         - solve_WF_matrix.
-        - unfold adjoint, diag2, kron; simpl.
-          solve_matrix.
-          rewrite <- Cmod_sqr.
-          rewrite H.
-          lca.
+        - distribute_adjoint.
+          repeat rewrite adjoint_involutive.
+          rewrite id_adjoint_eq.
+          rewrite Mmult_plus_distr_l.
+          do 2 rewrite Mmult_plus_distr_r.
+          repeat rewrite kron_mixed_product.
+          rewrite cancel00, cancel01, cancel10, cancel11; solve_WF_matrix.
+          Msimpl_light.
+          pose proof (diag2_unitary 1 u1 Cmod_1 H0) as [_ H1].
+          rewrite H1.
+          rewrite <- kron_plus_distr_r, Mplus01, id_kron.
+          reflexivity.
+      }
+      assert (WF_diag4_unitary_u0 : WF_Unitary (∣0⟩⟨0∣ ⊗ I 2 .+ ∣1⟩⟨1∣ ⊗ (diag2 1 u0))).
+      {
+        split.
+        - solve_WF_matrix.
+        - distribute_adjoint.
+          repeat rewrite adjoint_involutive.
+          rewrite id_adjoint_eq.
+          rewrite Mmult_plus_distr_l.
+          do 2 rewrite Mmult_plus_distr_r.
+          repeat rewrite kron_mixed_product.
+          rewrite cancel00, cancel01, cancel10, cancel11; solve_WF_matrix.
+          Msimpl_light.
+          pose proof (diag2_unitary 1 u0 Cmod_1 H) as [_ H1].
+          rewrite H1.
+          rewrite <- kron_plus_distr_r, Mplus01, id_kron.
+          reflexivity.
       }
       split. apply WF_diag4_unitary_u1.
       split. apply WF_diag4_unitary_u0.
       split. apply notc_unitary.
 
       (* Define smaller pieces for better readability and easier manipulation *)
-      set (X := ∣0⟩⟨0∣ ⊗ diag2 C1 C1 .+ ∣1⟩⟨1∣ ⊗ diag2 C1 u1 : Square 4).
-      set (Y := ∣0⟩⟨0∣ ⊗ diag2 C1 C1 .+ ∣1⟩⟨1∣ ⊗ diag2 C1 u0 : Square 4).
+      set (X := ∣0⟩⟨0∣ ⊗ I 2 .+ ∣1⟩⟨1∣ ⊗ diag2 C1 u1 : Square 4).
+      set (Y := ∣0⟩⟨0∣ ⊗ I 2 .+ ∣1⟩⟨1∣ ⊗ diag2 C1 u0 : Square 4).
 
       assert (ac_ab_simpl : acgate X × abgate Y = ∣0⟩⟨0∣ ⊗ I 4 .+ ∣1⟩⟨1∣ ⊗ diag2 C1 u0 ⊗ diag2 C1 u1).
       {
@@ -2196,7 +2210,7 @@ U2_ac × U3_ab = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1).
         Msimpl_light.
         repeat rewrite Mmult_plus_distr_r.
         repeat rewrite kron_mixed_product.
-        replace (diag2 C1 C1 ⊗ I 2) with (I 4) by lma'.
+        repeat rewrite id_kron.
         rewrite cancel00, cancel01, cancel10, cancel11.
         Msimpl.
         rewrite swap_swap.
