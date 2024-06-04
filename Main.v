@@ -2490,34 +2490,30 @@ m6_2 u0 u1 unit_u0 unit_u1 U1 W2 V3 U4
       intros x x_qubit.
       apply (@kron_cancel_r _ _ 2 1) with (C := ∣0⟩); solve_WF_matrix.
       apply nonzero_qubit0.
-      rewrite <- (H2 x x_qubit); clear H2.
+      specialize (H2 x x_qubit).
+      apply (f_equal (fun x => (I 2 ⊗ swap) × x)) in H2.
+      rewrite kron_assoc in H2.
+      rewrite kron_mixed_product in H2.
+      rewrite a10 in H2.
+      rewrite Mmult_1_l in H2.
+      rewrite kron_assoc, <- H2 at 1; clear H2.
       unfold acgate, abgate, swapbc.
       rewrite <- (@id_kron 2 2) at 1.
-      pose proof (@block_decomp 2 W1).
-      destruct H2 as [TL [TR [BL [BR [WF_TL [WF_TR [WF_BL [WF_BR H2]]]]]]]].
-      solve_WF_matrix.
-      rewrite H2; clear H2.
-      unfold acgate, abgate, swapbc.
-      repeat rewrite kron_plus_distr_r.
-      repeat rewrite Mmult_plus_distr_l.
-      repeat rewrite Mmult_plus_distr_r.
-      repeat rewrite kron_assoc.
-      rewrite (@kron_assoc 2 2 2 2 2).
-      repeat rewrite (@kron_mixed_product 2 2 2 2 2 2).
+      repeat rewrite <- Mmult_assoc.
+      repeat rewrite (@kron_assoc 2 2 2 2 2 2).
       repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
-      repeat rewrite a11.
-      Msimpl_light.
-      repeat rewrite Mmult_plus_distr_l.
-      repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
-      repeat rewrite (@kron_mixed_product 2 2 2 2 2 2).
-      Msimpl_light.
-      repeat rewrite kron_plus_distr_r.
-      repeat rewrite Mmult_plus_distr_r.
-      rewrite <- Mmult_1_l with (A := ∣0⟩) at 4 7 10 12.
-      repeat rewrite kron_mixed_product.
-      Msimpl_light.
-      (* TODO: Figure out this last equation! *)
-      all: admit.
+      rewrite a11.
+      repeat rewrite Mmult_1_l.
+      rewrite Mmult_assoc with (B := I 2 ⊗ swap).
+      rewrite (@kron_mixed_product 2 2 1 4 4 1).
+      rewrite a10, Mmult_1_l.
+      rewrite <- (@kron_assoc 2 2 2 2 2 2).
+      rewrite (@kron_mixed_product 4 4 4 2 2 2).
+      rewrite Mmult_1_r.
+      rewrite <- (@kron_assoc 2 1 2 1 2 1).
+      rewrite (@kron_mixed_product 4 4 1 2 2 1).
+      rewrite Mmult_1_l.
+      all: solve_WF_matrix.
     }
     assert (exists (P1 : Square 2), WF_Unitary P1 /\
       (I 2 ⊗ Q†) × W1 = I 2 ⊗ ∣0⟩⟨0∣ .+ P1 ⊗ ∣1⟩⟨1∣).
@@ -2567,7 +2563,7 @@ m6_2 u0 u1 unit_u0 unit_u1 U1 W2 V3 U4
     split. assumption.
     assumption.
   }
-Admitted.
+Qed.
 
 Lemma m6_4 : forall (u0 u1 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
   (exists (U1 U2 U3 U4 : Square 4),
