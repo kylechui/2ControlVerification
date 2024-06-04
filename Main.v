@@ -2118,10 +2118,7 @@ Proof.
     }
     assert (WF_U2U3 : WF_Unitary (U2_ac × U3_ab)).
     {
-      (* TODO *)
-      (* apply Mmult_unitary.
-      apply Mmult_unitary. *)
-      admit.
+      solve_WF_matrix.
     }
     subst Q.
     replace 4%nat with (2 * 2)%nat in U2U3_commutativity_subst by lia.
@@ -2154,8 +2151,29 @@ U2_ac × U3_ab = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1).
     }
     assert (ccu(diag2 u0 u1) = ∣0⟩⟨0∣ ⊗ (U1 × (P0 ⊗ Q0) × U4) .+ ∣1⟩⟨1∣ ⊗ (U1 × (P1 ⊗ Q1) × U4)).
     {
-      (* TODO *)
-      admit.
+      rewrite <- H1.
+      unfold bcgate.
+      repeat rewrite id_tens_equiv_block_diag.
+      subst U2_ac U3_ab.
+      repeat rewrite <- kron_plus_distr_r.
+      rewrite Mplus01.
+      repeat rewrite Mmult_assoc.
+      rewrite <- Mmult_assoc with (A := acgate U2).
+      rewrite <- Mmult_assoc with (B := acgate U2 × abgate U3).
+      rewrite H4.
+      repeat rewrite kron_assoc.
+      repeat rewrite kron_plus_distr_l.
+      repeat rewrite kron_plus_distr_r.
+      repeat rewrite kron_mixed_product.
+      rewrite <- Mmult_assoc.
+      Msimpl_light.
+      rewrite Mmult_plus_distr_l.
+      rewrite Mmult_plus_distr_r.
+      repeat rewrite kron_mixed_product.
+      Msimpl_light.
+      rewrite <- Mmult_assoc.
+      reflexivity.
+      all: repeat solve_WF_matrix.
     }
     (* apply lemma 4.1 to get the result *)
     assert (u0 = u1 \/ u0 * u1 = 1).
@@ -2308,6 +2326,5 @@ U2_ac × U3_ab = ∣0⟩⟨0∣ ⊗ P0 ⊗ Q0 .+ ∣1⟩⟨1∣ ⊗ P1 ⊗ Q1).
       repeat simplify_match.
       all: repeat reflexivity.
       repeat simplify_match.
-      all: repeat reflexivity.
-      
-Admitted.
+      all: repeat reflexivity.   
+Qed.
