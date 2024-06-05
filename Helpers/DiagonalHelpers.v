@@ -2,6 +2,65 @@ Require Import QuantumLib.Eigenvectors.
 Require Import MatrixHelpers.
 Require Import GateHelpers.
 
+Lemma Diag_diag2: forall (c1 c2 : C), WF_Diagonal (diag2 c1 c2).
+Proof.
+  intros.
+  unfold WF_Diagonal.
+  split. apply WF_diag2.
+  intros.
+  unfold diag2; simpl.
+  destruct i.
+  - destruct j.
+    + contradiction.
+    + reflexivity.
+  - destruct i.
+    + destruct j.
+      * reflexivity.
+      * destruct j.
+        -- contradiction.
+        -- reflexivity.
+    + reflexivity.
+Qed.
+
+Lemma Diag_diag4: forall (c1 c2 c3 c4 : C), WF_Diagonal (diag4 c1 c2 c3 c4).
+Proof.
+  intros.
+  unfold WF_Diagonal.
+  split; try apply WF_diag4.
+  intros.
+  unfold diag4; simpl.
+  destruct i.
+  - destruct j.
+    + contradiction.
+    + reflexivity.
+  - destruct i.
+    + destruct j.
+      * reflexivity.
+      * destruct j.
+        -- contradiction.
+        -- reflexivity.
+    + destruct i.
+      * destruct j.
+        -- reflexivity.
+        -- destruct j.
+           ++ reflexivity.
+           ++ destruct j.
+              ** contradiction.
+              ** reflexivity.
+      * destruct i.
+        -- destruct j.
+           ++ reflexivity.
+           ++ destruct j.
+              ** reflexivity.
+              ** destruct j.
+                 --- reflexivity.
+                 --- destruct j.
+                     +++ contradiction.
+                     +++ reflexivity.
+        -- reflexivity.
+Qed.
+
+
 Lemma diag00 :  WF_Diagonal ∣0⟩⟨0∣.
 Proof.
   split; auto with wf_db.

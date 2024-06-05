@@ -3095,3 +3095,82 @@ Proof.
     assumption.
   }
 Qed.
+
+Lemma m7_1 : forall (u0 u1 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
+  forall (U : Square 8), WF_Unitary U ->
+  forall (W : Square 4), WF_Unitary W ->
+  ccu (diag2 u0 u1) = abgate W × U -> exists (V : Square 4), WF_Unitary V /\
+  ccu (diag2 C1 (u0^* * u1)) = abgate V × U.
+Proof.
+  intros u0 u1 u0_unit u1_unit U U_unitary W W_unitary H.
+  exists (control (diag2 C1 (u0^*)) × W).
+  split.
+  {
+    solve_WF_matrix.
+    apply diag2_unitary.
+    apply Cmod_1.
+    rewrite Cmod_Cconj.
+    exact u0_unit.
+  }
+  {
+    unfold abgate.
+    rewrite <- Mmult_1_l with (A := I 2); solve_WF_matrix.
+    rewrite <- kron_mixed_product.
+    unfold abgate in H.
+    rewrite Mmult_assoc.
+    rewrite <- H at 1; clear H.
+    (* For performance reasons, we'll show both sides are diagonal first,
+       instead of directly invoking lma'. *)
+    assert (WF_Diagonal (ccu (diag2 C1 (u0 ^* * u1)))).
+    {
+      apply ccu_diag.
+      apply Diag_diag2.
+    }
+    assert (WF_Diagonal (control (diag2 C1 (u0 ^*)) ⊗ I 2 × ccu (diag2 u0 u1))).
+    {
+      apply diag_mult.
+      apply diag_kron.
+      apply diag_control.
+      apply Diag_diag2.
+      apply diag_I.
+      apply ccu_diag.
+      apply Diag_diag2.
+    }
+    prep_matrix_equality.
+    bdestruct (x =? y).
+    {
+      rewrite <- H1; clear H1.
+      destruct H as [H _].
+      destruct H0 as [H0 _].
+      specialize (H x x).
+      specialize (H0 x x).
+      destruct x.
+      unfold ccu, control, diag2, I, kron, Mmult; lca.
+      destruct x.
+      unfold ccu, control, diag2, I, kron, Mmult; lca.
+      destruct x.
+      unfold ccu, control, diag2, I, kron, Mmult; lca.
+      destruct x.
+      unfold ccu, control, diag2, I, kron, Mmult; lca.
+      destruct x.
+      unfold ccu, control, diag2, I, kron, Mmult; lca.
+      destruct x.
+      unfold ccu, control, diag2, I, kron, Mmult; lca.
+      destruct x.
+      unfold ccu, control, diag2, I, kron, Mmult; simpl; Csimpl.
+      rewrite <- Cmod_sqr, u0_unit; lca.
+      destruct x.
+      unfold ccu, control, diag2, I, kron, Mmult; lca.
+      rewrite H, <- H0.
+      reflexivity.
+      all: lia.
+    }
+    {
+      destruct H as [_ H].
+      destruct H0 as [_ H0].
+      specialize (H x y H1).
+      specialize (H0 x y H1).
+      rewrite H, <- H0; reflexivity.
+    }
+  }
+Qed.
