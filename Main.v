@@ -3191,9 +3191,9 @@ Lemma m7_2 : forall (u0 u1 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
 Proof.
 Admitted.
 
-Lemma m7_3 : forall (u0 u1 u2 u3 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
-  (u2, u3) = (u0, u1) \/ (u2, u3) = (C1, u0^* * u1) -> u2 = u3 \/ u2 * u3 = C1 ->
-  (u0 = u1 \/ u0 * u1 = C1).
+Lemma m7_3 : forall (u0 u1 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
+  forall (u2 u3 : C), (u2, u3) = (u0, u1) \/ (u2, u3) = (C1, u0^* * u1) ->
+    u2 = u3 \/ u2 * u3 = C1 -> (u0 = u1 \/ u0 * u1 = C1).
 Proof.
   intros.
   destruct H1, H2.
@@ -3247,7 +3247,121 @@ Theorem m7_4 : forall (u0 u1 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
     V1 × V2 × V3 × V4 = ccu (diag2 u0 u1)) <->
   u0 = u1 \/ u0 * u1 = C1.
 Proof.
-Admitted.
+  intros u0 u1 u0_unit u1_unit.
+  split.
+  {
+    intros.
+    pose proof (m7_2 u0 u1 u0_unit u1_unit H).
+    destruct H0.
+    {
+      destruct H0 as [U1 [U2 [U3 [U4 [U1_unitary [U2_unitary [U3_unitary [U4_unitary [u2 [u3 [H1 H2]]]]]]]]]]].
+      assert (u2_u3_unit : Cmod u2 = 1 /\ Cmod u3 = 1).
+      {
+        destruct H1.
+        {
+          rewrite pair_equal_spec in H0.
+          destruct H0.
+          rewrite H0, H1.
+          split; auto.
+        }
+        {
+          rewrite pair_equal_spec in H0.
+          destruct H0.
+          rewrite H0, H1.
+          split. apply Cmod_1.
+          rewrite Cmod_mult.
+          rewrite Cmod_Cconj.
+          rewrite u0_unit, u1_unit.
+          lra.
+        }
+      }
+      destruct u2_u3_unit as [u2_unit u3_unit].
+      pose proof (m5_1 u2 u3 u2_unit u3_unit).
+      assert (u2 = u3 \/ u2 * u3 = C1).
+      {
+        rewrite <- H0.
+        exists U1, U2, U3, U4.
+        split. assumption.
+        split. assumption.
+        split. assumption.
+        split; assumption.
+      }
+      apply (m7_3 u0 u1 u0_unit u1_unit u2 u3); auto.
+    }
+    {
+      destruct H0 as [U1 [U2 [U3 [U4 [U1_unitary [U2_unitary [U3_unitary [U4_unitary [u2 [u3 [H1 H2]]]]]]]]]]].
+      assert (u2_u3_unit : Cmod u2 = 1 /\ Cmod u3 = 1).
+      {
+        destruct H1.
+        {
+          rewrite pair_equal_spec in H0.
+          destruct H0.
+          rewrite H0, H1.
+          split; auto.
+        }
+        {
+          rewrite pair_equal_spec in H0.
+          destruct H0.
+          rewrite H0, H1.
+          split. apply Cmod_1.
+          rewrite Cmod_mult.
+          rewrite Cmod_Cconj.
+          rewrite u0_unit, u1_unit.
+          lra.
+        }
+      }
+      destruct u2_u3_unit as [u2_unit u3_unit].
+      pose proof (m6_4 u2 u3 u2_unit u3_unit).
+      assert (u2 = u3 \/ u2 * u3 = C1).
+      {
+        rewrite <- H0.
+        exists U1, U2, U3, U4.
+        split. assumption.
+        split. assumption.
+        split. assumption.
+        split; assumption.
+      }
+      apply (m7_3 u0 u1 u0_unit u1_unit u2 u3); auto.
+    }
+  }
+  {
+    intros.
+    rewrite <- m5_1 in H; auto.
+    destruct H as [U1 [U2 [U3 [U4 [U1_unitary [U2_unitary [U3_unitary [U4_unitary H]]]]]]]].
+    exists (bcgate U1), (acgate U2), (abgate U3), (bcgate U4).
+    split.
+    {
+      unfold TwoQubitGate.
+      exists U1.
+      split. assumption.
+      right; right; reflexivity.
+    }
+    split.
+    {
+      unfold TwoQubitGate.
+      exists U2.
+      split. assumption.
+      right; left; reflexivity.
+    }
+    split.
+    {
+      unfold TwoQubitGate.
+      exists U3.
+      split. assumption.
+      left; reflexivity.
+    }
+    split.
+    {
+      unfold TwoQubitGate.
+      exists U4.
+      split. assumption.
+      right; right; reflexivity.
+    }
+    {
+      exact H.
+    }
+  }
+Qed.
 
 Corollary m7_5 : forall (U : Square 2), WF_Unitary U ->
   (exists (V1 V2 V3 V4 : Square 8),
