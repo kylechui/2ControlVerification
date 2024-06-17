@@ -3195,7 +3195,51 @@ Lemma m7_3 : forall (u0 u1 u2 u3 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
   (u2, u3) = (u0, u1) \/ (u2, u3) = (C1, u0^* * u1) -> u2 = u3 \/ u2 * u3 = C1 ->
   (u0 = u1 \/ u0 * u1 = C1).
 Proof.
-Admitted.
+  intros.
+  destruct H1, H2.
+  {
+    rewrite pair_equal_spec in H1.
+    destruct H1.
+    left.
+    rewrite <- H1, <- H3.
+    exact H2.
+  }
+  {
+    rewrite pair_equal_spec in H1.
+    destruct H1.
+    right.
+    rewrite <- H1, <- H3.
+    exact H2.
+  }
+  {
+    rewrite pair_equal_spec in H1.
+    destruct H1.
+    left.
+    rewrite <- H2, H1 in H3.
+    apply (f_equal (fun f => u0 * f)) in H3.
+    rewrite Cmult_1_r in H3.
+    rewrite H3.
+    rewrite Cmult_assoc.
+    replace (u0 * u0^*) with ((u0^* * u0)^*) by lca.
+    rewrite <- Cmod_sqr.
+    rewrite H.
+    lca.
+  }
+  {
+    rewrite pair_equal_spec in H1.
+    left.
+    destruct H1.
+    rewrite H1, H3, Cmult_1_l in H2.
+    apply (f_equal (fun f => u0 * f)) in H2.
+    rewrite Cmult_1_r in H2.
+    rewrite <- H2.
+    rewrite Cmult_assoc.
+    replace (u0 * u0^*) with ((u0^* * u0)^*) by lca.
+    rewrite <- Cmod_sqr.
+    rewrite H.
+    lca.
+  }
+Qed.
 
 Theorem m7_4 : forall (u0 u1 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
   (exists (V1 V2 V3 V4 : Square 8),
