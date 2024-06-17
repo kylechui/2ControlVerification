@@ -3174,3 +3174,43 @@ Proof.
     }
   }
 Qed.
+
+Lemma m7_2 : forall (u0 u1 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
+  (exists (V1 V2 V3 V4 : Square 8),
+    TwoQubitGate V1 /\ TwoQubitGate V2 /\ TwoQubitGate V3 /\ TwoQubitGate V4 /\
+    V1 × V2 × V3 × V4 = ccu (diag2 u0 u1)) ->
+  (exists (U1 U2 U3 U4 : Square 4),
+    WF_Unitary U1 /\ WF_Unitary U2 /\ WF_Unitary U3 /\ WF_Unitary U4 /\
+    (exists (u2 u3 : C), ((u2, u3) = (u0, u1) \/ (u2, u3) = (C1, u0^* * u1)) /\
+      bcgate U1 × acgate U2 × abgate U3 × bcgate U4 = ccu (diag2 u2 u3)))
+  \/
+  (exists (U1 U2 U3 U4 : Square 4),
+    WF_Unitary U1 /\ WF_Unitary U2 /\ WF_Unitary U3 /\ WF_Unitary U4 /\
+    (exists (u2 u3 : C), ((u2, u3) = (u0, u1) \/ (u2, u3) = (C1, u0^* * u1)) /\
+      acgate U1 × bcgate U2 × acgate U3 × bcgate U4 = ccu (diag2 u2 u3))).
+Proof.
+Admitted.
+
+Lemma m7_3 : forall (u0 u1 u2 u3 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
+  (u2, u3) = (u0, u1) \/ (u2, u3) = (C1, u0^* * u1) -> u2 = u3 \/ u2 * u3 = C1 ->
+  (u0 = u1 \/ u0 * u1 = C1).
+Proof.
+Admitted.
+
+Theorem m7_4 : forall (u0 u1 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
+  (exists (V1 V2 V3 V4 : Square 8),
+    TwoQubitGate V1 /\ TwoQubitGate V2 /\ TwoQubitGate V3 /\ TwoQubitGate V4 /\
+    V1 × V2 × V3 × V4 = ccu (diag2 u0 u1)) <->
+  u0 = u1 \/ u0 * u1 = C1.
+Proof.
+Admitted.
+
+Corollary m7_5 : forall (U : Square 2), WF_Unitary U ->
+  (exists (V1 V2 V3 V4 : Square 8),
+    TwoQubitGate V1 /\ TwoQubitGate V2 /\ TwoQubitGate V3 /\ TwoQubitGate V4 /\
+    V1 × V2 × V3 × V4 = ccu U)
+  <->
+  (exists (V D : Square 2), WF_Unitary V /\ WF_Diagonal D /\
+    U = V × D × V† /\ (D 0 0 = D 1 1)%nat) /\ Determinant U = C1.
+Proof.
+Admitted.
