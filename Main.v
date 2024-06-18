@@ -1715,7 +1715,7 @@ Proof.
         repeat rewrite Mmult_plus_distr_l.
         repeat rewrite Mmult_plus_distr_r.
         repeat rewrite kron_mixed_product.
-        (* PERF: These Msimpl_lights are non-trivially expensive, can optimize later*)
+        (* PERF: These Msimpl_lights are non-trivially expensive, can optimize later *)
         repeat rewrite Mmult_1_r.
         repeat rewrite <- kron_assoc.
         repeat rewrite (@kron_mixed_product 4 4 4 2 2 2).
@@ -1776,14 +1776,14 @@ Proof.
       destruct H.
       {
         left.
-        apply (f_equal (fun f => f^*)) in H.
+        apply (f_equal (fun f => f^* )) in H.
         repeat rewrite Cconj_involutive in H.
         exact H.
       }
       {
         right.
         rewrite <- Cconj_mult_distr in H.
-        apply (f_equal (fun f => f^*)) in H.
+        apply (f_equal (fun f => f^* )) in H.
         rewrite Cconj_involutive in H.
         rewrite H; lca.
       }
@@ -1802,7 +1802,7 @@ Proof.
       }
     }
   }
-  assert (diag2_adjoint : diag2 (u0 ^*) (u1 ^*) = (diag2 u0 u1)†).
+  assert (diag2_adjoint : diag2 (u0 ^* ) (u1 ^* ) = (diag2 u0 u1)†).
   {
     lma'.
     all: unfold diag2, adjoint; simpl; reflexivity.
@@ -1867,7 +1867,7 @@ Proof.
     rewrite <- Cmod_Cconj in unit_u0, unit_u1.
     pose proof (
       m4_3
-      (u0^*) (u1^*)
+      (u0^* ) (u1^* )
       unit_u0 unit_u1
     ).
     rewrite <- H0 in H; clear H0.
@@ -1890,7 +1890,7 @@ Proof.
       reflexivity.
     }
     {
-      (* TODO: A bit repetitive here; we can probably pull this out to an assertion*)
+      (* TODO: A bit repetitive here; we can probably pull this out to an assertion *)
       rewrite diag2_adjoint in H0.
       unfold ccu in H0.
       repeat rewrite <- control_adjoint in H0.
@@ -3103,7 +3103,7 @@ Lemma m7_1 : forall (u0 u1 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
   ccu (diag2 C1 (u0^* * u1)) = abgate V × U.
 Proof.
   intros u0 u1 u0_unit u1_unit U U_unitary W W_unitary H.
-  exists (control (diag2 C1 (u0^*)) × W).
+  exists (control (diag2 C1 (u0^* )) × W).
   split.
   {
     solve_WF_matrix.
@@ -3126,7 +3126,7 @@ Proof.
       apply ccu_diag.
       apply Diag_diag2.
     }
-    assert (WF_Diagonal (control (diag2 C1 (u0 ^*)) ⊗ I 2 × ccu (diag2 u0 u1))).
+    assert (WF_Diagonal (control (diag2 C1 (u0 ^* )) ⊗ I 2 × ccu (diag2 u0 u1))).
     {
       apply diag_mult.
       apply diag_kron.
@@ -3220,7 +3220,7 @@ Proof.
     rewrite Cmult_1_r in H3.
     rewrite H3.
     rewrite Cmult_assoc.
-    replace (u0 * u0^*) with ((u0^* * u0)^*) by lca.
+    replace (u0 * u0^* ) with ((u0^* * u0)^* ) by lca.
     rewrite <- Cmod_sqr.
     rewrite H.
     lca.
@@ -3234,7 +3234,7 @@ Proof.
     rewrite Cmult_1_r in H2.
     rewrite <- H2.
     rewrite Cmult_assoc.
-    replace (u0 * u0^*) with ((u0^* * u0)^*) by lca.
+    replace (u0 * u0^* ) with ((u0^* * u0)^* ) by lca.
     rewrite <- Cmod_sqr.
     rewrite H.
     lca.
@@ -3372,7 +3372,6 @@ Corollary m7_5 : forall (U : Square 2), WF_Unitary U ->
     U = V × D × V† /\ ((D 0 0 = D 1 1)%nat \/ Determinant U = C1).
 Proof.
   intros U U_unitary.
-
   split.
   {
     pose proof (a3 U U_unitary).
@@ -3430,6 +3429,67 @@ Proof.
       rewrite H0, Cmult_1_l.
       reflexivity.
     }
+    assert (Cmod u0 = 1 /\ Cmod u1 = 1).
+    {
+      destruct U_unitary as [WF_U U_unit].
+      destruct V_unitary as [WF_V V_unit].
+      revert U_unit.
+      rewrite H; clear H.
+      distribute_adjoint.
+      rewrite adjoint_involutive.
+      repeat rewrite <- Mmult_assoc.
+      do 2 rewrite Mmult_assoc with (A := V).
+      rewrite Mmult_assoc with (A := D†).
+      rewrite V_unit, Mmult_1_r; solve_WF_matrix.
+      intro H.
+      apply (f_equal (fun f => V† × f × V)) in H.
+      repeat rewrite Mmult_assoc in H.
+      rewrite V_unit in H.
+      repeat rewrite <- Mmult_assoc in H.
+      rewrite V_unit in H.
+      rewrite Mmult_1_l in H; solve_WF_matrix.
+      do 2 rewrite Mmult_1_r in H; solve_WF_matrix.
+      rewrite V_unit in H.
+      destruct D_diagonal as [WF_D D_diag].
+      split.
+      {
+        apply (f_equal (fun f => f 0 0)%nat) in H.
+        unfold adjoint, Mmult, I in H; simpl in H.
+        rewrite (@D_diag 1 0)%nat in H; try lia.
+        revert H; Csimpl; intro H.
+        rewrite <- Cmod_sqr in H.
+        fold u0 in H.
+        apply Rsqr_inj.
+        apply Cmod_ge_0.
+        lra.
+        apply pair_equal_spec in H.
+        destruct H as [H _].
+        rewrite Rsqr_1.
+        unfold Rsqr.
+        rewrite <- H; clear H.
+        Csimpl; simpl.
+        lra.
+      }
+      {
+        apply (f_equal (fun f => f 1 1)%nat) in H.
+        unfold adjoint, Mmult, I in H; simpl in H.
+        rewrite (@D_diag 0 1)%nat in H; try lia.
+        revert H; Csimpl; intro H.
+        rewrite <- Cmod_sqr in H.
+        fold u1 in H.
+        apply Rsqr_inj.
+        apply Cmod_ge_0.
+        lra.
+        apply pair_equal_spec in H.
+        destruct H as [H _].
+        rewrite Rsqr_1.
+        unfold Rsqr.
+        rewrite <- H; clear H.
+        Csimpl; simpl.
+        lra.
+      }
+    }
+    destruct H1 as [u0_unit u1_unit].
     intros.
     exists V, D.
     split. assumption.
@@ -3437,7 +3497,7 @@ Proof.
     split. assumption.
     fold u0 u1.
     rewrite <- H0; clear H0.
-    rewrite <- m7_4. 2, 3: admit. (* TODO: Prove that eigenvalues are units! *)
+    rewrite <- m7_4; auto.
     destruct H1 as [V1 [V2 [V3 [V4 [V1_gate [V2_gate [V3_gate [V4_gate H1]]]]]]]].
     assert (abgate_comm : forall (U : Square 4) (V : Square 2),
       WF_Matrix U -> WF_Matrix V ->
@@ -3956,4 +4016,8 @@ Proof.
         assumption.
       }
     }
+  }
+  {
+    admit.
+  }
 Admitted.
