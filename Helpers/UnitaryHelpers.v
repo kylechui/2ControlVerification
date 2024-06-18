@@ -35,7 +35,7 @@ Proof.
   repeat rewrite kron_0_l.
   rewrite Mplus_0_l, Mplus_0_r.
   rewrite Unitary_P, Unitary_Q.
-  rewrite <- kron_plus_distr_r.
+  rewrite <- (@kron_plus_distr_r 2 2 n n).
   rewrite Mplus01.
   rewrite id_kron.
   reflexivity.

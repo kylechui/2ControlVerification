@@ -261,7 +261,7 @@ Proof.
           P01† × P01 .+ P11† × P11 = I 2).
   {
     apply block_equalities; solve_WF_matrix.
-    rewrite V_inv.
+    rewrite V_inv at 1.
     Msimpl_light.
     rewrite <- kron_plus_distr_r.
     rewrite Mplus01, id_kron.

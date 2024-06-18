@@ -25,19 +25,22 @@ Ltac solve_WF_matrix :=
       | |- WF_Matrix ?A => match goal with
                            | [ H : WF_Matrix A |- _ ] => apply H
                            | [ H : WF_Unitary A |- _ ] => apply H
+                           | [ H : WF_Diagonal A |- _ ] => apply H
                            | [ H : WF_Qubit A |- _ ] => apply H
                            | _ => auto_wf; autounfold with M_db; try unfold A
                            end
       | |- WF_Unitary (adjoint _) => apply adjoint_unitary
       | |- WF_Unitary (Mopp _) => unfold Mopp
-      | |- WF_Unitary (_ × _) => apply Mmult_unitary
+      | |- WF_Unitary (?A × _) => match type of A with
+                                  | Square ?n => apply (@Mmult_unitary n)
+                                  end
       (* TODO: Upstream `direct_sum_unitary`, otherwise we can't have this case *)
       (*| |- WF_Unitary (_ .⊕ _) => apply direct_sum_unitary *)
       | |- WF_Unitary (?A ⊗ ?B) => match type of A with
-                                     | Square ?m => match type of B with
-                                                    | Square ?n => apply (@kron_unitary m n)
-                                                    end
-                                     end
+                                   | Square ?m => match type of B with
+                                                  | Square ?n => apply (@kron_unitary m n)
+                                                  end
+                                   end
       | |- WF_Unitary (control ?A) => match type of A with
                                       | Square ?n => apply (@control_unitary n)
                                       end

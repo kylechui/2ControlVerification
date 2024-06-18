@@ -49,7 +49,7 @@ assert (kron_mix_help: U ⊗ I 2 × (a × (a) † ⊗ (c × (c) †) ⊗ (b × (
  (U × (a × (a) † ⊗ (c × (c) †))) ⊗ (b × (b) †) ).
 {
     rewrite <- Mmult_1_l with (A:= (b × (b) †)) at 2; solve_WF_matrix.
-    apply kron_mixed_product.
+    apply (@kron_mixed_product 4 4 4 2 2 2).
 }
 rewrite kron_mix_help at 1.
 clear kron_mix_help.
@@ -61,7 +61,7 @@ assert (kron_mix_help: U × (a × (a) † ⊗ (c × (c) †)) ⊗ (b × (b) †)
 (U × (a × (a) † ⊗ (c × (c) †)) × (U) †) ⊗ (b × (b) †)).
 {
     rewrite <- Mmult_1_r with (A:= (b × (b) †)) at 2; solve_WF_matrix.
-    apply kron_mixed_product.
+    apply (@kron_mixed_product 4 4 4 2 2 2).
 }
 rewrite kron_mix_help at 1.
 assert (WF_helper1: WF_Matrix (U × (a × (a) † ⊗ (c × (c) †)) × (U) † ⊗ (b × (b) †) × swapbc)).
