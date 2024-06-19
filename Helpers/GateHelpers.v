@@ -11,9 +11,6 @@ Definition bcgate (U : Square 4) := I 2 ⊗ U.
 Definition acgate (U : Square 4) := swapbc × (abgate U) × swapbc.
 Definition ccu (U : Square 2) := control (control U).
 
-Definition TwoQubitGate (U : Square 8) := exists (V : Square 4), WF_Unitary V /\ (U = abgate V \/ U = acgate V \/ U = bcgate V).
-
-
 #[global] Hint Unfold abgate bcgate acgate ccu : M_db.
 
 Lemma WF_abgate : forall (U : Square 4), WF_Matrix U -> WF_Matrix (abgate U).
@@ -1264,3 +1261,31 @@ rewrite Mmult_1_l. 2: solve_WF_matrix.
 reflexivity.
 Qed.
 
+Definition TwoQubitGate (U : Square 8) := exists (V : Square 4), WF_Unitary V /\ (U = abgate V \/ U = acgate V \/ U = bcgate V).
+
+Lemma abgate_twoqubitgate : forall (U : Square 4), WF_Unitary U -> TwoQubitGate (abgate U).
+Proof.
+  intros U U_unitary.
+  unfold TwoQubitGate.
+  exists U.
+  split. assumption.
+  left. reflexivity.
+Qed.
+
+Lemma acgate_twoqubitgate : forall (U : Square 4), WF_Unitary U -> TwoQubitGate (acgate U).
+Proof.
+  intros U U_unitary.
+  unfold TwoQubitGate.
+  exists U.
+  split. assumption.
+  right. left. reflexivity.
+Qed.
+
+Lemma bcgate_twoqubitgate : forall (U : Square 4), WF_Unitary U -> TwoQubitGate (bcgate U).
+Proof.
+  intros U U_unitary.
+  unfold TwoQubitGate.
+  exists U.
+  split. assumption.
+  right. right. reflexivity.
+Qed.

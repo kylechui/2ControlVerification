@@ -187,7 +187,7 @@ assert (equal_blocks: (P00) † × P00 = I 2 /\ (Zero (m:= 2) (n:=2)) = (Zero (m
 /\ (Zero (m:= 2) (n:=2)) = (Zero (m:= 2) (n:=2)) /\ (P11) † × P11 = I 2).
 {
     apply block_equalities; solve_WF_matrix.
-    rewrite <- U_adj_mult_1, <- I_4_block_decomp.
+    rewrite <- U_adj_mult_1, <- I_4_block_decomp at 1.
     apply U_unitary.
 }
 split.
@@ -331,8 +331,7 @@ assert (Main: ∣0⟩ ⊗ psi ⊗ beta .+ ∣0⟩ ⊗ phi ⊗ beta_p =
         rewrite <- swapbc_3q; solve_WF_matrix.
         rewrite <- swapbc_3q with (b := beta_p); solve_WF_matrix.
         rewrite <- Mmult_plus_distr_l.
-        rewrite kron_assoc; solve_WF_matrix.
-        rewrite kron_assoc; solve_WF_matrix.
+        repeat rewrite (@kron_assoc 2 1 2 1 2 1); solve_WF_matrix.
     }
     rewrite Step1. clear Step1.
     assert (Step2: swapbc × (∣0⟩ ⊗ (beta ⊗ psi) .+ ∣0⟩ ⊗ (beta_p ⊗ phi)) = swapbc × (∣0⟩ ⊗ w)).
@@ -372,7 +371,7 @@ assert (Main: ∣0⟩ ⊗ psi ⊗ beta .+ ∣0⟩ ⊗ phi ⊗ beta_p =
     unfold abgate.
     rewrite kron_mixed_product. rewrite kron_mixed_product.
     Msimpl_light; solve_WF_matrix.
-    repeat rewrite <- Mscale_kron_dist_l.
+    repeat rewrite <- (@Mscale_kron_dist_l 4 1 2 1).
     reflexivity.
 }
 (* Moving terms in main to apply a16*)

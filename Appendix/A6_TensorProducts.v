@@ -421,10 +421,10 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣0⟩ ⊗ ∣0⟩)))).
     unfold a. unfold not. intro.
     apply H.
     rewrite a20; solve_WF_matrix.
-    fold a00 a11 a01 a10.
     apply (f_equal (fun f => f + a01 * a10)) in H0.
     rewrite Cplus_0_l in H0.
-    rewrite <- H0.
+    unfold a00, a11, a01, a10 in H0.
+    rewrite <- H0 at 1.
     lca.
 }
 Qed.
@@ -586,10 +586,10 @@ destruct (Classical_Prop.classic (TensorProd (U × (∣1⟩ ⊗ ∣0⟩)))).
     unfold a. unfold not. intro.
     apply H.
     rewrite a20; solve_WF_matrix.
-    fold a00 a11 a01 a10.
     apply (f_equal (fun f => f + a01 * a10)) in H0.
     rewrite Cplus_0_l in H0.
-    rewrite <- H0.
+    unfold a00, a11, a01, a10 in H0.
+    rewrite <- H0 at 1.
     lca.
 }
 Qed.

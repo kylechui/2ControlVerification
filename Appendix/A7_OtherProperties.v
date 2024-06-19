@@ -185,7 +185,7 @@ Zero = I 2 ⊗ Q10 /\
 {
     apply block_eq.
     all: solve_WF_matrix.
-    rewrite <- V3_way1. apply V3_way2.
+    rewrite <- V3_way1 at 1. apply V3_way2.
 }
 destruct eq as [q00_val [q01_zero [q10_zero q11_val]]].
 assert (ztotens: (@Zero 4 4) = I 2 ⊗ (@Zero 2 2)). lma'.
@@ -896,7 +896,7 @@ split.
     apply (f_equal (fun f => I 2 ⊗ U2 × f)).
     assert (assoc_help: I 2 ⊗ (I 2 ⊗ W1) = I 2 ⊗ I 2 ⊗ W1). symmetry. apply kron_assoc. 1,2,3: solve_WF_matrix.
     rewrite assoc_help at 1.
-    rewrite <- swapbc_3gate. 2,3,4: solve_WF_matrix.
+    rewrite <- swapbc_3gate; solve_WF_matrix.
     unfold acgate at 1.
     unfold abgate at 1.
     unfold V3.
@@ -908,14 +908,7 @@ split.
     repeat rewrite Mmult_assoc.
     rewrite <- Mmult_assoc with (A:= swapbc) (B:= swapbc).
     rewrite swapbc_inverse at 1.
-    rewrite Mmult_1_l. 
-    2: {
-        apply WF_mult. solve_WF_matrix.
-        apply WF_mult. solve_WF_matrix.
-        apply WF_mult. solve_WF_matrix.
-        apply WF_mult. solve_WF_matrix.
-        apply WF_bcgate. solve_WF_matrix.
-    }
+    rewrite Mmult_1_l; solve_WF_matrix.
     rewrite <- Mmult_assoc with (A:= I 2 ⊗ W1 ⊗ I 2).
     assert (kron_mix_help: I 2 ⊗ W1 ⊗ I 2 × ((W0) † ⊗ (W1) † ⊗ I 2) =
     (I 2 ⊗ W1 × ((W0) † ⊗ (W1) †)) ⊗ (I 2 × I 2)). apply kron_mixed_product.
@@ -930,16 +923,8 @@ split.
     repeat rewrite Mmult_assoc.
     rewrite <- Mmult_assoc with (A:= swapbc).
     rewrite swapbc_inverse at 1.
-    rewrite Mmult_1_l.
-    2: {
-        apply WF_mult. solve_WF_matrix.
-        apply WF_mult. solve_WF_matrix.
-        apply WF_mult. solve_WF_matrix.
-        apply WF_mult. solve_WF_matrix.
-        apply WF_mult. solve_WF_matrix.
-        apply WF_bcgate. solve_WF_matrix.
-    }
-    rewrite kron_assoc. 2,3,4: solve_WF_matrix.
+    rewrite Mmult_1_l; solve_WF_matrix.
+    rewrite (@kron_assoc 2 2 2 2). 2,3,4: solve_WF_matrix.
     rewrite <- Mmult_assoc with (A:= W0 ⊗ I 4).
     rewrite id_kron. simpl.
     assert (kron_mix_help: W0 ⊗ I 4 × ((W0) † ⊗ I 4) = (W0 × (W0) †) ⊗ (I 4 × I 4)). apply kron_mixed_product.
@@ -950,11 +935,7 @@ split.
     rewrite Mmult_1_l.
     2: 
     {
-        apply WF_mult. solve_WF_matrix.
-        apply WF_mult. solve_WF_matrix.
-        apply WF_mult. solve_WF_matrix.
-        apply WF_mult. solve_WF_matrix.
-        apply WF_bcgate. solve_WF_matrix.
+      solve_WF_matrix.
     }
     rewrite <- swapbc_3gate. 2,3,4: solve_WF_matrix.
     repeat rewrite <- Mmult_assoc.
