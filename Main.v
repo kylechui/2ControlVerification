@@ -3371,134 +3371,13 @@ Corollary m7_5 : forall (U : Square 2), WF_Unitary U ->
   exists (V D : Square 2), WF_Unitary V /\ WF_Diagonal D /\
     U = V × D × V† /\ ((D 0 0 = D 1 1)%nat \/ Determinant U = C1).
 Proof.
-  intros U U_unitary.
-  split.
+  assert (absorption_helper : forall (V : Square 2), WF_Unitary V ->
+    forall (V1 V2 V3 V4 : Square 8),
+    TwoQubitGate V1 -> TwoQubitGate V2 -> TwoQubitGate V3 -> TwoQubitGate V4 ->
+      exists (W1 W2 W3 W4 : Square 8),
+        TwoQubitGate W1 /\ TwoQubitGate W2 /\ TwoQubitGate W3 /\ TwoQubitGate W4 /\
+        W1 × W2 × W3 × W4 = (I 2 ⊗ I 2 ⊗ V†) × V1 × V2 × V3 × V4 × (I 2 ⊗ I 2 ⊗ V)).
   {
-    pose proof (a3 U U_unitary).
-    destruct H as [V [D [V_unitary [D_diagonal H]]]].
-    set (u0 := (D 0 0)%nat).
-    set (u1 := (D 1 1)%nat).
-    assert (ccu U = (I 2 ⊗ I 2 ⊗ V) × ccu (diag2 u0 u1) × (I 2 ⊗ I 2 ⊗ V†)).
-    {
-      assert (diag2 u0 u1 = D).
-      {
-        destruct D_diagonal as [WF_D D_diag].
-        lma'; solve_WF_matrix.
-        all: unfold diag2; simpl.
-        rewrite (D_diag 0 1)%nat. reflexivity. lia.
-        rewrite (D_diag 1 0)%nat. reflexivity. lia.
-      }
-      rewrite H0; clear H0.
-      unfold ccu at 2.
-      repeat rewrite control_decomp; solve_WF_matrix.
-      repeat rewrite kron_plus_distr_l.
-      repeat rewrite Mmult_plus_distr_l.
-      repeat rewrite Mmult_plus_distr_r.
-      repeat rewrite kron_assoc.
-      repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
-      Msimpl_light.
-      repeat rewrite (@kron_mixed_product 2 2 2 2 2 2).
-      Msimpl_light.
-      rewrite (other_unitary_decomp V V_unitary).
-      rewrite <- H; clear H.
-      rewrite <- kron_plus_distr_l.
-      rewrite <- control_decomp.
-      rewrite id_kron, <- control_decomp.
-      unfold ccu.
-      all: solve_WF_matrix.
-    }
-    rewrite H0; clear H0.
-    assert (u0 * u1 = C1 <-> Determinant U = C1).
-    {
-      rewrite H.
-      repeat rewrite <- Determinant_multiplicative.
-      rewrite <- Cmult_assoc, Cmult_comm with (x := Determinant D), Cmult_assoc.
-      rewrite Determinant_multiplicative.
-      rewrite (other_unitary_decomp V V_unitary).
-      rewrite Det_I.
-      assert (Determinant D = u0 * u1).
-      {
-        subst u0 u1.
-        unfold Determinant, get_minor; simpl; Csimpl.
-        destruct D_diagonal as [_ D_diag].
-        specialize (D_diag 0 1)%nat as H1.
-        specialize (D_diag 1 0)%nat as H2.
-        rewrite H1, H2; auto.
-        lca.
-      }
-      rewrite H0, Cmult_1_l.
-      reflexivity.
-    }
-    assert (Cmod u0 = 1 /\ Cmod u1 = 1).
-    {
-      destruct U_unitary as [WF_U U_unit].
-      destruct V_unitary as [WF_V V_unit].
-      revert U_unit.
-      rewrite H; clear H.
-      distribute_adjoint.
-      rewrite adjoint_involutive.
-      repeat rewrite <- Mmult_assoc.
-      do 2 rewrite Mmult_assoc with (A := V).
-      rewrite Mmult_assoc with (A := D†).
-      rewrite V_unit, Mmult_1_r; solve_WF_matrix.
-      intro H.
-      apply (f_equal (fun f => V† × f × V)) in H.
-      repeat rewrite Mmult_assoc in H.
-      rewrite V_unit in H.
-      repeat rewrite <- Mmult_assoc in H.
-      rewrite V_unit in H.
-      rewrite Mmult_1_l in H; solve_WF_matrix.
-      do 2 rewrite Mmult_1_r in H; solve_WF_matrix.
-      rewrite V_unit in H.
-      destruct D_diagonal as [WF_D D_diag].
-      split.
-      {
-        apply (f_equal (fun f => f 0 0)%nat) in H.
-        unfold adjoint, Mmult, I in H; simpl in H.
-        rewrite (@D_diag 1 0)%nat in H; try lia.
-        revert H; Csimpl; intro H.
-        rewrite <- Cmod_sqr in H.
-        fold u0 in H.
-        apply Rsqr_inj.
-        apply Cmod_ge_0.
-        lra.
-        apply pair_equal_spec in H.
-        destruct H as [H _].
-        rewrite Rsqr_1.
-        unfold Rsqr.
-        rewrite <- H; clear H.
-        Csimpl; simpl.
-        lra.
-      }
-      {
-        apply (f_equal (fun f => f 1 1)%nat) in H.
-        unfold adjoint, Mmult, I in H; simpl in H.
-        rewrite (@D_diag 0 1)%nat in H; try lia.
-        revert H; Csimpl; intro H.
-        rewrite <- Cmod_sqr in H.
-        fold u1 in H.
-        apply Rsqr_inj.
-        apply Cmod_ge_0.
-        lra.
-        apply pair_equal_spec in H.
-        destruct H as [H _].
-        rewrite Rsqr_1.
-        unfold Rsqr.
-        rewrite <- H; clear H.
-        Csimpl; simpl.
-        lra.
-      }
-    }
-    destruct H1 as [u0_unit u1_unit].
-    intros.
-    exists V, D.
-    split. assumption.
-    split. assumption.
-    split. assumption.
-    fold u0 u1.
-    rewrite <- H0; clear H0.
-    rewrite <- m7_4; auto.
-    destruct H1 as [V1 [V2 [V3 [V4 [V1_gate [V2_gate [V3_gate [V4_gate H1]]]]]]]].
     assert (abgate_comm : forall (U : Square 4) (V : Square 2),
       WF_Matrix U -> WF_Matrix V ->
       abgate U × (I 2 ⊗ I 2 ⊗ V) = (I 2 ⊗ I 2 ⊗ V) × abgate U).
@@ -3557,7 +3436,7 @@ Proof.
       rewrite <- Mmult_1_r at 1.
       rewrite <- swapbc_inverse at 1.
       repeat rewrite Mmult_assoc.
-      rewrite <- Mmult_assoc with (A := I 2 ⊗ I 2 ⊗ V0).
+      rewrite <- Mmult_assoc with (A := I 2 ⊗ I 2 ⊗ V).
       do 2 rewrite <- Mmult_assoc with (A := swapbc) (C := swapbc).
       rewrite swapbc_3gate.
       unfold abgate.
@@ -3568,339 +3447,327 @@ Proof.
       all: solve_WF_matrix.
     }
 
-    apply (f_equal (fun f => I 2 ⊗ I 2 ⊗ V† × f × (I 2 ⊗ I 2 ⊗ V))) in H1.
-    repeat rewrite Mmult_assoc in H1.
-    rewrite (@kron_mixed_product 4 4 4 2 2 2) in H1.
-    repeat rewrite <- Mmult_assoc in H1.
-    rewrite kron_mixed_product in H1.
-    pose proof V_unitary as V_unit.
-    destruct V_unit as [WF_V V_unit].
-    rewrite V_unit in H1.
-    rewrite id_kron in H1 at 3 4 5 6.
-    do 2 rewrite Mmult_1_l in H1.
-    do 2 rewrite (id_kron (2 * 2) 2) in H1 at 1.
-    rewrite Mmult_1_l, Mmult_1_r in H1.
-    all: solve_WF_matrix.
-
+    intros V V_unitary V1 V2 V3 V4 V1_gate V2_gate V3_gate V4_gate.
+    pose proof V_unitary as [WF_V V_unit].
     (* Show that ccu uses at most 4 two qubit gates *)
     destruct V1_gate as [V1' [V1'_unitary [V1_ab | [V1_ac | V1_bc]]]].
     {
-      rewrite V1_ab, <- abgate_comm in H1; solve_WF_matrix.
-      repeat rewrite Mmult_assoc with (A := abgate V1') in H1.
+      rewrite V1_ab, <- abgate_comm; solve_WF_matrix.
+      repeat rewrite Mmult_assoc with (A := abgate V1').
       destruct V2_gate as [V2' [V2'_unitary [V2_ab | [V2_ac | V2_bc]]]].
       {
-        rewrite V2_ab, <- abgate_comm in H1; solve_WF_matrix.
-        repeat rewrite Mmult_assoc with (A := abgate V2') in H1.
+        rewrite V2_ab, <- abgate_comm; solve_WF_matrix.
+        repeat rewrite Mmult_assoc with (A := abgate V2').
         destruct V3_gate as [V3' [V3'_unitary [V3_ab | [V3_ac | V3_bc]]]].
         {
-          rewrite V3_ab, <- abgate_comm in H1; solve_WF_matrix.
-          repeat rewrite Mmult_assoc with (A := abgate V3') in H1.
+          rewrite V3_ab, <- abgate_comm; solve_WF_matrix.
+          repeat rewrite Mmult_assoc with (A := abgate V3').
           destruct V4_gate as [V4' [V4'_unitary [V4_ab | [V4_ac | V4_bc]]]].
           {
-            rewrite V4_ab, <- abgate_comm in H1; solve_WF_matrix.
-            repeat rewrite Mmult_assoc with (A := abgate V4') in H1.
-            rewrite id_kron in H1.
-            rewrite kron_mixed_product in H1.
-            rewrite V_unit in H1.
-            rewrite Mmult_1_l in H1; solve_WF_matrix.
-            rewrite id_kron in H1.
-            rewrite Mmult_1_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V4_ab, <- abgate_comm; solve_WF_matrix.
+            repeat rewrite Mmult_assoc with (A := abgate V4').
+            rewrite id_kron.
+            rewrite (@kron_mixed_product 4 4 4 2 2 2).
+            rewrite V_unit.
+            rewrite Mmult_1_l; solve_WF_matrix.
+            rewrite id_kron.
+            rewrite Mmult_1_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (abgate V1'), (abgate V2'), (abgate V3'), (abgate V4').
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
-            assumption.
+            reflexivity.
           }
           {
-            rewrite V4_ac, acgate_absorb_l, acgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V4_ac, acgate_absorb_l, acgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (abgate V1'), (abgate V2'), (abgate V3'), (acgate ((I 2 ⊗ V†) × V4' × (I 2 ⊗ V))).
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
             split.
             apply acgate_twoqubitgate. simpl. solve_WF_matrix.
-            assumption.
+            reflexivity.
           }
           {
-            rewrite V4_bc, bcgate_absorb_l, bcgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V4_bc, bcgate_absorb_l, bcgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (abgate V1'), (abgate V2'), (abgate V3'), (bcgate ((I 2 ⊗ V†) × V4' × (I 2 ⊗ V))).
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
             split.
             apply bcgate_twoqubitgate. simpl. solve_WF_matrix.
-            assumption.
+            reflexivity.
           }
         }
         {
-          rewrite V3_ac, acgate_absorb_l in H1; solve_WF_matrix.
-          repeat rewrite Mmult_assoc with (B := V4) in H1.
+          rewrite V3_ac, acgate_absorb_l; solve_WF_matrix.
+          repeat rewrite Mmult_assoc with (B := V4).
           destruct V4_gate as [V4' [V4'_unitary [V4_ab | [V4_ac | V4_bc]]]].
           {
-            rewrite V4_ab, abgate_comm in H1; solve_WF_matrix.
-            rewrite <- Mmult_assoc with (C := abgate V4') in H1.
-            rewrite acgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V4_ab, abgate_comm; solve_WF_matrix.
+            rewrite <- Mmult_assoc with (C := abgate V4').
+            rewrite acgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (abgate V1'), (abgate V2'), (acgate ((I 2 ⊗ V†) × V3' × (I 2 ⊗ V))), (abgate V4').
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
             split. apply acgate_twoqubitgate. simpl; solve_WF_matrix.
             split. apply abgate_twoqubitgate; assumption.
-            assumption.
+            reflexivity.
           }
           {
-            rewrite V4_ac, acgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V4_ac, acgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (abgate V1'), (abgate V2'), (acgate ((I 2 ⊗ V†) × V3')), (acgate (V4' × (I 2 ⊗ V))).
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
             split. apply acgate_twoqubitgate; solve_WF_matrix.
             split. apply acgate_twoqubitgate; solve_WF_matrix.
-            assumption.
+            reflexivity.
           }
           {
-            rewrite V4_bc, bcgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V4_bc, bcgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (abgate V1'), (abgate V2'), (acgate ((I 2 ⊗ V†) × V3')), (bcgate (V4' × (I 2 ⊗ V))).
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
             split. apply acgate_twoqubitgate; solve_WF_matrix.
             split. apply bcgate_twoqubitgate; solve_WF_matrix.
-            assumption.
+            reflexivity.
           }
         }
         {
-          rewrite V3_bc, bcgate_absorb_l in H1; solve_WF_matrix.
-          repeat rewrite Mmult_assoc with (B := V4) in H1.
+          rewrite V3_bc, bcgate_absorb_l; solve_WF_matrix.
+          repeat rewrite Mmult_assoc with (B := V4).
           destruct V4_gate as [V4' [V4'_unitary [V4_ab | [V4_ac | V4_bc]]]].
           {
-            rewrite V4_ab, abgate_comm in H1; solve_WF_matrix.
-            rewrite <- Mmult_assoc with (C := abgate V4') in H1.
-            rewrite bcgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V4_ab, abgate_comm; solve_WF_matrix.
+            rewrite <- Mmult_assoc with (C := abgate V4').
+            rewrite bcgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (abgate V1'), (abgate V2'), (bcgate ((I 2 ⊗ V†) × V3' × (I 2 ⊗ V))), (abgate V4').
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
             split. apply bcgate_twoqubitgate. simpl; solve_WF_matrix.
             split. apply abgate_twoqubitgate; assumption.
-            assumption.
+            reflexivity.
           }
           {
-            rewrite V4_ac, acgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V4_ac, acgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (abgate V1'), (abgate V2'), (bcgate ((I 2 ⊗ V†) × V3')), (acgate (V4' × (I 2 ⊗ V))).
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
             split. apply bcgate_twoqubitgate; solve_WF_matrix.
             split. apply acgate_twoqubitgate; solve_WF_matrix.
-            assumption.
+            reflexivity.
           }
           {
-            rewrite V4_bc, bcgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V4_bc, bcgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (abgate V1'), (abgate V2'), (bcgate ((I 2 ⊗ V†) × V3')), (bcgate (V4' × (I 2 ⊗ V))).
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
             split. apply bcgate_twoqubitgate; solve_WF_matrix.
             split. apply bcgate_twoqubitgate; solve_WF_matrix.
-            assumption.
+            reflexivity.
           }
         }
       }
       {
-        rewrite V2_ac, acgate_absorb_l in H1; solve_WF_matrix.
-        repeat rewrite Mmult_assoc in H1.
+        rewrite V2_ac, acgate_absorb_l; solve_WF_matrix.
+        repeat rewrite Mmult_assoc.
         destruct V4_gate as [V4' [V4'_unitary [V4_ab | [V4_ac | V4_bc]]]].
         {
-          rewrite V4_ab, abgate_comm in H1; solve_WF_matrix.
-          rewrite <- Mmult_assoc with (C := abgate V4') in H1.
+          rewrite V4_ab, abgate_comm; solve_WF_matrix.
+          rewrite <- Mmult_assoc with (C := abgate V4').
           destruct V3_gate as [V3' [V3'_unitary [V3_ab | [V3_ac | V3_bc]]]].
           {
-            rewrite V3_ab, abgate_comm in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
-            repeat rewrite Mmult_assoc with (A := abgate V1') in H1.
-            rewrite acgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V3_ab, abgate_comm; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
+            repeat rewrite Mmult_assoc with (A := abgate V1').
+            rewrite acgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (abgate V1'), (acgate ((I 2 ⊗ V†) × V2' × (I 2 ⊗ V))), (abgate V3'), (abgate V4').
             split. apply abgate_twoqubitgate; assumption.
             split. apply acgate_twoqubitgate. simpl; solve_WF_matrix.
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
-            assumption.
+            reflexivity.
           }
           {
-            rewrite V3_ac, acgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V3_ac, acgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (abgate V1'), (acgate ((I 2 ⊗ V†) × V2')), (acgate (V3' × (I 2 ⊗ V))), (abgate V4').
             split. apply abgate_twoqubitgate; assumption.
             split. apply acgate_twoqubitgate; solve_WF_matrix.
             split. apply acgate_twoqubitgate; solve_WF_matrix.
             split. apply abgate_twoqubitgate; assumption.
-            assumption.
+            reflexivity.
           }
           {
-            rewrite V3_bc, bcgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V3_bc, bcgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (abgate V1'), (acgate ((I 2 ⊗ V†) × V2')), (bcgate (V3' × (I 2 ⊗ V))), (abgate V4').
             split. apply abgate_twoqubitgate; assumption.
             split. apply acgate_twoqubitgate; solve_WF_matrix.
             split. apply bcgate_twoqubitgate; solve_WF_matrix.
             split. apply abgate_twoqubitgate; assumption.
-            assumption.
+            reflexivity.
           }
         }
         {
-          rewrite V4_ac, acgate_absorb_r in H1; solve_WF_matrix.
-          repeat rewrite <- Mmult_assoc in H1.
+          rewrite V4_ac, acgate_absorb_r; solve_WF_matrix.
+          repeat rewrite <- Mmult_assoc.
           exists (abgate V1'), (acgate ((I 2 ⊗ V†) × V2')), V3, (acgate (V4' × (I 2 ⊗ V))).
           split. apply abgate_twoqubitgate; assumption.
           split. apply acgate_twoqubitgate; solve_WF_matrix.
           split. assumption.
           split. apply acgate_twoqubitgate; solve_WF_matrix.
-          assumption.
+          reflexivity.
         }
         {
-          rewrite V4_bc, bcgate_absorb_r in H1; solve_WF_matrix.
-          repeat rewrite <- Mmult_assoc in H1.
+          rewrite V4_bc, bcgate_absorb_r; solve_WF_matrix.
+          repeat rewrite <- Mmult_assoc.
           exists (abgate V1'), (acgate ((I 2 ⊗ V†) × V2')), V3, (bcgate (V4' × (I 2 ⊗ V))).
           split. apply abgate_twoqubitgate; assumption.
           split. apply acgate_twoqubitgate; solve_WF_matrix.
           split. assumption.
           split. apply bcgate_twoqubitgate; solve_WF_matrix.
-          assumption.
+          reflexivity.
         }
       }
       {
-        rewrite V2_bc, bcgate_absorb_l in H1; solve_WF_matrix.
-        repeat rewrite Mmult_assoc in H1.
+        rewrite V2_bc, bcgate_absorb_l; solve_WF_matrix.
+        repeat rewrite Mmult_assoc.
         destruct V4_gate as [V4' [V4'_unitary [V4_ab | [V4_ac | V4_bc]]]].
         {
-          rewrite V4_ab, abgate_comm in H1; solve_WF_matrix.
-          rewrite <- Mmult_assoc with (C := abgate V4') in H1.
+          rewrite V4_ab, abgate_comm; solve_WF_matrix.
+          rewrite <- Mmult_assoc with (C := abgate V4').
           destruct V3_gate as [V3' [V3'_unitary [V3_ab | [V3_ac | V3_bc]]]].
           {
-            rewrite V3_ab, abgate_comm in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
-            repeat rewrite Mmult_assoc with (A := abgate V1') in H1.
-            rewrite bcgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V3_ab, abgate_comm; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
+            repeat rewrite Mmult_assoc with (A := abgate V1').
+            rewrite bcgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (abgate V1'), (bcgate ((I 2 ⊗ V†) × V2' × (I 2 ⊗ V))), (abgate V3'), (abgate V4').
             split. apply abgate_twoqubitgate; assumption.
             split. apply bcgate_twoqubitgate. simpl; solve_WF_matrix.
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
-            assumption.
+            reflexivity.
           }
           {
-            rewrite V3_ac, acgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V3_ac, acgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (abgate V1'), (bcgate ((I 2 ⊗ V†) × V2')), (acgate (V3' × (I 2 ⊗ V))), (abgate V4').
             split. apply abgate_twoqubitgate; assumption.
             split. apply bcgate_twoqubitgate; solve_WF_matrix.
             split. apply acgate_twoqubitgate; solve_WF_matrix.
             split. apply abgate_twoqubitgate; assumption.
-            assumption.
+            reflexivity.
           }
           {
-            rewrite V3_bc, bcgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V3_bc, bcgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (abgate V1'), (bcgate ((I 2 ⊗ V†) × V2')), (bcgate (V3' × (I 2 ⊗ V))), (abgate V4').
             split. apply abgate_twoqubitgate; assumption.
             split. apply bcgate_twoqubitgate; solve_WF_matrix.
             split. apply bcgate_twoqubitgate; solve_WF_matrix.
             split. apply abgate_twoqubitgate; assumption.
-            assumption.
+            reflexivity.
           }
         }
         {
-          rewrite V4_ac, acgate_absorb_r in H1; solve_WF_matrix.
-          repeat rewrite <- Mmult_assoc in H1.
+          rewrite V4_ac, acgate_absorb_r; solve_WF_matrix.
+          repeat rewrite <- Mmult_assoc.
           exists (abgate V1'), (bcgate ((I 2 ⊗ V†) × V2')), V3, (acgate (V4' × (I 2 ⊗ V))).
           split. apply abgate_twoqubitgate; assumption.
           split. apply bcgate_twoqubitgate; solve_WF_matrix.
           split. assumption.
           split. apply acgate_twoqubitgate; solve_WF_matrix.
-          assumption.
+          reflexivity.
         }
         {
-          rewrite V4_bc, bcgate_absorb_r in H1; solve_WF_matrix.
-          repeat rewrite <- Mmult_assoc in H1.
+          rewrite V4_bc, bcgate_absorb_r; solve_WF_matrix.
+          repeat rewrite <- Mmult_assoc.
           exists (abgate V1'), (bcgate ((I 2 ⊗ V†) × V2')), V3, (bcgate (V4' × (I 2 ⊗ V))).
           split. apply abgate_twoqubitgate; assumption.
           split. apply bcgate_twoqubitgate; solve_WF_matrix.
           split. assumption.
           split. apply bcgate_twoqubitgate; solve_WF_matrix.
-          assumption.
+          reflexivity.
         }
       }
     }
     {
-      rewrite V1_ac, acgate_absorb_l in H1; solve_WF_matrix.
+      rewrite V1_ac, acgate_absorb_l; solve_WF_matrix.
       destruct V4_gate as [V4' [V4'_unitary [V4_ab | [V4_ac | V4_bc]]]].
       {
-        repeat rewrite Mmult_assoc in H1.
-        rewrite V4_ab, abgate_comm in H1; solve_WF_matrix.
-        rewrite <- Mmult_assoc with (A := V3) in H1.
+        repeat rewrite Mmult_assoc.
+        rewrite V4_ab, abgate_comm; solve_WF_matrix.
+        rewrite <- Mmult_assoc with (A := V3).
         destruct V3_gate as [V3' [V3'_unitary [V3_ab | [V3_ac | V3_bc]]]].
         {
-          rewrite V3_ab, abgate_comm in H1; solve_WF_matrix.
-          repeat rewrite <- Mmult_assoc with (A := V2) in H1.
+          rewrite V3_ab, abgate_comm; solve_WF_matrix.
+          repeat rewrite <- Mmult_assoc with (A := V2).
           destruct V2_gate as [V2' [V2'_unitary [V2_ab | [V2_ac | V2_bc]]]].
           {
-            rewrite V2_ab, abgate_comm in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
-            rewrite acgate_absorb_r in H1; solve_WF_matrix.
+            rewrite V2_ab, abgate_comm; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
+            rewrite acgate_absorb_r; solve_WF_matrix.
             exists (acgate ((I 2 ⊗ V†) × V1' × (I 2 ⊗ V))), (abgate V2'), (abgate V3'), (abgate V4').
             split. apply acgate_twoqubitgate; simpl; solve_WF_matrix.
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
-            assumption.
+            reflexivity.
           }
           {
-            rewrite V2_ac, acgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V2_ac, acgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (acgate ((I 2 ⊗ V†) × V1')), (acgate (V2' × (I 2 ⊗ V))), (abgate V3'), (abgate V4').
             split. apply acgate_twoqubitgate; simpl; solve_WF_matrix.
             split. apply acgate_twoqubitgate; simpl; solve_WF_matrix.
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
-            assumption.
+            reflexivity.
           }
           {
-            rewrite V2_bc, bcgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V2_bc, bcgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (acgate ((I 2 ⊗ V†) × V1')), (bcgate (V2' × (I 2 ⊗ V))), (abgate V3'), (abgate V4').
             split. apply acgate_twoqubitgate; simpl; solve_WF_matrix.
             split. apply bcgate_twoqubitgate; solve_WF_matrix.
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
-            assumption.
+            reflexivity.
           }
         }
         {
-          rewrite V3_ac, acgate_absorb_r in H1; solve_WF_matrix.
-          repeat rewrite <- Mmult_assoc in H1.
+          rewrite V3_ac, acgate_absorb_r; solve_WF_matrix.
+          repeat rewrite <- Mmult_assoc.
           exists (acgate ((I 2 ⊗ V†) × V1')), V2, (acgate (V3' × (I 2 ⊗ V))), (abgate V4').
           split. apply acgate_twoqubitgate; solve_WF_matrix.
           split. assumption.
           split. apply acgate_twoqubitgate; solve_WF_matrix.
           split. apply abgate_twoqubitgate; assumption.
-          assumption.
+          reflexivity.
         }
         {
-          rewrite V3_bc, bcgate_absorb_r in H1; solve_WF_matrix.
-          repeat rewrite <- Mmult_assoc in H1.
+          rewrite V3_bc, bcgate_absorb_r; solve_WF_matrix.
+          repeat rewrite <- Mmult_assoc.
           exists (acgate ((I 2 ⊗ V†) × V1')), V2, (bcgate (V3' × (I 2 ⊗ V))), (abgate V4').
           split. apply acgate_twoqubitgate; solve_WF_matrix.
           split. assumption.
           split. apply bcgate_twoqubitgate; solve_WF_matrix.
           split. apply abgate_twoqubitgate; assumption.
-          assumption.
+          reflexivity.
         }
       }
       {
@@ -3913,7 +3780,7 @@ Proof.
         rewrite V4_ac, acgate_absorb_r; solve_WF_matrix.
         apply acgate_twoqubitgate; solve_WF_matrix.
         repeat rewrite <- Mmult_assoc.
-        assumption.
+        reflexivity.
       }
       {
         exists (acgate ((I 2 ⊗ V†) × V1')), V2, V3, (V4 × (I 2 ⊗ I 2 ⊗ V)).
@@ -3925,99 +3792,319 @@ Proof.
         rewrite V4_bc, bcgate_absorb_r; solve_WF_matrix.
         apply bcgate_twoqubitgate; solve_WF_matrix.
         repeat rewrite <- Mmult_assoc.
-        assumption.
+        reflexivity.
       }
     }
     {
-      rewrite V1_bc, bcgate_absorb_l in H1; solve_WF_matrix.
+      rewrite V1_bc, bcgate_absorb_l; solve_WF_matrix.
       destruct V4_gate as [V4' [V4'_unitary [V4_ab | [V4_ac | V4_bc]]]].
       {
-        repeat rewrite Mmult_assoc in H1.
-        rewrite V4_ab, abgate_comm in H1; solve_WF_matrix.
-        rewrite <- Mmult_assoc with (A := V3) in H1.
+        repeat rewrite Mmult_assoc.
+        rewrite V4_ab, abgate_comm; solve_WF_matrix.
+        rewrite <- Mmult_assoc with (A := V3).
         destruct V3_gate as [V3' [V3'_unitary [V3_ab | [V3_ac | V3_bc]]]].
         {
-          rewrite V3_ab, abgate_comm in H1; solve_WF_matrix.
-          repeat rewrite <- Mmult_assoc with (A := V2) in H1.
+          rewrite V3_ab, abgate_comm; solve_WF_matrix.
+          repeat rewrite <- Mmult_assoc with (A := V2).
           destruct V2_gate as [V2' [V2'_unitary [V2_ab | [V2_ac | V2_bc]]]].
           {
-            rewrite V2_ab, abgate_comm in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
-            rewrite bcgate_absorb_r in H1; solve_WF_matrix.
+            rewrite V2_ab, abgate_comm; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
+            rewrite bcgate_absorb_r; solve_WF_matrix.
             exists (bcgate ((I 2 ⊗ V†) × V1' × (I 2 ⊗ V))), (abgate V2'), (abgate V3'), (abgate V4').
             split. apply bcgate_twoqubitgate; simpl; solve_WF_matrix.
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
-            assumption.
+            reflexivity.
           }
           {
-            rewrite V2_ac, acgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V2_ac, acgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (bcgate ((I 2 ⊗ V†) × V1')), (acgate (V2' × (I 2 ⊗ V))), (abgate V3'), (abgate V4').
             split. apply bcgate_twoqubitgate; simpl; solve_WF_matrix.
             split. apply acgate_twoqubitgate; solve_WF_matrix.
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
-            assumption.
+            reflexivity.
           }
           {
-            rewrite V2_bc, bcgate_absorb_r in H1; solve_WF_matrix.
-            repeat rewrite <- Mmult_assoc in H1.
+            rewrite V2_bc, bcgate_absorb_r; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc.
             exists (bcgate ((I 2 ⊗ V†) × V1')), (bcgate (V2' × (I 2 ⊗ V))), (abgate V3'), (abgate V4').
             split. apply bcgate_twoqubitgate; simpl; solve_WF_matrix.
             split. apply bcgate_twoqubitgate; solve_WF_matrix.
             split. apply abgate_twoqubitgate; assumption.
             split. apply abgate_twoqubitgate; assumption.
-            assumption.
+            reflexivity.
           }
         }
         {
-          rewrite V3_ac, acgate_absorb_r in H1; solve_WF_matrix.
-          repeat rewrite <- Mmult_assoc in H1.
+          rewrite V3_ac, acgate_absorb_r; solve_WF_matrix.
+          repeat rewrite <- Mmult_assoc.
           exists (bcgate ((I 2 ⊗ V†) × V1')), V2, (acgate (V3' × (I 2 ⊗ V))), (abgate V4').
           split. apply bcgate_twoqubitgate; solve_WF_matrix.
           split. assumption.
           split. apply acgate_twoqubitgate; solve_WF_matrix.
           split. apply abgate_twoqubitgate; assumption.
-          assumption.
+          reflexivity.
         }
         {
-          rewrite V3_bc, bcgate_absorb_r in H1; solve_WF_matrix.
-          repeat rewrite <- Mmult_assoc in H1.
+          rewrite V3_bc, bcgate_absorb_r; solve_WF_matrix.
+          repeat rewrite <- Mmult_assoc.
           exists (bcgate ((I 2 ⊗ V†) × V1')), V2, (bcgate (V3' × (I 2 ⊗ V))), (abgate V4').
           split. apply bcgate_twoqubitgate; solve_WF_matrix.
           split. assumption.
           split. apply bcgate_twoqubitgate; solve_WF_matrix.
           split. apply abgate_twoqubitgate; assumption.
-          assumption.
+          reflexivity.
         }
       }
       {
-        repeat rewrite Mmult_assoc in H1.
-        rewrite V4_ac, acgate_absorb_r in H1; solve_WF_matrix.
-        repeat rewrite <- Mmult_assoc in H1.
+        repeat rewrite Mmult_assoc.
+        rewrite V4_ac, acgate_absorb_r; solve_WF_matrix.
+        repeat rewrite <- Mmult_assoc.
         exists (bcgate ((I 2 ⊗ V†) × V1')), V2, V3, (acgate (V4' × (I 2 ⊗ V))).
         split. apply bcgate_twoqubitgate; solve_WF_matrix.
         split. assumption.
         split. assumption.
         split. apply acgate_twoqubitgate; solve_WF_matrix.
-        assumption.
+        reflexivity.
       }
       {
-        repeat rewrite Mmult_assoc in H1.
-        rewrite V4_bc, bcgate_absorb_r in H1; solve_WF_matrix.
-        repeat rewrite <- Mmult_assoc in H1.
+        repeat rewrite Mmult_assoc.
+        rewrite V4_bc, bcgate_absorb_r; solve_WF_matrix.
+        repeat rewrite <- Mmult_assoc.
         exists (bcgate ((I 2 ⊗ V†) × V1')), V2, V3, (bcgate (V4' × (I 2 ⊗ V))).
         split. apply bcgate_twoqubitgate; solve_WF_matrix.
         split. assumption.
         split. assumption.
         split. apply bcgate_twoqubitgate; solve_WF_matrix.
-        assumption.
+        reflexivity.
       }
     }
   }
+  assert (forall (U D V : Square 2), WF_Unitary V -> WF_Matrix D ->
+    U = V × D × V† ->
+    ccu U = (I 2 ⊗ I 2 ⊗ V) × ccu D × (I 2 ⊗ I 2 ⊗ V†)).
   {
-    admit.
+    intros U D V V_unitary WF_D U_decomp.
+    rewrite U_decomp; clear U_decomp.
+    unfold ccu at 2.
+    repeat rewrite control_decomp; solve_WF_matrix.
+    repeat rewrite kron_plus_distr_l.
+    repeat rewrite Mmult_plus_distr_l.
+    repeat rewrite Mmult_plus_distr_r.
+    repeat rewrite kron_assoc.
+    repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
+    Msimpl_light.
+    repeat rewrite (@kron_mixed_product 2 2 2 2 2 2).
+    Msimpl_light.
+    rewrite (other_unitary_decomp V V_unitary).
+    rewrite <- kron_plus_distr_l.
+    rewrite <- control_decomp.
+    rewrite id_kron, <- control_decomp.
+    unfold ccu.
+    all: solve_WF_matrix.
   }
-Admitted.
+  assert (forall (U D V : Square 2), WF_Unitary U -> WF_Diagonal D -> WF_Unitary V ->
+    U = V × D × V† -> Cmod (D 0 0)%nat = 1 /\ Cmod (D 1 1)%nat = 1).
+  {
+    intros U D V U_unitary D_diagonal V_unitary U_decomp.
+    destruct U_unitary as [WF_U U_unit].
+    destruct V_unitary as [WF_V V_unit].
+    revert U_unit.
+    rewrite U_decomp; clear U_decomp.
+    distribute_adjoint.
+    rewrite adjoint_involutive.
+    repeat rewrite <- Mmult_assoc.
+    do 2 rewrite Mmult_assoc with (A := V).
+    rewrite Mmult_assoc with (A := D†).
+    rewrite V_unit, Mmult_1_r; solve_WF_matrix.
+    intro H0.
+    apply (f_equal (fun f => V† × f × V)) in H0.
+    repeat rewrite Mmult_assoc in H0.
+    rewrite V_unit in H0.
+    repeat rewrite <- Mmult_assoc in H0.
+    rewrite V_unit in H0.
+    rewrite Mmult_1_l in H0; solve_WF_matrix.
+    do 2 rewrite Mmult_1_r in H0; solve_WF_matrix.
+    rewrite V_unit in H0.
+    destruct D_diagonal as [WF_D D_diag].
+    split.
+    {
+      apply (f_equal (fun f => f 0 0)%nat) in H0.
+      unfold adjoint, Mmult, I in H0; simpl in H0.
+      rewrite (@D_diag 1 0)%nat in H0; try lia.
+      revert H0; Csimpl; intro H0.
+      rewrite <- Cmod_sqr in H0.
+      apply Rsqr_inj.
+      apply Cmod_ge_0.
+      lra.
+      apply pair_equal_spec in H0.
+      destruct H0 as [H0 _].
+      rewrite Rsqr_1.
+      unfold Rsqr.
+      rewrite <- H0; clear H0.
+      Csimpl; simpl.
+      lra.
+    }
+    {
+      apply (f_equal (fun f => f 1 1)%nat) in H0.
+      unfold adjoint, Mmult, I in H0; simpl in H0.
+      rewrite (@D_diag 0 1)%nat in H0; try lia.
+      revert H0; Csimpl; intro H0.
+      rewrite <- Cmod_sqr in H0.
+      apply Rsqr_inj.
+      apply Cmod_ge_0.
+      lra.
+      apply pair_equal_spec in H0.
+      destruct H0 as [H0 _].
+      rewrite Rsqr_1.
+      unfold Rsqr.
+      rewrite <- H0; clear H0.
+      Csimpl; simpl.
+      lra.
+    }
+  }
+  assert (forall (U D V : Square 2), WF_Unitary U -> WF_Diagonal D -> WF_Unitary V ->
+    U = V × D × V† -> (D 0 0)%nat * (D 1 1)%nat = C1 <-> Determinant U = C1).
+  {
+    intros U D V U_unitary D_diagonal V_unitary U_decomp.
+    rewrite U_decomp.
+    repeat rewrite <- Determinant_multiplicative.
+    rewrite <- Cmult_assoc, Cmult_comm with (x := Determinant D), Cmult_assoc.
+    rewrite Determinant_multiplicative.
+    rewrite (other_unitary_decomp V V_unitary).
+    rewrite Det_I.
+    assert (Determinant D = (D 0 0)%nat * (D 1 1)%nat).
+    {
+      unfold Determinant, get_minor; simpl; Csimpl.
+      destruct D_diagonal as [_ D_diag].
+      specialize (D_diag 0 1)%nat as H1.
+      specialize (D_diag 1 0)%nat as H2.
+      rewrite H1, H2; auto.
+      lca.
+    }
+    rewrite H1, Cmult_1_l.
+    reflexivity.
+  }
+
+  intros U U_unitary.
+  split.
+  {
+    pose proof (a3 U U_unitary).
+    destruct H2 as [V [D [V_unitary [D_diagonal U_decomp]]]].
+    pose proof V_unitary as [WF_V V_unit].
+    set (u0 := (D 0 0)%nat).
+    set (u1 := (D 1 1)%nat).
+    assert (ccu U = (I 2 ⊗ I 2 ⊗ V) × ccu (diag2 u0 u1) × (I 2 ⊗ I 2 ⊗ V†)).
+    {
+      assert (diag2 u0 u1 = D).
+      {
+        destruct D_diagonal as [WF_D D_diag].
+        lma'; solve_WF_matrix.
+        all: unfold diag2; simpl.
+        rewrite (D_diag 0 1)%nat. reflexivity. lia.
+        rewrite (D_diag 1 0)%nat. reflexivity. lia.
+      }
+      rewrite (H U D V), H2; solve_WF_matrix.
+    }
+    rewrite H2; clear H2.
+    assert (u0 * u1 = C1 <-> Determinant U = C1).
+    {
+      rewrite U_decomp.
+      repeat rewrite <- Determinant_multiplicative.
+      rewrite <- Cmult_assoc, Cmult_comm with (x := Determinant D), Cmult_assoc.
+      rewrite Determinant_multiplicative.
+      rewrite (other_unitary_decomp V V_unitary).
+      rewrite Det_I.
+      assert (Determinant D = u0 * u1).
+      {
+        subst u0 u1.
+        unfold Determinant, get_minor; simpl; Csimpl.
+        destruct D_diagonal as [_ D_diag].
+        rewrite (D_diag 0 1)%nat, (D_diag 1 0)%nat; auto.
+        lca.
+      }
+      rewrite H2, Cmult_1_l.
+      reflexivity.
+    }
+    assert (Cmod u0 = 1 /\ Cmod u1 = 1).
+    {
+      apply (H0 U D V); auto.
+    }
+    destruct H3 as [u0_unit u1_unit].
+    intros.
+    destruct H3 as [V1 [V2 [V3 [V4 [V1_gate [V2_gate [V3_gate [V4_gate H3]]]]]]]].
+    exists V, D.
+    split. assumption.
+    split. assumption.
+    split. assumption.
+    rewrite <- (H1 U D V); auto; clear H1.
+    fold u0 u1.
+    rewrite <- m7_4; auto.
+    pose proof (
+      absorption_helper V V_unitary V1 V2 V3 V4 V1_gate V2_gate V3_gate V4_gate
+    ) as [W1 [W2 [W3 [W4 [W1_gate [W2_gate [W3_gate [W4_gate H1]]]]]]]].
+    clear absorption_helper.
+    do 3 rewrite Mmult_assoc with (A := I 2 ⊗ I 2 ⊗ V†) in H1.
+    rewrite H3 in H1 at 1; clear H3.
+    exists W1, W2, W3, W4.
+    split. assumption.
+    split. assumption.
+    split. assumption.
+    split. assumption.
+    rewrite H1; clear H1.
+    repeat rewrite Mmult_assoc.
+    rewrite (@kron_mixed_product 4 4 4 2 2 2).
+    repeat rewrite <- Mmult_assoc.
+    rewrite (@kron_mixed_product 4 4 4 2 2 2).
+    rewrite V_unit.
+    rewrite id_kron.
+    Msimpl_light.
+    rewrite id_kron.
+    Msimpl_light.
+    reflexivity.
+  }
+  {
+    intros.
+    destruct H2 as [V [D [V_unitary [D_diagonal [U_decomp H2]]]]].
+    {
+      set (u0 := (D 0 0)%nat).
+      set (u1 := (D 1 1)%nat).
+      rewrite <- (H1 U D V) in H2; auto.
+      fold u0 u1 in H2.
+      assert (Cmod u0 = 1 /\ Cmod u1 = 1).
+      {
+        apply (H0 U D V); auto.
+      }
+      destruct H3 as [u0_unit u1_unit].
+      rewrite <- m7_4 in H2; auto.
+      destruct H2 as [V1 [V2 [V3 [V4 [V1_gate [V2_gate [V3_gate [V4_gate H2]]]]]]]].
+      rewrite (H U D V); auto. 2: apply D_diagonal.
+      assert (diag2 u0 u1 = D).
+      {
+        destruct D_diagonal as [WF_D D_diag].
+        lma'; solve_WF_matrix.
+        all: unfold diag2; simpl.
+        rewrite (D_diag 0 1)%nat. reflexivity. lia.
+        rewrite (D_diag 1 0)%nat. reflexivity. lia.
+      }
+      rewrite H3 in H2; clear H3.
+      rewrite <- H2.
+      repeat rewrite <- Mmult_assoc.
+      assert (Vdag_unitary : WF_Unitary V†) by solve_WF_matrix.
+      pose proof (
+        absorption_helper V† Vdag_unitary V1 V2 V3 V4 V1_gate V2_gate V3_gate V4_gate
+      ) as [W1 [W2 [W3 [W4 [W1_gate [W2_gate [W3_gate [W4_gate H3]]]]]]]].
+      rewrite adjoint_involutive in H3.
+      exists W1, W2, W3, W4.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      assumption.
+    }
+  }
+Qed.
