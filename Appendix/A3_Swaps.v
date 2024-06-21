@@ -22,16 +22,7 @@ Lemma a12 : forall (U : Square 4),
   WF_Matrix U ->
     swapab × acgate U × swapab = bcgate U.
 Proof.
-  intros.
-  unfold acgate, swapbc, abgate.
-  rewrite swap_helper. 2: assumption.
-  fold swapab.
-  rewrite <- Mmult_assoc.
-  rewrite <- Mmult_assoc with (A := swapab) (B := swapab) (C := I 2 ⊗ U).
-  rewrite swapab_inverse.
-  rewrite Mmult_assoc.
-  rewrite swapab_inverse at 1.
-  Msimpl_light; solve_WF_matrix.
+  exact swapab_conj_ac.
 Qed.
 
 Lemma a13_1 : forall (D: Square 2),

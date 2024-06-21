@@ -2169,3 +2169,16 @@ Lemma notc_notc : notc × notc = I 4.
 Proof.
   lma'.
 Qed.
+
+Lemma control_mult : forall (A B : Square 2), WF_Matrix A -> WF_Matrix B ->
+  control A × control B = control (A × B).
+Proof.
+  intros A B WF_A WF_B.
+  repeat rewrite control_decomp.
+  rewrite Mmult_plus_distr_l.
+  do 2 rewrite Mmult_plus_distr_r.
+  repeat rewrite kron_mixed_product.
+  rewrite cancel00, cancel01, cancel10, cancel11.
+  Msimpl_light.
+  all: solve_WF_matrix.
+Qed.
