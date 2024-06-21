@@ -3189,7 +3189,986 @@ Lemma m7_2 : forall (u0 u1 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
     (exists (u2 u3 : C), ((u2, u3) = (u0, u1) \/ (u2, u3) = (C1, u0^* * u1)) /\
       acgate U1 × bcgate U2 × acgate U3 × bcgate U4 = ccu (diag2 u2 u3))).
 Proof.
-Admitted.
+  intros u0 u1 u0_unit u1_unit ccu_decomp.
+  destruct ccu_decomp as [V1 [V2 [V3 [V4 [V1_gate [V2_gate [V3_gate [V4_gate ccu_decomp]]]]]]]].
+  (* The first two steps are unnecessary due to how we stated the Lemma. *)
+  assert (step3 : (exists (W1 W2 W3 : Square 8) (W4' : Square 4),
+    TwoQubitGate W1 /\ TwoQubitGate W2 /\ TwoQubitGate W3 /\ WF_Unitary W4' /\
+    (exists (u6 u7 : C), ((u6, u7) = (u0, u1) \/ (u6, u7) = (C1, u0^* * u1)) /\
+      W1 × W2 × W3 × bcgate W4' = ccu (diag2 u6 u7)))).
+  {
+    assert (ccu (diag2 u0 u1) × (control (diag2 C1 (u0^* )) ⊗ I 2) = ccu (diag2 C1 (u0^* * u1))).
+    {
+      (* For performance reasons, we'll show both sides are diagonal first,
+        instead of directly invoking lma'. *)
+      assert (WF_Diagonal (ccu (diag2 C1 (u0 ^* * u1)))).
+      {
+        apply ccu_diag.
+        apply Diag_diag2.
+      }
+      assert (WF_Diagonal (ccu (diag2 u0 u1) × (control (diag2 C1 (u0^* )) ⊗ I 2))).
+      {
+        apply diag_mult.
+        apply ccu_diag.
+        apply Diag_diag2.
+        apply (@diag_kron 4 2).
+        apply (@diag_control 2).
+        apply Diag_diag2.
+        apply diag_I.
+      }
+      prep_matrix_equality.
+      bdestruct (x =? y).
+      {
+        rewrite <- H1; clear H1.
+        destruct H as [H _].
+        destruct H0 as [H0 _].
+        specialize (H x x).
+        specialize (H0 x x).
+        destruct x.
+        unfold ccu, control, diag2, I, kron, Mmult; lca.
+        destruct x.
+        unfold ccu, control, diag2, I, kron, Mmult; lca.
+        destruct x.
+        unfold ccu, control, diag2, I, kron, Mmult; lca.
+        destruct x.
+        unfold ccu, control, diag2, I, kron, Mmult; lca.
+        destruct x.
+        unfold ccu, control, diag2, I, kron, Mmult; lca.
+        destruct x.
+        unfold ccu, control, diag2, I, kron, Mmult; lca.
+        destruct x.
+        unfold ccu, control, diag2, I, kron, Mmult; simpl; Csimpl.
+        rewrite Cmult_comm, <- Cmod_sqr, u0_unit; lca.
+        destruct x.
+        unfold ccu, control, diag2, I, kron, Mmult; lca.
+        rewrite H, <- H0.
+        reflexivity.
+        all: lia.
+      }
+      {
+        destruct H as [_ H].
+        destruct H0 as [_ H0].
+        specialize (H x y H1).
+        specialize (H0 x y H1).
+        rewrite H, <- H0; reflexivity.
+      }
+    }
+    destruct V4_gate as [V4' [V4'_unitary [V4_ab | [V4_ac | V4_bc]]]].
+    {
+      apply (f_equal (fun f => f × (control (diag2 C1 (u0^* )) ⊗ I 2))) in ccu_decomp.
+      rewrite H in ccu_decomp at 1; clear H.
+      rewrite Mmult_assoc in ccu_decomp.
+      rewrite V4_ab in ccu_decomp.
+      unfold abgate in ccu_decomp.
+      rewrite (@kron_mixed_product 4 4 4 2 2 2) in ccu_decomp.
+      rewrite Mmult_1_l in ccu_decomp; solve_WF_matrix.
+
+      rewrite <- Mmult_1_r with (A := V1) in ccu_decomp.
+      rewrite <- Mmult_1_r with (A := V2) in ccu_decomp.
+      rewrite <- Mmult_1_r with (A := V3) in ccu_decomp.
+      rewrite <- swapac_inverse in ccu_decomp.
+      apply (f_equal (fun f => swapac × f × swapac)) in ccu_decomp.
+      repeat rewrite Mmult_assoc in ccu_decomp.
+
+      repeat rewrite <- Mmult_assoc with (
+        C := (swapac × (V4' × control (diag2 C1 (u0 ^*)) ⊗ I 2 × swapac))
+      ) in ccu_decomp.
+      repeat rewrite <- Mmult_assoc with (C := (swapac × (V3 × swapac))) in ccu_decomp.
+      repeat rewrite <- Mmult_assoc with (C := (swapac × (V2 × swapac))) in ccu_decomp.
+      repeat rewrite <- Mmult_assoc with (A := swapac) in ccu_decomp.
+      replace (V4' × control (diag2 C1 (u0 ^*)) ⊗ I 2) with (abgate (V4' × control (diag2 C1 (u0 ^*)))) in ccu_decomp.
+      rewrite swapac_conj_ab in ccu_decomp.
+
+      exists (swapac × V1 × swapac), (swapac × V2 × swapac), (swapac × V3 × swapac), (swap × (V4' × control (diag2 C1 (u0 ^*))) × swap).
+      split. apply swapac_twoqubitgate; assumption.
+      split. apply swapac_twoqubitgate; assumption.
+      split. apply swapac_twoqubitgate; assumption.
+      split.
+      {
+        solve_WF_matrix.
+        apply diag2_unitary.
+        apply Cmod_1.
+        rewrite Cmod_Cconj, u0_unit; reflexivity.
+      }
+      {
+        exists C1, (u0^* * u1).
+        split.
+        right; reflexivity.
+        rewrite ccu_decomp at 1.
+        apply a13_3.
+      }
+      all: solve_WF_matrix.
+    }
+    {
+      exists (swapab × V1 × swapab), (swapab × V2 × swapab), (swapab × V3 × swapab), V4'.
+      split. apply swapab_twoqubitgate; assumption.
+      split. apply swapab_twoqubitgate; assumption.
+      split. apply swapab_twoqubitgate; assumption.
+      split. assumption.
+      exists u0, u1.
+      split. left; reflexivity.
+      rewrite <- swapab_conj_ac; solve_WF_matrix.
+      repeat rewrite Mmult_assoc.
+      repeat rewrite <- Mmult_assoc with (A := swapab) (B := swapab).
+      rewrite swapab_inverse.
+      Msimpl; solve_WF_matrix.
+      rewrite <- V4_ac.
+      repeat rewrite <- Mmult_assoc.
+      repeat rewrite Mmult_assoc with (A := swapab).
+      rewrite ccu_decomp.
+      rewrite <- Mmult_assoc.
+      rewrite a13_1; solve_WF_matrix.
+    }
+    {
+      exists V1, V2, V3, V4'.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      split. assumption.
+      exists u0, u1.
+      split. left; reflexivity.
+      rewrite <- V4_bc; assumption.
+    }
+  }
+  clear V1 V2 V3 V4 V1_gate V2_gate V3_gate V4_gate ccu_decomp.
+  destruct step3 as [W1 [W2 [W3 [W4' [W1_gate [W2_gate [W3_gate [W4'_unitary [u6 [u7 [cases ccu_decomp]]]]]]]]]]].
+  unfold TwoQubitGate in *.
+  destruct W1_gate as [W1' [W1'_unitary [W1_ab | [W1_ac | W1_bc]]]].
+  {
+    rewrite W1_ab in ccu_decomp; clear W1_ab.
+    destruct W2_gate as [W2' [W2'_unitary [W2_ab | [W2_ac | W2_bc]]]].
+    {
+      rewrite W2_ab in ccu_decomp; clear W2_ab.
+      rewrite abgate_mult in ccu_decomp.
+      destruct W3_gate as [W3' [W3'_unitary [W3_ab | [W3_ac | W3_bc]]]].
+      {
+        rewrite W3_ab in ccu_decomp; clear W3_ab.
+        rewrite abgate_mult in ccu_decomp.
+        left.
+        exists (I 4), (I 4), (W1' × W2' × W3'), W4'.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split. assumption.
+        unfold bcgate at 1, acgate, abgate at 1.
+        do 2 rewrite id_kron.
+        Msimpl_light.
+        rewrite swapbc_inverse.
+        rewrite Mmult_1_l; solve_WF_matrix.
+      }
+      {
+        rewrite W3_ac in ccu_decomp; clear W3_ac.
+        assert (exists V : Square 4,
+          WF_Unitary V /\ ccu (diag2 C1 (u6 ^* * u7)) = abgate V × (acgate W3' × bcgate W4')).
+        {
+          destruct cases.
+          {
+            apply pair_equal_spec in H.
+            destruct H as [u6_eq_u0 u7_eq_u1].
+            rewrite u6_eq_u0, u7_eq_u1 in *; clear u6_eq_u0 u7_eq_u1.
+            apply m7_1 with (W := W1' × W2'); solve_WF_matrix.
+            rewrite <- Mmult_assoc; symmetry.
+            assumption.
+          }
+          {
+            apply pair_equal_spec in H.
+            destruct H as [u6_eq_C1 u7_eq_u0u1].
+            rewrite u6_eq_C1, u7_eq_u0u1 in *; clear u6_eq_C1 u7_eq_u0u1.
+            apply m7_1 with (W := W1' × W2'); solve_WF_matrix.
+            apply Cmod_1.
+            rewrite Cmod_mult.
+            rewrite Cmod_Cconj, u0_unit, u1_unit; lra.
+            rewrite <- Mmult_assoc; symmetry.
+            assumption.
+          }
+        }
+        clear ccu_decomp.
+        destruct H as [V [V_unitary ccu_decomp]].
+        rewrite <- Mmult_1_l with (A := (acgate W3' × bcgate W4')) in ccu_decomp; solve_WF_matrix.
+        rewrite <- swapbc_inverse in ccu_decomp.
+        apply (f_equal (fun f => swapbc × f × swapbc)) in ccu_decomp.
+        rewrite a13_2 in ccu_decomp.
+        repeat rewrite <- Mmult_assoc in ccu_decomp.
+        rewrite swapbc_conj_ab in ccu_decomp; solve_WF_matrix.
+        replace swapbc with (bcgate swap) in ccu_decomp by reflexivity.
+        rewrite Mmult_assoc in ccu_decomp.
+        rewrite bcgate_mult in ccu_decomp.
+        right.
+        exists V, swap, W3', (W4' × swap).
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists C1, (u6^* * u7).
+        split.
+        right.
+        destruct cases.
+        {
+          apply pair_equal_spec in H.
+          destruct H as [u6_eq_u0 u7_eq_u1].
+          rewrite u6_eq_u0, u7_eq_u1 in *; clear u6_eq_u0 u7_eq_u1.
+          reflexivity.
+        }
+        {
+          apply pair_equal_spec in H.
+          destruct H as [u6_eq_C1 u7_eq_u0u1].
+          rewrite u6_eq_C1, u7_eq_u0u1 in *; clear u6_eq_C1 u7_eq_u0u1.
+          apply pair_equal_spec.
+          split; lca.
+        }
+        symmetry.
+        assumption.
+      }
+      {
+        rewrite W3_bc in ccu_decomp; clear W3_bc.
+        rewrite Mmult_assoc in ccu_decomp.
+        rewrite bcgate_mult in ccu_decomp.
+        left.
+        exists (I 4), (I 4), (W1' × W2'), (W3' × W4').
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split. assumption.
+        unfold bcgate at 1, acgate, abgate at 1.
+        do 2 rewrite id_kron.
+        Msimpl_light.
+        rewrite swapbc_inverse.
+        rewrite Mmult_1_l; solve_WF_matrix.
+      }
+    }
+    {
+      rewrite W2_ac in ccu_decomp; clear W2_ac.
+      destruct W3_gate as [W3' [W3'_unitary [W3_ab | [W3_ac | W3_bc]]]].
+      {
+        rewrite W3_ab in ccu_decomp; clear W3_ab.
+        assert (exists V : Square 4,
+          WF_Unitary V /\ ccu (diag2 C1 (u6 ^* * u7)) = abgate V × (acgate W2' × abgate W3' × bcgate W4')).
+        {
+          destruct cases.
+          {
+            apply pair_equal_spec in H.
+            destruct H as [u6_eq_u0 u7_eq_u1].
+            rewrite u6_eq_u0, u7_eq_u1 in *; clear u6_eq_u0 u7_eq_u1.
+            apply m7_1 with (W := W1'); solve_WF_matrix.
+            apply Mmult_unitary; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc; symmetry.
+            assumption.
+          }
+          {
+            apply pair_equal_spec in H.
+            destruct H as [u6_eq_C1 u7_eq_u0u1].
+            rewrite u6_eq_C1, u7_eq_u0u1 in *; clear u6_eq_C1 u7_eq_u0u1.
+            apply m7_1 with (W := W1'); solve_WF_matrix.
+            apply Cmod_1.
+            rewrite Cmod_mult.
+            rewrite Cmod_Cconj, u0_unit, u1_unit; lra.
+            apply Mmult_unitary; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc; symmetry.
+            assumption.
+          }
+        }
+        clear ccu_decomp.
+        destruct H as [V [V_unitary ccu_decomp]].
+        apply (f_equal (fun f => swapbc × f × swapbc)) in ccu_decomp.
+        rewrite a13_2 in ccu_decomp.
+        repeat rewrite <- Mmult_assoc in ccu_decomp.
+        rewrite <- Mmult_1_r with (A := abgate V) in ccu_decomp; solve_WF_matrix.
+        rewrite <- Mmult_1_r with (A := acgate W2') in ccu_decomp; solve_WF_matrix.
+        rewrite <- Mmult_1_r with (A := abgate W3') in ccu_decomp; solve_WF_matrix.
+        simpl in ccu_decomp.
+        repeat rewrite <- swapbc_inverse in ccu_decomp.
+        repeat rewrite <- Mmult_assoc in ccu_decomp.
+        rewrite swapbc_conj_ab in ccu_decomp; solve_WF_matrix.
+        repeat rewrite Mmult_assoc with (A := acgate V) in ccu_decomp.
+        rewrite swapbc_conj_ac in ccu_decomp; solve_WF_matrix.
+        repeat rewrite Mmult_assoc with (A := abgate W2') in ccu_decomp.
+        rewrite swapbc_conj_ab in ccu_decomp; solve_WF_matrix.
+        rewrite <- Mmult_1_r with (A := acgate V) in ccu_decomp; solve_WF_matrix.
+        rewrite <- Mmult_1_r with (A := abgate W2') in ccu_decomp; solve_WF_matrix.
+        simpl in ccu_decomp.
+        repeat rewrite <- swapac_inverse in ccu_decomp.
+        repeat rewrite <- Mmult_assoc in ccu_decomp.
+        repeat rewrite Mmult_assoc with (A := acgate V) in ccu_decomp.
+        do 2 rewrite Mmult_assoc with (A := swapac) in ccu_decomp.
+        rewrite swapac_conj_ab in ccu_decomp; solve_WF_matrix.
+        replace swapac with (acgate swap) in ccu_decomp.
+        repeat rewrite <- Mmult_assoc in ccu_decomp.
+        rewrite acgate_mult in ccu_decomp; solve_WF_matrix.
+        do 2 rewrite Mmult_assoc in ccu_decomp.
+        replace swapbc with (bcgate swap) in ccu_decomp by reflexivity.
+        do 2 rewrite bcgate_mult in ccu_decomp.
+        do 2 rewrite Mmult_assoc in ccu_decomp.
+        rewrite <- Mmult_assoc with (A := acgate swap) in ccu_decomp.
+        rewrite acgate_mult in ccu_decomp; solve_WF_matrix.
+        repeat rewrite <- Mmult_assoc in ccu_decomp.
+
+        right.
+        exists (V × swap), (swap × W2' × swap), (swap × W3'), (swap × W4' × swap).
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists C1, (u6^* * u7).
+        split.
+        right.
+        destruct cases.
+        {
+          apply pair_equal_spec in H.
+          destruct H as [u6_eq_u0 u7_eq_u1].
+          rewrite u6_eq_u0, u7_eq_u1 in *; clear u6_eq_u0 u7_eq_u1.
+          reflexivity.
+        }
+        {
+          apply pair_equal_spec in H.
+          destruct H as [u6_eq_C1 u7_eq_u0u1].
+          rewrite u6_eq_C1, u7_eq_u0u1 in *; clear u6_eq_C1 u7_eq_u0u1.
+          apply pair_equal_spec.
+          split; lca.
+        }
+        repeat rewrite <- Mmult_assoc; symmetry.
+        assumption.
+        unfold swapac.
+        rewrite <- swapab_conj_bc; solve_WF_matrix.
+      }
+      {
+        rewrite W3_ac in ccu_decomp; clear W3_ac.
+        assert (exists V : Square 4,
+          WF_Unitary V /\ ccu (diag2 C1 (u6 ^* * u7)) = abgate V × (acgate W2' × acgate W3' × bcgate W4')).
+        {
+          destruct cases.
+          {
+            apply pair_equal_spec in H.
+            destruct H as [u6_eq_u0 u7_eq_u1].
+            rewrite u6_eq_u0, u7_eq_u1 in *; clear u6_eq_u0 u7_eq_u1.
+            apply m7_1 with (W := W1'); solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc; symmetry.
+            assumption.
+          }
+          {
+            apply pair_equal_spec in H.
+            destruct H as [u6_eq_C1 u7_eq_u0u1].
+            rewrite u6_eq_C1, u7_eq_u0u1 in *; clear u6_eq_C1 u7_eq_u0u1.
+            apply m7_1 with (W := W1'); solve_WF_matrix.
+            apply Cmod_1.
+            rewrite Cmod_mult.
+            rewrite Cmod_Cconj, u0_unit, u1_unit; lra.
+            repeat rewrite <- Mmult_assoc; symmetry.
+            assumption.
+          }
+        }
+        clear ccu_decomp.
+        destruct H as [V [V_unitary ccu_decomp]].
+        apply (f_equal (fun f => swapbc × f × swapbc)) in ccu_decomp.
+        rewrite a13_2 in ccu_decomp.
+        rewrite acgate_mult in ccu_decomp; solve_WF_matrix.
+        rewrite <- Mmult_1_r with (A := abgate V) in ccu_decomp; solve_WF_matrix.
+        simpl in ccu_decomp.
+        rewrite <- swapbc_inverse in ccu_decomp.
+        repeat rewrite <- Mmult_assoc in ccu_decomp.
+        rewrite swapbc_conj_ab in ccu_decomp; solve_WF_matrix.
+        replace swapbc with (bcgate swap) in ccu_decomp by reflexivity.
+        rewrite Mmult_assoc in ccu_decomp.
+        rewrite bcgate_mult in ccu_decomp.
+        right.
+        exists V, swap, (W2' × W3'), (W4' × swap).
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists C1, (u6^* * u7).
+        split.
+        right.
+        destruct cases.
+        {
+          apply pair_equal_spec in H.
+          destruct H as [u6_eq_u0 u7_eq_u1].
+          rewrite u6_eq_u0, u7_eq_u1 in *; clear u6_eq_u0 u7_eq_u1.
+          reflexivity.
+        }
+        {
+          apply pair_equal_spec in H.
+          destruct H as [u6_eq_C1 u7_eq_u0u1].
+          rewrite u6_eq_C1, u7_eq_u0u1 in *; clear u6_eq_C1 u7_eq_u0u1.
+          apply pair_equal_spec.
+          split; lca.
+        }
+        symmetry.
+        assumption.
+      }
+      {
+        rewrite W3_bc in ccu_decomp; clear W3_bc.
+        rewrite Mmult_assoc in ccu_decomp.
+        rewrite bcgate_mult in ccu_decomp.
+        assert (exists V : Square 4,
+          WF_Unitary V /\ ccu (diag2 C1 (u6 ^* * u7)) = abgate V × (acgate W2' × bcgate (W3' × W4'))).
+        {
+          destruct cases.
+          {
+            apply pair_equal_spec in H.
+            destruct H as [u6_eq_u0 u7_eq_u1].
+            rewrite u6_eq_u0, u7_eq_u1 in *; clear u6_eq_u0 u7_eq_u1.
+            apply m7_1 with (W := W1'); solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc; symmetry.
+            assumption.
+          }
+          {
+            apply pair_equal_spec in H.
+            destruct H as [u6_eq_C1 u7_eq_u0u1].
+            rewrite u6_eq_C1, u7_eq_u0u1 in *; clear u6_eq_C1 u7_eq_u0u1.
+            apply m7_1 with (W := W1'); solve_WF_matrix.
+            apply Cmod_1.
+            rewrite Cmod_mult.
+            rewrite Cmod_Cconj, u0_unit, u1_unit; lra.
+            repeat rewrite <- Mmult_assoc; symmetry.
+            assumption.
+          }
+        }
+        clear ccu_decomp.
+        destruct H as [V [V_unitary ccu_decomp]].
+        apply (f_equal (fun f => swapbc × f × swapbc)) in ccu_decomp.
+        rewrite a13_2 in ccu_decomp.
+        rewrite <- Mmult_1_r with (A := abgate V) in ccu_decomp; solve_WF_matrix.
+        simpl in ccu_decomp.
+        rewrite <- swapbc_inverse in ccu_decomp.
+        repeat rewrite <- Mmult_assoc in ccu_decomp.
+        rewrite swapbc_conj_ab in ccu_decomp; solve_WF_matrix.
+        replace swapbc with (bcgate swap) in ccu_decomp by reflexivity.
+        rewrite Mmult_assoc in ccu_decomp.
+        rewrite bcgate_mult in ccu_decomp.
+        right.
+        exists V, swap, W2', (W3' × W4' × swap).
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists C1, (u6^* * u7).
+        split.
+        right.
+        destruct cases.
+        {
+          apply pair_equal_spec in H.
+          destruct H as [u6_eq_u0 u7_eq_u1].
+          rewrite u6_eq_u0, u7_eq_u1 in *; clear u6_eq_u0 u7_eq_u1.
+          reflexivity.
+        }
+        {
+          apply pair_equal_spec in H.
+          destruct H as [u6_eq_C1 u7_eq_u0u1].
+          rewrite u6_eq_C1, u7_eq_u0u1 in *; clear u6_eq_C1 u7_eq_u0u1.
+          apply pair_equal_spec.
+          split; lca.
+        }
+        symmetry.
+        assumption.
+      }
+    }
+    {
+      rewrite W2_bc in ccu_decomp; clear W2_bc.
+      destruct W3_gate as [W3' [W3'_unitary [W3_ab | [W3_ac | W3_bc]]]].
+      {
+        rewrite W3_ab in ccu_decomp; clear W3_ab.
+        assert (exists V : Square 4,
+          WF_Unitary V /\ ccu (diag2 C1 (u6 ^* * u7)) = abgate V × (bcgate W2' × abgate W3' × bcgate W4')).
+        {
+          destruct cases.
+          {
+            apply pair_equal_spec in H.
+            destruct H as [u6_eq_u0 u7_eq_u1].
+            rewrite u6_eq_u0, u7_eq_u1 in *; clear u6_eq_u0 u7_eq_u1.
+            apply m7_1 with (W := W1'); solve_WF_matrix.
+            apply Mmult_unitary; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc; symmetry.
+            assumption.
+          }
+          {
+            apply pair_equal_spec in H.
+            destruct H as [u6_eq_C1 u7_eq_u0u1].
+            rewrite u6_eq_C1, u7_eq_u0u1 in *; clear u6_eq_C1 u7_eq_u0u1.
+            apply m7_1 with (W := W1'); solve_WF_matrix.
+            apply Cmod_1.
+            rewrite Cmod_mult.
+            rewrite Cmod_Cconj, u0_unit, u1_unit; lra.
+            apply Mmult_unitary; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc; symmetry.
+            assumption.
+          }
+        }
+        clear ccu_decomp.
+        destruct H as [V [V_unitary ccu_decomp]].
+        apply (f_equal (fun f => swapbc × f × swapbc)) in ccu_decomp.
+        rewrite a13_2 in ccu_decomp.
+        rewrite <- Mmult_1_r with (A := abgate V) in ccu_decomp; solve_WF_matrix.
+        rewrite <- Mmult_1_r with (A := bcgate W2') in ccu_decomp; solve_WF_matrix.
+        rewrite <- Mmult_1_r with (A := abgate W3') in ccu_decomp; solve_WF_matrix.
+        simpl in ccu_decomp.
+        rewrite <- swapbc_inverse in ccu_decomp.
+        repeat rewrite <- Mmult_assoc in ccu_decomp.
+        rewrite swapbc_conj_ab in ccu_decomp; solve_WF_matrix.
+        do 5 rewrite Mmult_assoc with (A := acgate V) in ccu_decomp.
+        do 4 rewrite Mmult_assoc with (A := swapbc) in ccu_decomp.
+        do 3 rewrite Mmult_assoc with (A := bcgate W2') in ccu_decomp.
+        rewrite Mmult_assoc with (A := swapbc) (B := swapbc) in ccu_decomp.
+        rewrite Mmult_assoc with (A := swapbc) (B := swapbc × abgate W3') in ccu_decomp.
+        rewrite swapbc_conj_ab in ccu_decomp; solve_WF_matrix.
+        repeat rewrite <- Mmult_assoc in ccu_decomp.
+        replace swapbc with (bcgate swap) in ccu_decomp by reflexivity.
+        do 2 rewrite Mmult_assoc in ccu_decomp.
+        do 2 rewrite bcgate_mult in ccu_decomp.
+        do 2 rewrite Mmult_assoc with (A := acgate V) in ccu_decomp.
+        do 2 rewrite bcgate_mult in ccu_decomp.
+        repeat rewrite <- Mmult_assoc in ccu_decomp.
+        right.
+        exists V, (swap × W2' × swap), W3', (swap × W4' × swap).
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists C1, (u6^* * u7).
+        split.
+        right.
+        destruct cases.
+        {
+          apply pair_equal_spec in H.
+          destruct H as [u6_eq_u0 u7_eq_u1].
+          rewrite u6_eq_u0, u7_eq_u1 in *; clear u6_eq_u0 u7_eq_u1.
+          reflexivity.
+        }
+        {
+          apply pair_equal_spec in H.
+          destruct H as [u6_eq_C1 u7_eq_u0u1].
+          rewrite u6_eq_C1, u7_eq_u0u1 in *; clear u6_eq_C1 u7_eq_u0u1.
+          apply pair_equal_spec.
+          split; lca.
+        }
+        symmetry.
+        assumption.
+      }
+      {
+        rewrite W3_ac in ccu_decomp; clear W3_ac.
+        assert (exists V : Square 4,
+          WF_Unitary V /\ ccu (diag2 C1 (u6 ^* * u7)) = abgate V × (bcgate W2' × acgate W3' × bcgate W4')).
+        {
+          destruct cases.
+          {
+            apply pair_equal_spec in H.
+            destruct H as [u6_eq_u0 u7_eq_u1].
+            rewrite u6_eq_u0, u7_eq_u1 in *; clear u6_eq_u0 u7_eq_u1.
+            apply m7_1 with (W := W1'); solve_WF_matrix.
+            apply Mmult_unitary; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc; symmetry.
+            assumption.
+          }
+          {
+            apply pair_equal_spec in H.
+            destruct H as [u6_eq_C1 u7_eq_u0u1].
+            rewrite u6_eq_C1, u7_eq_u0u1 in *; clear u6_eq_C1 u7_eq_u0u1.
+            apply m7_1 with (W := W1'); solve_WF_matrix.
+            apply Cmod_1.
+            rewrite Cmod_mult.
+            rewrite Cmod_Cconj, u0_unit, u1_unit; lra.
+            apply Mmult_unitary; solve_WF_matrix.
+            repeat rewrite <- Mmult_assoc; symmetry.
+            assumption.
+          }
+        }
+        clear ccu_decomp.
+        destruct H as [V [V_unitary ccu_decomp]].
+        apply (f_equal (fun f => swapbc × f × swapbc)) in ccu_decomp.
+        rewrite a13_2 in ccu_decomp.
+        rewrite <- Mmult_1_r with (A := abgate V) in ccu_decomp; solve_WF_matrix.
+        simpl in ccu_decomp.
+        rewrite <- swapbc_inverse in ccu_decomp.
+        repeat rewrite <- Mmult_assoc in ccu_decomp.
+        rewrite swapbc_conj_ab in ccu_decomp; solve_WF_matrix.
+        replace swapbc with (bcgate swap) in ccu_decomp by reflexivity.
+        rewrite Mmult_assoc in ccu_decomp.
+        rewrite bcgate_mult in ccu_decomp.
+        rewrite Mmult_assoc with (A := acgate V) in ccu_decomp.
+        rewrite bcgate_mult in ccu_decomp.
+        right.
+        exists V, (swap × W2'), W3', (W4' × swap).
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists C1, (u6^* * u7).
+        split.
+        right.
+        destruct cases.
+        {
+          apply pair_equal_spec in H.
+          destruct H as [u6_eq_u0 u7_eq_u1].
+          rewrite u6_eq_u0, u7_eq_u1 in *; clear u6_eq_u0 u7_eq_u1.
+          reflexivity.
+        }
+        {
+          apply pair_equal_spec in H.
+          destruct H as [u6_eq_C1 u7_eq_u0u1].
+          rewrite u6_eq_C1, u7_eq_u0u1 in *; clear u6_eq_C1 u7_eq_u0u1.
+          apply pair_equal_spec.
+          split; lca.
+        }
+        symmetry.
+        assumption.
+      }
+      {
+        rewrite W3_bc in ccu_decomp; clear W3_bc.
+        repeat rewrite Mmult_assoc with (A := abgate W1') in ccu_decomp.
+        do 2 rewrite bcgate_mult in ccu_decomp.
+        left.
+        exists (I 4), (I 4), W1', (W2' × W3' × W4').
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split. assumption.
+        unfold bcgate at 1, acgate at 1, abgate at 1.
+        repeat rewrite id_kron.
+        Msimpl_light.
+        rewrite swapbc_inverse.
+        rewrite Mmult_1_l; solve_WF_matrix.
+      }
+    }
+  }
+  {
+    rewrite W1_ac in ccu_decomp; clear W1_ac.
+    destruct W2_gate as [W2' [W2'_unitary [W2_ab | [W2_ac | W2_bc]]]].
+    {
+      rewrite W2_ab in ccu_decomp; clear W2_ab.
+      destruct W3_gate as [W3' [W3'_unitary [W3_ab | [W3_ac | W3_bc]]]].
+      {
+        rewrite W3_ab in ccu_decomp; clear W3_ab.
+        repeat rewrite Mmult_assoc with (A := acgate W1') in ccu_decomp.
+        rewrite abgate_mult in ccu_decomp.
+        repeat rewrite <- Mmult_assoc in ccu_decomp.
+        left.
+        exists (I 4), W1', (W2' × W3'), W4'.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split. assumption.
+        unfold bcgate at 1.
+        rewrite id_kron, Mmult_1_l; solve_WF_matrix.
+      }
+      {
+        rewrite W3_ac in ccu_decomp; clear W3_ac.
+        rewrite <- Mmult_1_r with (A := acgate W1') in ccu_decomp; solve_WF_matrix.
+        rewrite <- Mmult_1_l with (A := acgate W3') in ccu_decomp; solve_WF_matrix.
+        rewrite <- swapac_inverse in ccu_decomp.
+        repeat rewrite Mmult_assoc in ccu_decomp.
+        rewrite <- Mmult_assoc with (A := abgate W2') in ccu_decomp.
+        rewrite <- Mmult_assoc with (B := abgate W2' × swapac) in ccu_decomp.
+        rewrite <- Mmult_assoc with (B := abgate W2') in ccu_decomp.
+        rewrite swapac_conj_ab in ccu_decomp.
+        repeat rewrite <- Mmult_assoc with (A := swapac) in ccu_decomp.
+        replace swapac with (acgate swap) in ccu_decomp.
+        rewrite acgate_mult in ccu_decomp.
+        repeat rewrite <- Mmult_assoc in ccu_decomp.
+        rewrite acgate_mult in ccu_decomp.
+        right.
+        exists (W1' × swap), (swap × W2' × swap), (swap × W3'), W4'.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split. assumption.
+        all: solve_WF_matrix.
+        rewrite <- swapab_conj_bc; solve_WF_matrix.
+      }
+      {
+        rewrite W3_bc in ccu_decomp; clear W3_bc.
+        rewrite Mmult_assoc in ccu_decomp.
+        rewrite bcgate_mult in ccu_decomp.
+        left.
+        exists (I 4), W1', W2', (W3' × W4').
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split. assumption.
+        unfold bcgate at 1.
+        rewrite id_kron, Mmult_1_l; solve_WF_matrix.
+      }
+    }
+    {
+      rewrite W2_ac in ccu_decomp; clear W2_ac.
+      rewrite acgate_mult in ccu_decomp; solve_WF_matrix.
+      destruct W3_gate as [W3' [W3'_unitary [W3_ab | [W3_ac | W3_bc]]]].
+      {
+        rewrite W3_ab in ccu_decomp; clear W3_ab.
+        left.
+        exists (I 4), (W1' × W2'), W3', W4'.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split. assumption.
+        unfold bcgate at 1.
+        rewrite id_kron, Mmult_1_l; solve_WF_matrix.
+      }
+      {
+        rewrite W3_ac in ccu_decomp; clear W3_ac.
+        rewrite acgate_mult in ccu_decomp; solve_WF_matrix.
+        left.
+        exists (I 4), (W1' × W2' × W3'), (I 4), W4'.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split. assumption.
+        unfold bcgate at 1, abgate.
+        do 2 rewrite id_kron.
+        Msimpl_light; solve_WF_matrix.
+      }
+      {
+        rewrite W3_bc in ccu_decomp; clear W3_bc.
+        rewrite Mmult_assoc in ccu_decomp.
+        rewrite bcgate_mult in ccu_decomp.
+        left.
+        exists (I 4), (W1' × W2'), (I 4), (W3' × W4').
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split. assumption.
+        unfold bcgate at 1, abgate.
+        do 2 rewrite id_kron.
+        Msimpl_light; solve_WF_matrix.
+      }
+    }
+    {
+      rewrite W2_bc in ccu_decomp; clear W2_bc.
+      destruct W3_gate as [W3' [W3'_unitary [W3_ab | [W3_ac | W3_bc]]]].
+      {
+        rewrite W3_ab in ccu_decomp; clear W3_ab.
+        rewrite <- Mmult_1_r with (A := bcgate W2') in ccu_decomp; solve_WF_matrix.
+        rewrite <- Mmult_1_l with (A := bcgate W4') in ccu_decomp; solve_WF_matrix.
+        simpl in ccu_decomp.
+        rewrite <- swapbc_inverse in ccu_decomp.
+        repeat rewrite Mmult_assoc in ccu_decomp.
+        repeat rewrite <- Mmult_assoc with (C := bcgate W4') in ccu_decomp.
+        do 2 rewrite <- Mmult_assoc with (C := swapbc) in ccu_decomp.
+        rewrite <- Mmult_assoc with (B := abgate W3') in ccu_decomp.
+        rewrite swapbc_conj_ab in ccu_decomp; solve_WF_matrix.
+        repeat rewrite <- Mmult_assoc in ccu_decomp.
+        replace swapbc with (bcgate swap) in ccu_decomp by reflexivity.
+        rewrite Mmult_assoc in ccu_decomp.
+        rewrite bcgate_mult in ccu_decomp.
+        rewrite Mmult_assoc with (A := acgate W1') in ccu_decomp.
+        rewrite bcgate_mult in ccu_decomp.
+        right.
+        exists W1', (W2' × swap), W3', (swap × W4').
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split; assumption.
+      }
+      {
+        rewrite W3_ac in ccu_decomp; clear W3_ac.
+        right.
+        exists W1', W2', W3', W4'.
+        split. assumption.
+        split. assumption.
+        split. assumption.
+        split. assumption.
+        exists u6, u7.
+        split; assumption.
+      }
+      {
+        rewrite W3_bc in ccu_decomp; clear W3_bc.
+        repeat rewrite Mmult_assoc with (A := acgate W1') in ccu_decomp.
+        do 2 rewrite bcgate_mult in ccu_decomp.
+        left.
+        exists (I 4), W1', (I 4), (W2' × W3' × W4').
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split. assumption.
+        unfold bcgate at 1, abgate.
+        repeat rewrite id_kron.
+        Msimpl_light; solve_WF_matrix.
+      }
+    }
+  }
+  {
+    rewrite W1_bc in ccu_decomp; clear W1_bc.
+    destruct W2_gate as [W2' [W2'_unitary [W2_ab | [W2_ac | W2_bc]]]].
+    {
+      rewrite W2_ab in ccu_decomp; clear W2_ab.
+      destruct W3_gate as [W3' [W3'_unitary [W3_ab | [W3_ac | W3_bc]]]].
+      {
+        rewrite W3_ab in ccu_decomp; clear W3_ab.
+        rewrite Mmult_assoc with (A := bcgate W1') in ccu_decomp.
+        rewrite abgate_mult in ccu_decomp.
+        left.
+        exists W1', (I 4), (W2' × W3'), W4'.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split. assumption.
+        unfold acgate.
+        unfold abgate at 1.
+        rewrite id_kron, Mmult_1_r; solve_WF_matrix.
+        simpl.
+        rewrite swapbc_inverse, Mmult_1_r; solve_WF_matrix.
+      }
+      {
+        rewrite W3_ac in ccu_decomp; clear W3_ac.
+        unfold acgate in ccu_decomp.
+        rewrite <- Mmult_1_r with (A := bcgate W1') in ccu_decomp; solve_WF_matrix.
+        simpl in ccu_decomp.
+        rewrite <- swapbc_inverse in ccu_decomp.
+        repeat rewrite Mmult_assoc in ccu_decomp.
+        repeat rewrite <- Mmult_assoc with (A := abgate W2') in ccu_decomp.
+        rewrite <- Mmult_assoc with (B := abgate W2' × swapbc) in ccu_decomp.
+        rewrite <- Mmult_assoc with (B := abgate W2') in ccu_decomp.
+        rewrite swapbc_conj_ab in ccu_decomp; solve_WF_matrix.
+        replace swapbc with (bcgate swap) in ccu_decomp by reflexivity.
+        rewrite bcgate_mult in ccu_decomp.
+        repeat rewrite <- Mmult_assoc in ccu_decomp.
+        rewrite bcgate_mult in ccu_decomp.
+        left.
+        exists (W1' × swap), W2', W3', (swap × W4').
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split; assumption.
+      }
+      {
+        rewrite W3_bc in ccu_decomp; clear W3_bc.
+        rewrite Mmult_assoc in ccu_decomp.
+        rewrite bcgate_mult in ccu_decomp.
+        left.
+        exists W1', (I 4), W2', (W3' × W4').
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split. assumption.
+        unfold acgate, abgate at 1.
+        rewrite id_kron, Mmult_1_r; solve_WF_matrix.
+        simpl.
+        rewrite swapbc_inverse, Mmult_1_r; solve_WF_matrix.
+      }
+    }
+    {
+      rewrite W2_ac in ccu_decomp; clear W2_ac.
+      destruct W3_gate as [W3' [W3'_unitary [W3_ab | [W3_ac | W3_bc]]]].
+      {
+        rewrite W3_ab in ccu_decomp; clear W3_ab.
+        left.
+        exists W1', W2', W3', W4'.
+        split. assumption.
+        split. assumption.
+        split. assumption.
+        split. assumption.
+        exists u6, u7.
+        split; assumption.
+      }
+      {
+        rewrite W3_ac in ccu_decomp; clear W3_ac.
+        rewrite Mmult_assoc with (A := bcgate W1') in ccu_decomp.
+        rewrite acgate_mult in ccu_decomp; solve_WF_matrix.
+        left.
+        exists W1', (W2' × W3'), (I 4), W4'.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split. assumption.
+        unfold abgate.
+        rewrite id_kron, Mmult_1_r; solve_WF_matrix.
+      }
+      {
+        rewrite W3_bc in ccu_decomp; clear W3_bc.
+        rewrite Mmult_assoc in ccu_decomp.
+        rewrite bcgate_mult in ccu_decomp.
+        left.
+        exists W1', W2', (I 4), (W3' × W4').
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split. assumption.
+        unfold abgate at 1.
+        rewrite id_kron, Mmult_1_r; solve_WF_matrix.
+      }
+    }
+    {
+      rewrite W2_bc in ccu_decomp; clear W2_bc.
+      rewrite bcgate_mult in ccu_decomp.
+      destruct W3_gate as [W3' [W3'_unitary [W3_ab | [W3_ac | W3_bc]]]].
+      {
+        rewrite W3_ab in ccu_decomp; clear W3_ab.
+        left.
+        exists (W1' × W2'), (I 4), W3', W4'.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split. assumption.
+        unfold acgate, abgate at 1.
+        rewrite id_kron, Mmult_1_r; solve_WF_matrix.
+        simpl.
+        rewrite swapbc_inverse, Mmult_1_r; solve_WF_matrix.
+      }
+      {
+        rewrite W3_ac in ccu_decomp; clear W3_ac.
+        right.
+        exists (I 4), (W1' × W2'), W3', W4'.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split. assumption.
+        unfold acgate, abgate at 1.
+        rewrite id_kron, Mmult_1_r; solve_WF_matrix.
+        simpl.
+        rewrite swapbc_inverse, Mmult_1_l; solve_WF_matrix.
+      }
+      {
+        rewrite W3_bc in ccu_decomp; clear W3_bc.
+        do 2 rewrite bcgate_mult in ccu_decomp.
+        left.
+        exists (I 4), (I 4), (I 4), (W1' × W2' × W3' × W4').
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        split. solve_WF_matrix.
+        exists u6, u7.
+        split. assumption.
+        unfold bcgate at 1, acgate, abgate.
+        repeat rewrite id_kron; Msimpl_light.
+        rewrite swapbc_inverse, Mmult_1_l; solve_WF_matrix.
+      }
+    }
+  }
+Qed.
 
 Lemma m7_3 : forall (u0 u1 : C), Cmod u0 = 1 -> Cmod u1 = 1 ->
   forall (u2 u3 : C), (u2, u3) = (u0, u1) \/ (u2, u3) = (C1, u0^* * u1) ->

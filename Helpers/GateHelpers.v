@@ -1289,3 +1289,216 @@ Proof.
   split. assumption.
   right. right. reflexivity.
 Qed.
+
+Lemma abgate_mult : forall (A B : Square 4), abgate A × abgate B = abgate (A × B).
+Proof.
+  intros A B.
+  unfold abgate.
+  rewrite kron_mixed_product.
+  Msimpl_light; solve_WF_matrix.
+Qed.
+
+Lemma bcgate_mult : forall (A B : Square 4), bcgate A × bcgate B = bcgate (A × B).
+Proof.
+  intros A B.
+  unfold bcgate.
+  rewrite kron_mixed_product.
+  Msimpl_light; solve_WF_matrix.
+Qed.
+
+Lemma acgate_mult : forall (A B : Square 4), WF_Matrix B -> acgate A × acgate B = acgate (A × B).
+Proof.
+  intros A B WF_B.
+  unfold acgate.
+  repeat rewrite Mmult_assoc.
+  repeat rewrite <- Mmult_assoc with (A := swapbc).
+  rewrite swapbc_inverse at 1.
+  rewrite Mmult_1_l.
+  rewrite Mmult_assoc with (A := swapbc).
+  rewrite <- Mmult_assoc with (A := abgate A).
+  rewrite abgate_mult.
+  rewrite <- Mmult_assoc.
+  all: solve_WF_matrix.
+Qed.
+
+Lemma WF_TwoQubitGate : forall (U : Square 8),
+  TwoQubitGate U -> WF_Matrix U.
+Proof.
+  intros U U_gate.
+  unfold TwoQubitGate in U_gate.
+  destruct U_gate as [V [V_unitary [V_ab | [V_ac | V_bc]]]].
+  rewrite V_ab; solve_WF_matrix.
+  rewrite V_ac; solve_WF_matrix.
+  rewrite V_bc; solve_WF_matrix.
+Qed.
+
+#[export] Hint Resolve WF_TwoQubitGate : wf_db.
+
+Lemma swapab_conj_ac : forall (U : Square 4), WF_Matrix U ->
+  swapab × acgate U × swapab = bcgate U.
+Proof.
+  intros.
+  unfold acgate, swapbc, abgate.
+  rewrite swap_helper. 2: assumption.
+  rewrite <- Mmult_assoc.
+  rewrite <- Mmult_assoc with (A := swapab) (B := swapab) (C := I 2 ⊗ U).
+  rewrite swapab_inverse.
+  rewrite Mmult_assoc.
+  rewrite swapab_inverse at 1.
+  Msimpl_light; solve_WF_matrix.
+Qed.
+
+Lemma swapab_conj_bc : forall (U : Square 4), WF_Matrix U ->
+  swapab × bcgate U × swapab = acgate U.
+Proof.
+  intros.
+  rewrite <- swapab_conj_ac; auto.
+  repeat rewrite Mmult_assoc.
+  rewrite swapab_inverse at 1.
+  repeat rewrite <- Mmult_assoc.
+  rewrite swapab_inverse.
+  Msimpl_light; solve_WF_matrix.
+Qed.
+
+Lemma swapbc_conj_ab : forall (U : Square 4), WF_Matrix U ->
+  swapbc × abgate U × swapbc = acgate U.
+Proof.
+  intros.
+  reflexivity.
+Qed.
+
+Lemma swapbc_conj_ac : forall (U : Square 4), WF_Matrix U ->
+  swapbc × acgate U × swapbc = abgate U.
+Proof.
+  intros.
+  unfold acgate, abgate.
+  repeat rewrite Mmult_assoc.
+  rewrite swapbc_inverse at 1.
+  repeat rewrite <- Mmult_assoc.
+  rewrite swapbc_inverse.
+  Msimpl_light; solve_WF_matrix.
+Qed.
+
+Lemma swapac_conj_ab : forall (U : Square 4), WF_Matrix U ->
+  swapac × abgate U × swapac = bcgate (swap × U × swap).
+Proof.
+  intros.
+  unfold swapac, swapab, abgate, bcgate.
+  repeat rewrite Mmult_assoc.
+  rewrite <- Mmult_assoc with (A := U ⊗ I 2).
+  rewrite <- Mmult_assoc with (B := (U ⊗ I 2) × (swap ⊗ I 2)).
+  rewrite <- Mmult_assoc with (B := U ⊗ I 2).
+  repeat rewrite (@kron_mixed_product 4 4 4 2 2 2).
+  Msimpl_light.
+  replace (swap × U × swap ⊗ I 2) with (abgate (swap × U × swap)). 2: reflexivity.
+  fold swapab.
+  rewrite <- Mmult_assoc with (C := swapab).
+  repeat rewrite <- Mmult_assoc with (A := swapbc).
+  replace (swapbc × abgate (swap × U × swap) × swapbc) with (acgate (swap × U × swap)) at 1. 2: reflexivity.
+  repeat rewrite <- Mmult_assoc.
+  rewrite swapab_conj_ac; solve_WF_matrix.
+Qed.
+
+Lemma swapac_conj_bc : forall (U : Square 4), WF_Matrix U ->
+  swapac × bcgate U × swapac = abgate (swap × U × swap).
+Proof.
+  intros.
+  unfold swapac.
+  repeat rewrite Mmult_assoc.
+  repeat rewrite <- Mmult_assoc with (C := swapab).
+  repeat rewrite <- Mmult_assoc with (C := swapbc).
+  rewrite <- Mmult_assoc with (C := swapab).
+  rewrite swapab_conj_bc.
+  rewrite Mmult_assoc with (A := swapab).
+  rewrite swapbc_conj_ac.
+  unfold swapab, abgate.
+  repeat rewrite (@kron_mixed_product 4 4 4 2 2 2).
+  Msimpl_light.
+  rewrite Mmult_assoc.
+  all: solve_WF_matrix.
+Qed.
+
+Lemma swapab_twoqubitgate : forall (U : Square 4), TwoQubitGate U ->
+  TwoQubitGate (swapab × U × swapab).
+Proof.
+  intros U U_gate.
+  unfold TwoQubitGate in *.
+  destruct U_gate as [V [V_unitary [V_ab | [V_ac | V_bc]]]].
+  {
+    rewrite V_ab; clear V_ab.
+    exists (swap × V × swap).
+    split. solve_WF_matrix.
+    left.
+    unfold abgate, swapab.
+    repeat rewrite (@kron_mixed_product 4 4 4 2 2 2).
+    Msimpl_light; reflexivity.
+  }
+  {
+    rewrite V_ac; clear V_ac.
+    exists V.
+    split. solve_WF_matrix.
+    right; right.
+    apply swapab_conj_ac; solve_WF_matrix.
+  }
+  {
+    rewrite V_bc; clear V_bc.
+    exists V.
+    split. solve_WF_matrix.
+    right; left.
+    apply swapab_conj_bc; solve_WF_matrix.
+  }
+Qed.
+
+Lemma swapac_twoqubitgate : forall (U : Square 8), TwoQubitGate U ->
+  TwoQubitGate (swapac × U × swapac).
+Proof.
+  intros U U_gate.
+  unfold TwoQubitGate in *.
+  destruct U_gate as [V [V_unitary [V_ab | [V_ac | V_bc]]]].
+  {
+    rewrite V_ab; clear V_ab.
+    exists (swap × V × swap).
+    split. solve_WF_matrix.
+    right; right.
+    apply swapac_conj_ab; solve_WF_matrix.
+  }
+  {
+    rewrite V_ac; clear V_ac.
+    exists (swap × V × swap).
+    split. solve_WF_matrix.
+    right; left.
+    unfold swapac.
+    repeat rewrite Mmult_assoc.
+    repeat rewrite <- Mmult_assoc with (C := swapab).
+    repeat rewrite <- Mmult_assoc with (C := swapbc).
+    rewrite <- Mmult_assoc with (C := swapab).
+    rewrite swapab_conj_ac.
+    rewrite Mmult_assoc with (A := swapab).
+    unfold swapbc, bcgate.
+    repeat rewrite (@kron_mixed_product 2 2 2 4 4 4).
+    Msimpl_light.
+    replace (I 2 ⊗ (swap × V × swap)) with (bcgate (swap × V × swap)). 2: reflexivity.
+    rewrite swapab_conj_bc.
+    rewrite Mmult_assoc.
+    all: solve_WF_matrix.
+  }
+  {
+    rewrite V_bc; clear V_bc.
+    exists (swap × V × swap).
+    split. solve_WF_matrix.
+    left.
+    unfold swapac, acgate.
+    repeat rewrite Mmult_assoc.
+    repeat rewrite <- Mmult_assoc with (C := swapab).
+    repeat rewrite <- Mmult_assoc with (C := swapbc).
+    rewrite <- Mmult_assoc with (C := swapab).
+    rewrite swapab_conj_bc.
+    rewrite Mmult_assoc with (A := swapab).
+    rewrite swapbc_conj_ac.
+    unfold swapab, abgate.
+    repeat rewrite (@kron_mixed_product 4 4 4 2 2 2).
+    rewrite Mmult_assoc.
+    Msimpl_light.
+    all: solve_WF_matrix.
+  }
+Qed.
