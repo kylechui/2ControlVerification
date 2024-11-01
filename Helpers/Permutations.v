@@ -12,6 +12,15 @@ Lemma perm_eigenvalues : forall {n} (U D D' : Square n),
 Proof.
 Admitted.
 
+Lemma char_poly_eigenvalue_perm : forall {n} (D E U : Square n),
+  WF_Unitary U -> WF_Diagonal D -> WF_Diagonal E ->
+  U × D × U† = E ->
+  exists (σ : nat -> nat),
+    permutation n σ /\
+    forall (i : nat), (i < n)%nat -> D i i = E (σ i) (σ i).
+Proof.
+Admitted.
+
 (* To equate the eigenvalues of two matrices, we often need equality of matrices
    up to some permutation. This lemma allows us to take the existence of a
    permutation on 4 elements and decompose it into the 24 possible cases. *)
