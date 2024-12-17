@@ -593,6 +593,9 @@ Proof.
   apply Coq.Logic.Classical_Prop.or_to_imply.
 Qed.
 
+Definition Mscale_id {n} (x : C) : Square n :=
+  fun i j => if i =? j then x else 0.
+
 Lemma Mscale_access {m n}: forall (a : C) (B : Matrix m n) (i j : nat),
 a * (B i j) = (a .* B) i j.
 Proof.

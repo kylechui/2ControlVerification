@@ -4,22 +4,78 @@ Require Import QuantumLib.Eigenvectors.
 Require Import Coq.Sets.Ensembles.
 Require Import Coq.Logic.Classical_Pred_Type.
 Require Import Coq.Logic.Classical_Prop.
+Require Import DiagonalHelpers.
 
-Lemma perm_eigenvalues : forall {n} (U D D' : Square n),
+(* characteristic polynomial helpers *)
+(* Define a scaled identity matrix *)
+Definition scaled_identity (n : nat) (c : C) : Square n :=
+  fun x y =>
+    if (x =? y) then c else C0.
+
+(* Define the characteristic polynomial using scaled_identity and Mminus *)
+Definition char_poly {n} (A : Square n) (x : C) : C :=
+  Determinant (Mminus (scaled_identity n x) A).
+
+(* Conjugating a matrix with a unitary preserves the characteristic polynomial *)
+Lemma char_poly_similarity : forall {n} (A B U : Square n) x,
+  WF_Unitary U -> U × A × U† = B -> char_poly A x = char_poly B x.
+Proof.
+Admitted.
+
+Fixpoint prod_f (f : nat -> C) (n : nat) : C :=
+  match n with
+  | 0 => C1 (* The product over an empty range is 1 *)
+  | S n' => (f n') * (prod_f f n') (* Multiply the current value with the rest *)
+  end.
+
+Lemma char_poly_diagonal : forall {n} (D : Square n),
+  WF_Diagonal D -> forall x, char_poly D x = prod_f (fun i => x - D i i) n.
+Proof.
+Admitted.
+
+Lemma poly_roots_perm : forall {n} (f g : nat -> C),
+  (forall x, prod_f (fun i => x - f i) n = prod_f (fun i => x - g i) n) ->
+  exists (σ : nat -> nat), permutation n σ /\ forall (i : nat), f i = g (σ i).
+Proof.
+Admitted.
+
+Lemma perm_eigenvalues : forall {n} (D E U : Square n),
+  WF_Unitary U -> WF_Diagonal D -> WF_Diagonal E -> U × D × U† = E ->
+  exists (σ : nat -> nat),
+    permutation n σ /\ forall (i : nat), D i i = E (σ i) (σ i).
+Proof.
+  intros n D E U WF_U WF_D WF_E H_conj.
+  (* assert (H_conj' : U × D × U† = E).
+{ rewrite <- H_conj. reflexivity. } *)
+  (* Step 1: Show that D and E have the same characteristic polynomial. *)
+  assert (Hchar : forall x, char_poly D x = char_poly E x).
+  {
+    intros x.
+    apply (char_poly_similarity D E U x); assumption.
+  }
+  
+  assert (Hprod : forall x : C, prod_f (fun i => x - D i i) n = prod_f (fun i => x - E i i) n).
+  {
+    intros x.
+    rewrite <- (char_poly_diagonal D WF_D x).
+    rewrite <- (char_poly_diagonal E WF_E x).
+    apply Hchar.
+  }
+
+  apply poly_roots_perm in Hprod.
+  destruct Hprod as [σ [Hperm Heq]].
+  exists σ.
+  split. assumption.
+  intros i.
+  apply Heq.
+Qed.
+
+(* Lemma perm_eigenvalues : forall {n} (U D D' : Square n),
   WF_Unitary U -> WF_Diagonal D -> WF_Diagonal D' -> U × D × U† = D' ->
   exists (σ : nat -> nat),
     permutation n σ /\ forall (i : nat), D i i = D' (σ i) (σ i).
 Proof.
-Admitted.
-
-Lemma char_poly_eigenvalue_perm : forall {n} (D E U : Square n),
-  WF_Unitary U -> WF_Diagonal D -> WF_Diagonal E ->
-  U × D × U† = E ->
-  exists (σ : nat -> nat),
-    permutation n σ /\
-    forall (i : nat), (i < n)%nat -> D i i = E (σ i) (σ i).
-Proof.
-Admitted.
+Admitted. *)
 
 (* To equate the eigenvalues of two matrices, we often need equality of matrices
    up to some permutation. This lemma allows us to take the existence of a
