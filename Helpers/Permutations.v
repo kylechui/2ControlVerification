@@ -5,22 +5,161 @@ Require Import Coq.Sets.Ensembles.
 Require Import Coq.Logic.Classical_Pred_Type.
 Require Import Coq.Logic.Classical_Prop.
 Require Import DiagonalHelpers.
+Require Import WFHelpers.
+Require Import UnitaryHelpers.
+Require Import Classical.
 
-(* characteristic polynomial helpers *)
-(* Define a scaled identity matrix *)
 Definition scaled_identity (n : nat) (c : C) : Square n :=
-  fun x y =>
-    if (x =? y) then c else C0.
+  fun x y => if (x <? n) && (y <? n) 
+             then (if (x =? y) then c else C0)
+             else C0.
 
 (* Define the characteristic polynomial using scaled_identity and Mminus *)
 Definition char_poly {n} (A : Square n) (x : C) : C :=
   Determinant (Mminus (scaled_identity n x) A).
 
+(* Lemma to show that scaled_identity is well-formed *)
+Lemma WF_scaled_identity : forall {n} (c : C), WF_Matrix (scaled_identity n c).
+Proof.
+  intros n c.
+  unfold WF_Matrix, scaled_identity.
+  intros.
+  destruct (x =? y).
+  destruct H.
+  - (* Case x >= n *)
+    assert (Hlt: (x <? n) = false).
+    { apply Nat.ltb_ge. assumption. }
+    rewrite Hlt.
+    simpl.
+    reflexivity.
+  - (* Case y >= n *)
+    assert (Hlt: (y <? n) = false).
+    { apply Nat.ltb_ge. assumption. }
+    rewrite Hlt.
+    rewrite andb_false_r.
+    reflexivity.
+  - destruct H.
+    assert (Hlt: (x <? n) = false).
+    { apply Nat.ltb_ge. assumption. }
+    rewrite Hlt.
+    simpl.
+    reflexivity.
+    assert (Hlt: (y <? n) = false).
+    { apply Nat.ltb_ge. assumption. }
+    rewrite Hlt.
+    rewrite andb_false_r.
+    reflexivity.
+Qed.
+
+(* Lemma to show that scaled_identity is a complex scalar times the identity *)
+Lemma scaled_identity_eq_scalar_times_identity : forall {n} (x : C),
+  scaled_identity n x = x .* (I n).
+Proof.
+  intros n x.
+  unfold scaled_identity, I.
+  prep_matrix_equality.
+  simpl.
+  destruct ((x0 <? n) && (y <? n)) eqn:E1.
+  - (* Case where both indices are in bounds *)
+    destruct (x0 =? y) eqn:E2.
+    + (* Case where x0 = y *)
+      destruct ((x0 =? y) && (x0 <? n)) eqn:E3.
+      * (* Main case: x0 = y and both in bounds *)
+        unfold scale.
+        rewrite E3.
+        lca.
+      * (* Impossible case - we know x0 = y and x0 < n but E3 is false *)
+        apply andb_true_iff in E1. destruct E1 as [Hx0 Hy].
+        apply Nat.eqb_eq in E2. subst.
+        rewrite Hy in E3.
+        rewrite andb_true_r in E3.
+        rewrite Nat.eqb_refl in E3.
+        discriminate.
+    + (* Case where x0 <> y *)
+      destruct ((x0 =? y) && (x0 <? n)) eqn:E3.
+      * (* Impossible case - we know x0 ≠ y but E3 is true *)
+        apply andb_true_iff in E3.
+        destruct E3 as [Hx0 Hy].
+        rewrite E2 in Hx0.
+        discriminate.
+      * (* Case where indices are different *)
+        unfold scale.
+        rewrite E3.
+        lca.
+  - (* Case where at least one index is out of bounds *)
+    destruct ((x0 =? y) && (x0 <? n)) eqn:E2.
+    + (* Impossible case - we know one index is out but E3 is true *)
+      apply andb_true_iff in E2. destruct E2 as [Hx0 Hy].
+      apply andb_false_iff in E1. destruct E1 as [H1 | H2].
+      * rewrite Hy in H1.
+        discriminate.
+      * apply Nat.eqb_eq in Hx0. subst y.
+        rewrite Hy in H2.
+        discriminate.
+    + unfold scale.
+      rewrite E2.
+      lca.
+Qed.
+
 (* Conjugating a matrix with a unitary preserves the characteristic polynomial *)
 Lemma char_poly_similarity : forall {n} (A B U : Square n) x,
   WF_Unitary U -> U × A × U† = B -> char_poly A x = char_poly B x.
 Proof.
-Admitted.
+  intros n A B U x WF_U H_conj.
+  unfold char_poly.
+  assert (H_eq : Mminus(scaled_identity n x) B = 
+                 U × (Mminus (scaled_identity n x) A) × U†).
+{
+  unfold Mminus.
+  (* First show that U × (scaled_identity n x) = (scaled_identity n x) × U *)
+  assert (H_comm : U × (scaled_identity n x) = (scaled_identity n x) × U).
+  {
+    rewrite scaled_identity_eq_scalar_times_identity.
+    rewrite Mscale_mult_dist_r.
+    rewrite Mscale_mult_dist_l.
+    rewrite Mmult_1_r.
+    rewrite Mmult_1_l.
+    reflexivity.
+    solve_WF_matrix.
+    solve_WF_matrix.
+  }
+  (* Now use distributive properties *)
+  rewrite <- H_conj.
+  rewrite Mmult_plus_distr_l.
+  rewrite Mmult_plus_distr_r.
+  rewrite H_comm.
+  rewrite Mmult_assoc.
+  rewrite Mmult_assoc.
+  rewrite other_unitary_decomp.
+  Msimpl.
+  unfold Mopp at 1.
+  rewrite <- Mscale_mult_dist_r.
+  unfold Mopp.
+  rewrite <- Mscale_mult_dist_l.
+  rewrite Mmult_assoc.
+  reflexivity.
+  apply WF_scaled_identity.
+  assumption.
+}
+rewrite H_eq.
+rewrite <- Determinant_multiplicative.
+rewrite <- Determinant_multiplicative.
+rewrite <- Cmult_assoc.
+rewrite <- Cmult_comm.
+rewrite <- Cmult_assoc.
+assert (H_unit1: U × U† = I n) by (apply other_unitary_decomp; auto).
+assert (H_det: Determinant (U × U†) = Determinant (I n)) by (rewrite H_unit1; reflexivity).
+rewrite Determinant_multiplicative.
+assert (H_unit2: U† × U = I n).
+{
+  destruct WF_U as [WF_U unit_U].
+  apply unit_U.
+}
+rewrite H_unit2.
+rewrite Det_I.
+rewrite Cmult_1_r.
+reflexivity.
+Qed.
 
 Fixpoint prod_f (f : nat -> C) (n : nat) : C :=
   match n with
@@ -45,9 +184,7 @@ Lemma perm_eigenvalues : forall {n} (D E U : Square n),
     permutation n σ /\ forall (i : nat), D i i = E (σ i) (σ i).
 Proof.
   intros n D E U WF_U WF_D WF_E H_conj.
-  (* assert (H_conj' : U × D × U† = E).
-{ rewrite <- H_conj. reflexivity. } *)
-  (* Step 1: Show that D and E have the same characteristic polynomial. *)
+  
   assert (Hchar : forall x, char_poly D x = char_poly E x).
   {
     intros x.
