@@ -8,6 +8,7 @@ Require Import DiagonalHelpers.
 Require Import WFHelpers.
 Require Import UnitaryHelpers.
 Require Import Classical.
+Require Import MatrixHelpers.
 
 Definition scaled_identity (n : nat) (c : C) : Square n :=
   fun x y => if (x <? n) && (y <? n) 
@@ -16,7 +17,7 @@ Definition scaled_identity (n : nat) (c : C) : Square n :=
 
 (* Define the characteristic polynomial using scaled_identity and Mminus *)
 Definition char_poly {n} (A : Square n) (x : C) : C :=
-  Determinant (Mminus (scaled_identity n x) A).
+  Determinant (Mminus A (scaled_identity n x)).
 
 (* Lemma to show that scaled_identity is well-formed *)
 Lemma WF_scaled_identity : forall {n} (c : C), WF_Matrix (scaled_identity n c).
@@ -107,8 +108,8 @@ Lemma char_poly_similarity : forall {n} (A B U : Square n) x,
 Proof.
   intros n A B U x WF_U H_conj.
   unfold char_poly.
-  assert (H_eq : Mminus(scaled_identity n x) B = 
-                 U × (Mminus (scaled_identity n x) A) × U†).
+  assert (H_eq : Mminus B (scaled_identity n x) = 
+                 U × (Mminus A (scaled_identity n x)) × U†).
 {
   unfold Mminus.
   (* First show that U × (scaled_identity n x) = (scaled_identity n x) × U *)
@@ -127,19 +128,24 @@ Proof.
   rewrite <- H_conj.
   rewrite Mmult_plus_distr_l.
   rewrite Mmult_plus_distr_r.
-  rewrite H_comm.
+  assert (H_comm_mopp: U × Mopp(scaled_identity n x) = Mopp(scaled_identity n x) × U).
+  {
+    unfold Mopp.
+    rewrite Mscale_mult_dist_r.
+    rewrite Mscale_mult_dist_l.
+    rewrite H_comm.
+    reflexivity.
+  }
+  rewrite H_comm_mopp.
   rewrite Mmult_assoc.
   rewrite Mmult_assoc.
   rewrite other_unitary_decomp.
   Msimpl.
-  unfold Mopp at 1.
-  rewrite <- Mscale_mult_dist_r.
-  unfold Mopp.
-  rewrite <- Mscale_mult_dist_l.
-  rewrite Mmult_assoc.
   reflexivity.
-  apply WF_scaled_identity.
-  assumption.
+  - unfold Mopp at 1.
+    apply WF_scale.
+    apply WF_scaled_identity.
+  - solve_WF_matrix.
 }
 rewrite H_eq.
 rewrite <- Determinant_multiplicative.
@@ -167,23 +173,146 @@ Fixpoint prod_f (f : nat -> C) (n : nat) : C :=
   | S n' => (f n') * (prod_f f n') (* Multiply the current value with the rest *)
   end.
 
-Lemma char_poly_diagonal : forall {n} (D : Square n),
-  WF_Diagonal D -> forall x, char_poly D x = prod_f (fun i => x - D i i) n.
+(* Helper lemma: For diagonal matrices, off-diagonal entries are 0 *)
+(* Lemma diagonal_off_diag_zero : forall {n} (D : Square n),
+  WF_Diagonal D -> forall i j, i <> j -> D i j = C0.
 Proof.
-Admitted.
+  intros n D [WF_D D_diag] i j Hij.
+  apply D_diag.
+  assumption.
+Qed.
 
-Lemma poly_roots_perm : forall {n} (f g : nat -> C),
-  (forall x, prod_f (fun i => x - f i) n = prod_f (fun i => x - g i) n) ->
-  exists (σ : nat -> nat), permutation n σ /\ forall (i : nat), f i = g (σ i).
+(* Helper lemma: For diagonal matrices, diagonal entries are well-defined *)
+Lemma diagonal_diag_well_defined : forall {n} (D : Square n),
+  WF_Diagonal D -> forall i, (i < n)%nat -> exists c, D i i = c.
 Proof.
-Admitted.
+  intros n D [WF_D D_diag] i Hi.
+  destruct (classic (D i i = C0)).
+  - exists C0. assumption.
+  - exists (D i i). reflexivity.
+Qed. *)
 
-Lemma perm_eigenvalues : forall {n} (D E U : Square n),
+(* Helper lemma: Product of diagonal entries equals determinant *)
+Lemma diagonal_det_prod : forall (D : Square 4),
+  WF_Diagonal D -> Determinant D = prod_f (fun i => D i i) 4.
+Proof.
+  intros D WF_D.
+  unfold prod_f.
+  Csimpl.
+  assert (H: exists c1 c2 c3 c4, D = diag4 c1 c2 c3 c4).
+  {
+    exists (D 0%nat 0%nat), (D 1%nat 1%nat), (D 2%nat 2%nat), (D 3%nat 3%nat).
+    destruct WF_D as [WF_D D_diag].
+    prep_matrix_equality.
+    destruct x, y; try reflexivity.
+    try (apply D_diag; lia).
+    Msimpl.
+    assert (H_neq: (S x) <> 0%nat).
+    { apply Nat.neq_succ_0. }
+    rewrite D_diag by auto.
+    unfold diag4.
+    destruct x.
+    reflexivity.
+    destruct x.
+    reflexivity.
+    destruct x.
+    reflexivity.
+    destruct x.
+    reflexivity.
+    reflexivity.
+    destruct x, y.
+    - simpl. unfold diag4. reflexivity.
+    - rewrite D_diag by auto.
+      unfold diag4.
+      reflexivity.
+    - rewrite D_diag by auto.
+      unfold diag4.
+      destruct x.
+      reflexivity.
+      destruct x.
+      reflexivity.
+      reflexivity.
+    - destruct x, y.
+      simpl. unfold diag4. reflexivity.
+      rewrite D_diag by lia.
+      unfold diag4.
+      reflexivity.
+      rewrite D_diag by lia.
+      unfold diag4.
+      destruct x.
+      reflexivity.
+      reflexivity.
+      destruct x, y; simpl.
+      reflexivity.
+      simpl.
+      unfold diag4.
+      rewrite D_diag by lia.
+      reflexivity.
+      unfold diag4.
+      rewrite D_diag by lia.
+      reflexivity.
+      simpl.
+      assert (H_bound: ((S (S (S (S x)))) >= 4)%nat) by lia.
+      rewrite (row_out_of_bounds D _).
+      unfold diag4.
+      reflexivity.
+      assumption.
+      assumption.
+  }
+  destruct H as [c1 [c2 [c3 [c4 D_eq]]]].
+  rewrite D_eq.
+  rewrite Det_diag4.
+  unfold diag4.
+  repeat rewrite Cmult_assoc.
+  lca.
+Qed.
+
+Lemma char_poly_diagonal : forall (D : Square 4),
+  WF_Diagonal D -> forall x, char_poly D x = prod_f (fun i => D i i - x) 4.
+Proof.
+intros D WF_D x.
+unfold char_poly.
+assert (H_diag: WF_Diagonal (Mminus D (scaled_identity 4 x))).
+{
+  rewrite scaled_identity_eq_scalar_times_identity.
+  unfold Mminus.
+  unfold Mopp.
+  unfold WF_Diagonal.
+  split. solve_WF_matrix.
+  destruct WF_D as [WF_D D_diag].
+  intros i j H_neq.
+  rewrite Mplus_access.
+  rewrite D_diag.
+  rewrite Cplus_0_l.
+  rewrite <- Mscale_access.
+  rewrite <- Mscale_access.
+  unfold I.
+  destruct (i =? j) eqn:Eij.
+  - apply Nat.eqb_eq in Eij.
+    contradiction.
+  - simpl.
+    lca.
+  - assumption.
+}
+rewrite (diagonal_det_prod (Mminus D (scaled_identity 4 x))); auto.
+rewrite scaled_identity_eq_scalar_times_identity.
+unfold Mminus.
+unfold Mopp.
+lca.
+Qed.
+
+Lemma poly_roots_perm : forall (f g : nat -> C),
+  (forall x, prod_f (fun i => f i - x) 4 = prod_f (fun i => g i - x) 4) ->
+  exists (σ : nat -> nat), permutation 4 σ /\ forall (i : nat), f i = g (σ i).
+Proof.
+  Admitted.
+
+Lemma perm_eigenvalues : forall (U D E : Square 4),
   WF_Unitary U -> WF_Diagonal D -> WF_Diagonal E -> U × D × U† = E ->
   exists (σ : nat -> nat),
-    permutation n σ /\ forall (i : nat), D i i = E (σ i) (σ i).
+    permutation 4 σ /\ forall (i : nat), D i i = E (σ i) (σ i).
 Proof.
-  intros n D E U WF_U WF_D WF_E H_conj.
+  intros U D E WF_U WF_D WF_E H_conj.
   
   assert (Hchar : forall x, char_poly D x = char_poly E x).
   {
@@ -191,7 +320,7 @@ Proof.
     apply (char_poly_similarity D E U x); assumption.
   }
   
-  assert (Hprod : forall x : C, prod_f (fun i => x - D i i) n = prod_f (fun i => x - E i i) n).
+  assert (Hprod : forall x : C, prod_f (fun i => D i i - x) 4 = prod_f (fun i => E i i - x) 4).
   {
     intros x.
     rewrite <- (char_poly_diagonal D WF_D x).
