@@ -82,6 +82,12 @@ Proof.
   unfold diag2, Determinant, big_sum, parity, get_minor; lca.
 Qed.
 
+Lemma Det_diag4 : forall (c1 c2 c3 c4 : C), Determinant (diag4 c1 c2 c3 c4) = c1 * c2 * c3 * c4.
+Proof.
+  intros.
+  unfold diag4, Determinant, big_sum, parity, get_minor; lca.
+Qed.
+
 Lemma row_out_of_bounds: forall {m n} (A : Matrix m n) (i : nat),
   WF_Matrix A -> (i >= m)%nat -> forall (j : nat), A i j = C0.
 Proof.
