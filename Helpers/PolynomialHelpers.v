@@ -11,9 +11,6 @@ Require Import Permutations.
 (* Open the polynomial scope *)
 Local Open Scope poly_scope.
 
-(* Define a notation for polynomial evaluation *)
-Notation "p @ x" := (Peval p x) (at level 10) : poly_scope.
-
 (* Define a function to create a polynomial with a root at a given point *)
 Definition linear_poly (c : C) : Polynomial := [- c; C1].
 
@@ -23,7 +20,7 @@ Definition x_minus_c (c : C) : Polynomial := linear_poly c.
 (* Define a function to create a polynomial (c - x) *)
 Definition c_minus_x (c : C) : Polynomial := [c; -C1].
 
-Lemma Peval_nil : forall c, ([] @ c) = C0.
+Lemma Peval_nil : forall c, ([][[c]]) = C0.
 Proof. 
   intros.
   reflexivity.
@@ -31,7 +28,7 @@ Qed.
 
 (* Lemma to show that (x - c) evaluates to (a - c) at x = a *)
 Lemma x_minus_c_eval : forall (a c : C),
-  (x_minus_c c) @ a = a - c.
+  (x_minus_c c)[[a]] = a - c.
 Proof.
   intros a c.
   unfold x_minus_c, linear_poly.
