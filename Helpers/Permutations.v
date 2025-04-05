@@ -305,7 +305,27 @@ Lemma poly_roots_perm : forall (f g : nat -> C),
   (forall x, prod_f (fun i => f i - x) 4 = prod_f (fun i => g i - x) 4) ->
   exists (σ : nat -> nat), permutation 4 σ /\ forall (i : nat), f i = g (σ i).
 Proof.
-  Admitted.
+  intros f g H_prod.
+  assert (H_exists : forall i, (i < 4)%nat -> exists j, (j < 4)%nat /\ f i = g j).
+  {
+    admit.
+  }
+  (* For each i < 4, get the j that H_exists guarantees *)
+  destruct (H_exists 0%nat) as [j0 [H_j0 H_eq0]]. { auto. }
+  destruct (H_exists 1%nat) as [j1 [H_j1 H_eq1]]. { auto. }
+  destruct (H_exists 2%nat) as [j2 [H_j2 H_eq2]]. { auto. }
+  destruct (H_exists 3%nat) as [j3 [H_j3 H_eq3]]. { auto. }
+
+  (* Define our permutation σ *)
+  exists (fun i => match i with
+                  | 0 => j0
+                  | 1 => j1
+                  | 2 => j2
+                  | 3 => j3
+                  | _ => i
+                  end).
+  split.
+Admitted.
 
 Lemma perm_eigenvalues : forall (U D E : Square 4),
   WF_Unitary U -> WF_Diagonal D -> WF_Diagonal E -> U × D × U† = E ->
