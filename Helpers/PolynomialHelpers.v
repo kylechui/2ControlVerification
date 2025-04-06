@@ -60,14 +60,39 @@ Fixpoint big_prod (f : nat -> C) (n : nat) : C :=
   end.
 
 (* Lemma 1.1 (Euclid's Lemma) *)
-Lemma euclid_lemma : forall (n : nat) (d e : C) (p r : Polynomial),
-  p *, c_minus_x d = r *, c_minus_x e  -> 
-  d = e \/ exists (q : Polynomial), q *, c_minus_x d = r.
+Lemma euclid_lemma : forall {d e : C} {p r : Polynomial},
+  p *, [d; -C1] ≅ r *, [e; -C1] ->
+  d = e \/ exists (q : Polynomial), q *, [d; -C1] ≅ r.
 Proof.
-Admitted.
+  (* TODO: the polynomial theorem names collide with Coq.PArith *)
 
-(* Lemma poly_root_in_list : forall (n : nat) (d : C) (e_list : list C),
-  length e_list = n ->
-  (prod_x_minus_c e_list) @ d = C0 ->
-  exists k, nth k e_list C0 = d.
-Admitted. *)
+  intros d e p r Heq.
+  destruct (Ceq_dec d e) as [| Hneq]; [auto | right].
+  apply Cminus_eq_contra in Hneq.
+
+  (* construct 1/(d - e) * (r - p) *)
+  exists ([/ (d - e)] *, (r +, -,p)).
+  rewrite Polynomial.Pmult_assoc.
+  rewrite Polynomial.Pmult_plus_distr_r.
+  unfold Popp.
+  rewrite Polynomial.Pmult_assoc, Heq.
+  rewrite <- Polynomial.Pmult_assoc.
+  rewrite (Polynomial.Pmult_comm ([-C1])).
+  rewrite Polynomial.Pmult_assoc.
+  rewrite <- (Polynomial.Pmult_plus_distr_l r).
+  simpl Polynomial.Pplus.
+  replace (d + (((- C1) * e) + 0)) with (d - e) by lca.
+  replace ((- C1) + ((- C1) * (- C1))) with C0 by lca.
+  rewrite (p_Peq_compactify_p [d - e; C0]).
+
+  unfold compactify.
+  simpl prune.
+  destruct (Ceq_dec 0 0); try easy.
+  destruct (Ceq_dec (d - e) 0); try easy.
+  simpl rev.
+
+  rewrite (Polynomial.Pmult_comm r), <- Polynomial.Pmult_assoc.
+  simpl Polynomial.Pmult at 2; rewrite Cplus_0_r.
+  rewrite (Cinv_l _ Hneq).
+  apply Pmult_1_l.
+Qed.
