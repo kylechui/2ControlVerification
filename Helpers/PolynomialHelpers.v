@@ -7,6 +7,7 @@ Require Import MatrixHelpers.
 Require Import DiagonalHelpers.
 Require Import UnitaryHelpers.
 Require Import Permutations.
+Require Import Setoid.
 
 (* Open the polynomial scope *)
 Local Open Scope poly_scope.
@@ -19,6 +20,15 @@ Definition x_minus_c (c : C) : Polynomial := linear_poly c.
 
 (* Define a function to create a polynomial (c - x) *)
 Definition c_minus_x (c : C) : Polynomial := [c; -C1].
+
+(* A collection of linear factors *)
+Definition Factors := list C.
+
+Fixpoint poly_prod (c : Factors) : Polynomial :=
+  match c with
+  | nil    => [C1]
+  | h :: t => [h; -C1] *, poly_prod t
+  end.
 
 Lemma Peval_nil : forall c, ([][[c]]) = C0.
 Proof. 
@@ -96,3 +106,42 @@ Proof.
   rewrite (Cinv_l _ Hneq).
   apply Pmult_1_l.
 Qed.
+
+Lemma poly_isolate_factor : forall (d : C) (facs : list C),
+    facs <> [] ->
+    (forall (p : Polynomial),
+      p *, [d; -C1] ≅ poly_prod facs ->
+      exists (k : nat), nth_error facs k = Some d).
+Proof.
+  intros d facs.
+  induction facs as [| f facs IH]; try contradiction.
+  destruct facs as [| f0 facs].
+  - (* singleton *)
+    intros _ p0 Heq. clear IH.
+    exists 0%nat.
+    simpl in *.
+    repeat rewrite Cplus_0_r in Heq.
+    repeat rewrite Cmult_1_r in Heq.
+    admit.
+  - intros _ p0 Heq.
+    assert (H0 : f0 :: facs <> []) by easy.
+    specialize (IH H0); clear H0.
+    setoid_replace
+      (poly_prod (f :: f0 :: facs)) with
+      ([f; -C1] *, poly_prod (f0 :: facs))
+      using relation Peq in Heq.
+    2: {
+      unfold poly_prod.
+      repeat rewrite <- Polynomial.Pmult_assoc.
+      reflexivity.
+    }
+    unfold poly_prod in *.
+    fold poly_prod in *.
+    rewrite (Polynomial.Pmult_comm [f; -C1]) in Heq.
+    destruct (euclid_lemma Heq) as [ Hdf | [q Hex] ].
+    + exists 0%nat.
+      subst. auto.
+    + destruct (IH q Hex) as [k Hk].
+      exists (S k).
+      auto.
+Admitted.
