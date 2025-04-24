@@ -9,6 +9,8 @@ Require Import UnitaryHelpers.
 Require Import Permutations.
 Require Import Setoid.
 
+Module P := Polynomial.
+
 (* Open the polynomial scope *)
 Local Open Scope poly_scope.
 
@@ -69,6 +71,39 @@ Fixpoint big_prod (f : nat -> C) (n : nat) : C :=
   | S n' => (f n') * (big_prod f n')
   end.
 
+Lemma complex_poly_degree : forall (q : Polynomial) (d : C),
+    Peval (q *, [d; -C1]) <> Peval [C1].
+Proof.
+  intros q d Heq'.
+  apply degree_mor in Heq' as Hdeg.
+  assert (Heq : (q *, [d; - C1]) ≅ [C1]) by apply Heq'.
+  unfold degree at 2 in Hdeg.
+  unfold compactify in Hdeg.
+  simpl in Hdeg.
+  destruct (Ceq_dec C1 C0) as [H01 | _]; try (inversion H01; lra).
+  simpl in Hdeg.
+  assert (H_nil_neq_1 : ~ ([] ≅ [C1])).
+  { intro H_nil_1.
+    assert ([][[0]] = [C1][[0]]) by now rewrite H_nil_1.
+    unfold Peval in H; simpl in H.
+    inversion H; lra.}
+  assert (Hq_neq_nil : ~ (q ≅ [])).
+  { intro H_qnil.
+    setoid_rewrite H_qnil in Heq.
+    now simpl in Heq.}
+  assert (Hdx_neq_nil : ~ ([d; - C1] ≅ [])).
+  { intro H_dxnil.
+    setoid_rewrite H_dxnil in Heq.
+    now rewrite P.Pmult_0_r in Heq.}
+  rewrite (Pmult_degree _ _ Hq_neq_nil Hdx_neq_nil) in Hdeg.
+
+  unfold degree at 2 in Hdeg.
+  unfold compactify in Hdeg.
+  simpl in Hdeg.
+  destruct (Ceq_dec (-C1) 0) as [H01 | _]; try (inversion H01; lra).
+  simpl in Hdeg. lia.
+Qed.
+
 (* Lemma 1.1 (Euclid's Lemma) *)
 Lemma euclid_lemma : forall {d e : C} {p r : Polynomial},
   p *, [d; -C1] ≅ r *, [e; -C1] ->
@@ -82,15 +117,15 @@ Proof.
 
   (* construct 1/(d - e) * (r - p) *)
   exists ([/ (d - e)] *, (r +, -,p)).
-  rewrite Polynomial.Pmult_assoc.
-  rewrite Polynomial.Pmult_plus_distr_r.
+  rewrite P.Pmult_assoc.
+  rewrite P.Pmult_plus_distr_r.
   unfold Popp.
-  rewrite Polynomial.Pmult_assoc, Heq.
-  rewrite <- Polynomial.Pmult_assoc.
-  rewrite (Polynomial.Pmult_comm ([-C1])).
-  rewrite Polynomial.Pmult_assoc.
-  rewrite <- (Polynomial.Pmult_plus_distr_l r).
-  simpl Polynomial.Pplus.
+  rewrite P.Pmult_assoc, Heq.
+  rewrite <- P.Pmult_assoc.
+  rewrite (P.Pmult_comm ([-C1])).
+  rewrite P.Pmult_assoc.
+  rewrite <- (P.Pmult_plus_distr_l r).
+  simpl P.Pplus.
   replace (d + (((- C1) * e) + 0)) with (d - e) by lca.
   replace ((- C1) + ((- C1) * (- C1))) with C0 by lca.
   rewrite (p_Peq_compactify_p [d - e; C0]).
@@ -101,8 +136,8 @@ Proof.
   destruct (Ceq_dec (d - e) 0); try easy.
   simpl rev.
 
-  rewrite (Polynomial.Pmult_comm r), <- Polynomial.Pmult_assoc.
-  simpl Polynomial.Pmult at 2; rewrite Cplus_0_r.
+  rewrite (P.Pmult_comm r), <- P.Pmult_assoc.
+  simpl P.Pmult at 2; rewrite Cplus_0_r.
   rewrite (Cinv_l _ Hneq).
   apply Pmult_1_l.
 Qed.
@@ -116,13 +151,18 @@ Proof.
   intros d facs.
   induction facs as [| f facs IH]; try contradiction.
   destruct facs as [| f0 facs].
-  - (* singleton *)
+  - (* singleton list *)
     intros _ p0 Heq. clear IH.
     exists 0%nat.
     simpl in *.
+
     repeat rewrite Cplus_0_r in Heq.
     repeat rewrite Cmult_1_r in Heq.
-    admit.
+
+    rewrite <- (Pmult_1_l [f; -C1]) in Heq.
+    destruct (euclid_lemma Heq) as [ Hdf | [q Hex] ]; try (subst; auto).
+    now apply complex_poly_degree in Hex.
+
   - intros _ p0 Heq.
     assert (H0 : f0 :: facs <> []) by easy.
     specialize (IH H0); clear H0.
@@ -132,16 +172,15 @@ Proof.
       using relation Peq in Heq.
     2: {
       unfold poly_prod.
-      repeat rewrite <- Polynomial.Pmult_assoc.
-      reflexivity.
+      now repeat rewrite <- P.Pmult_assoc.
     }
     unfold poly_prod in *.
     fold poly_prod in *.
-    rewrite (Polynomial.Pmult_comm [f; -C1]) in Heq.
+    rewrite (P.Pmult_comm [f; -C1]) in Heq.
     destruct (euclid_lemma Heq) as [ Hdf | [q Hex] ].
     + exists 0%nat.
       subst. auto.
     + destruct (IH q Hex) as [k Hk].
       exists (S k).
       auto.
-Admitted.
+Qed.
