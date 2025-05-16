@@ -3,6 +3,7 @@ Require Import QuantumLib.Polynomial.
 Require Import QuantumLib.Matrix.
 Require Import QuantumLib.Quantum.
 Require Import QuantumLib.Eigenvectors.
+Require Import QuantumLib.Permutations.
 Require Import MatrixHelpers.
 Require Import DiagonalHelpers.
 Require Import UnitaryHelpers.
@@ -10,6 +11,14 @@ Require Import Permutations.
 Require Import Setoid.
 
 Module P := Polynomial.
+
+(* Given an assumption H : A -> B, prove A then specialize H with that proof, yielding H : B. *)
+Ltac forward H :=
+  match type of H with
+  | (?A -> ?B) =>
+    let H1 := fresh "H" in
+    assert (H1 : A); [ | specialize (H H1); clear H1]
+  end.
 
 (* Open the polynomial scope *)
 Local Open Scope poly_scope.
@@ -72,16 +81,16 @@ Fixpoint big_prod (f : nat -> C) (n : nat) : C :=
   end.
 
 Lemma complex_poly_degree : forall (q : Polynomial) (d : C),
-    Peval (q *, [d; -C1]) <> Peval [C1].
+    Peval ([d; -C1] *, q) <> Peval [C1].
 Proof.
   intros q d Heq'.
   apply degree_mor in Heq' as Hdeg.
-  assert (Heq : (q *, [d; - C1]) ≅ [C1]) by apply Heq'.
+  assert (Heq : ([d; - C1] *, q) ≅ [C1]) by apply Heq'.
   unfold degree at 2 in Hdeg.
   unfold compactify in Hdeg.
-  simpl in Hdeg.
+  simpl length in Hdeg.
   destruct (Ceq_dec C1 C0) as [H01 | _]; try (inversion H01; lra).
-  simpl in Hdeg.
+  simpl rev in Hdeg.
   assert (H_nil_neq_1 : ~ ([] ≅ [C1])).
   { intro H_nil_1.
     assert ([][[0]] = [C1][[0]]) by now rewrite H_nil_1.
@@ -90,14 +99,14 @@ Proof.
   assert (Hq_neq_nil : ~ (q ≅ [])).
   { intro H_qnil.
     setoid_rewrite H_qnil in Heq.
-    now simpl in Heq.}
+    now rewrite P.Pmult_0_r in Heq. }
   assert (Hdx_neq_nil : ~ ([d; - C1] ≅ [])).
   { intro H_dxnil.
     setoid_rewrite H_dxnil in Heq.
-    now rewrite P.Pmult_0_r in Heq.}
-  rewrite (Pmult_degree _ _ Hq_neq_nil Hdx_neq_nil) in Hdeg.
+    now simpl in Heq. }
+  rewrite (Pmult_degree _ _ Hdx_neq_nil Hq_neq_nil) in Hdeg.
 
-  unfold degree at 2 in Hdeg.
+  unfold degree at 1 in Hdeg.
   unfold compactify in Hdeg.
   simpl in Hdeg.
   destruct (Ceq_dec (-C1) 0) as [H01 | _]; try (inversion H01; lra).
@@ -106,8 +115,8 @@ Qed.
 
 (* Lemma 1.1 (Euclid's Lemma) *)
 Lemma euclid_lemma : forall {d e : C} {p r : Polynomial},
-  p *, [d; -C1] ≅ r *, [e; -C1] ->
-  d = e \/ exists (q : Polynomial), q *, [d; -C1] ≅ r.
+  [d; -C1] *, p ≅ r *, [e; -C1] ->
+  d = e \/ exists (q : Polynomial), [d; -C1] *, q ≅ r.
 Proof.
   (* TODO: the polynomial theorem names collide with Coq.PArith *)
 
@@ -117,8 +126,10 @@ Proof.
 
   (* construct 1/(d - e) * (r - p) *)
   exists ([/ (d - e)] *, (r +, -,p)).
+  rewrite P.Pmult_comm.
   rewrite P.Pmult_assoc.
   rewrite P.Pmult_plus_distr_r.
+  rewrite P.Pmult_comm in Heq.
   unfold Popp.
   rewrite P.Pmult_assoc, Heq.
   rewrite <- P.Pmult_assoc.
@@ -145,7 +156,7 @@ Qed.
 Lemma poly_isolate_factor : forall (d : C) (facs : list C),
     facs <> [] ->
     (forall (p : Polynomial),
-      p *, [d; -C1] ≅ poly_prod facs ->
+      [d; -C1] *, p ≅ poly_prod facs ->
       exists (k : nat), nth_error facs k = Some d).
 Proof.
   intros d facs.
@@ -164,8 +175,7 @@ Proof.
     now apply complex_poly_degree in Hex.
 
   - intros _ p0 Heq.
-    assert (H0 : f0 :: facs <> []) by easy.
-    specialize (IH H0); clear H0.
+    forward IH. { easy. }
     setoid_replace
       (poly_prod (f :: f0 :: facs)) with
       ([f; -C1] *, poly_prod (f0 :: facs))
@@ -184,3 +194,109 @@ Proof.
       exists (S k).
       auto.
 Qed.
+
+Lemma singleton_list : forall {T} {l : list T},
+  (length l = 1)%nat -> exists x, l = [x].
+Proof.
+  intros.
+  destruct l; try inversion H.
+  destruct l; try inversion H1.
+
+  now exists t.
+Qed.
+
+Lemma poly_prod_middle : forall (l1 l2 : Factors) (f : C), poly_prod (l1 ++ f :: l2) ≅ poly_prod (f :: l1 ++ l2).
+Proof.
+  intro l1.
+  induction l1; try reflexivity.
+  intros l2 f.
+  simpl app.
+  unfold poly_prod.
+  fold poly_prod.
+  rewrite IHl1.
+  unfold poly_prod.
+  fold poly_prod.
+  rewrite <- P.Pmult_assoc.
+  rewrite <- P.Pmult_assoc.
+  now rewrite (P.Pmult_comm [a; -C1] [f; -C1]).
+Qed.
+
+Lemma roots_equal_implies_permutation :
+  forall (n : nat),
+  (n > 0)%nat ->
+  forall (ds es: list C),
+  length ds = n -> length es = n ->
+  (poly_prod ds ≅ poly_prod es) ->
+  exists f, permutation n f /\ (forall i, ds !! i = es !! f i).
+Proof.
+  intros n.
+  induction n; try lia.
+  (* intros. *)
+  intros H ds es Hdlen Helen Hpeq.
+  destruct n as [| n].
+  - exists idn.
+    split.
+    + (* Permutation *)
+      apply idn_permutation.
+    + (* perm_pair_eq *)
+      destruct (singleton_list Hdlen) as [delem Hd].
+      destruct (singleton_list Helen) as [eelem He].
+      subst.
+      destruct i.
+      -- unfold poly_prod in Hpeq.
+         simpl; f_equal.
+         simpl in Hpeq.
+         apply Peq_head_eq in Hpeq.
+        (* Done, just dont wanna do manual math *)
+        admit.
+      -- easy.
+  - clear H.
+    forward IHn. { lia. }
+    destruct ds as [| d ds]; try easy.
+    assert (Heneqnil : es <> []).
+    { intro Hcontra.
+      subst. easy. }
+    destruct (poly_isolate_factor d es Heneqnil (poly_prod ds) Hpeq) as [k Hk].
+    clear Heneqnil.
+
+    (* break 'es' into multiple pieces *)
+    destruct (nth_error_split es k Hk) as [e1 [e2 [Hcombine Hidx] ] ].
+    rewrite Hcombine in Hpeq.
+
+    rewrite poly_prod_middle in Hpeq.
+    unfold poly_prod in Hpeq. fold poly_prod in Hpeq.
+
+    specialize (IHn ds (e1 ++ e2)).
+    forward IHn. { auto. }
+    forward IHn.
+    { rewrite Hcombine in Helen.
+      rewrite app_length in *.
+      simpl in Helen.
+      lia. }
+
+    (* We need rcancel_mul for polynomials *)
+    assert (Hpeq' : poly_prod ds ≅ poly_prod (e1 ++ e2)). { admit. }
+    clear Hpeq.
+    forward IHn. { easy. }
+    destruct IHn as [f [Hperm Hpermeq] ].
+
+    exists (fun i =>
+              if i =? 0 then k else
+                let i' := f i in
+                if k <=? i' then i'
+                  else (i' + 1)%nat).
+
+    (* need inverse of f0 *)
+    split. { admit. }
+
+    unfold permutation.
+    intros i.
+    destruct i as [| i']; try auto.
+    subst.
+    simpl.
+    rewrite Hpermeq.
+    bdestruct (length e1 <=? f (S i'))%nat.
+    + Search lt.
+    Search nth_error.
+    Check nth_error_app1.
+    rewrite (nth_error_app2 e1 (d :: e2) H).
