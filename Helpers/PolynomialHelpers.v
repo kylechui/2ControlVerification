@@ -243,13 +243,15 @@ Proof.
       destruct (singleton_list Helen) as [eelem He].
       subst.
       destruct i.
-      -- unfold poly_prod in Hpeq.
-         simpl; f_equal.
-         simpl in Hpeq.
-         apply Peq_head_eq in Hpeq.
-        (* Done, just dont wanna do manual math *)
-        admit.
-      -- easy.
+      * unfold poly_prod in Hpeq.
+        simpl; f_equal.
+        simpl in Hpeq.
+        apply Peq_head_eq in Hpeq.
+        (* Why can't we use lca here? *)
+        repeat rewrite Cplus_0_r in Hpeq.
+        repeat rewrite Cmult_1_r in Hpeq.
+        auto.
+      * easy.
   - clear H.
     forward IHn. { lia. }
     destruct ds as [| d ds]; try easy.
@@ -281,10 +283,12 @@ Proof.
     destruct IHn as [f [Hperm Hpermeq] ].
 
     exists (fun i =>
-              if i =? 0 then k else
-                let i' := f i in
-                if k <=? i' then i'
-                  else (i' + 1)%nat).
+              match i with
+              | 0 => k
+              | S i' =>
+                  let j := f i' in
+                  if j <? k then j else S j
+              end).
 
     (* need inverse of f0 *)
     split. { admit. }
@@ -295,8 +299,16 @@ Proof.
     subst.
     simpl.
     rewrite Hpermeq.
-    bdestruct (length e1 <=? f (S i'))%nat.
-    + Search lt.
-    Search nth_error.
-    Check nth_error_app1.
-    rewrite (nth_error_app2 e1 (d :: e2) H).
+    bdestruct (f i' <? length e1)%nat.
+    + do 2 rewrite (nth_error_app1 _ _ H); reflexivity.
+    + replace (e1 ++ d :: e2) with ((e1 ++ [d]) ++ e2)
+        by ( rewrite <- app_assoc; auto ).
+      assert (Hsecond : (length (e1 ++ [d]) <= S (f i'))%nat).
+      { rewrite app_length. simpl. lia. }
+      rewrite (nth_error_app2 _ _ H).
+      rewrite (nth_error_app2 _ _ Hsecond).
+      rewrite app_length.
+      simpl length.
+      rewrite Nat.add_1_r.
+      auto.
+Admitted.
