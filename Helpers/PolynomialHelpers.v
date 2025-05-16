@@ -33,7 +33,7 @@ Fixpoint poly_prod (c : Factors) : Polynomial :=
   end.
 
 Lemma Peval_nil : forall c, ([][[c]]) = C0.
-Proof. 
+Proof.
   intros.
   reflexivity.
 Qed.

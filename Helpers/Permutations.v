@@ -11,7 +11,7 @@ Require Import Classical.
 Require Import MatrixHelpers.
 
 Definition scaled_identity (n : nat) (c : C) : Square n :=
-  fun x y => if (x <? n) && (y <? n) 
+  fun x y => if (x <? n) && (y <? n)
              then (if (x =? y) then c else C0)
              else C0.
 
