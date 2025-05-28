@@ -12,14 +12,6 @@ Require Import Setoid.
 
 Module P := Polynomial.
 
-(* Given an assumption H : A -> B, prove A then specialize H with that proof, yielding H : B. *)
-Ltac forward H :=
-  match type of H with
-  | (?A -> ?B) =>
-    let H1 := fresh "H" in
-    assert (H1 : A); [ | specialize (H H1); clear H1]
-  end.
-
 (* Open the polynomial scope *)
 Local Open Scope poly_scope.
 
@@ -95,7 +87,7 @@ Proof.
   { intro H_nil_1.
     assert ([][[0]] = [C1][[0]]) by now rewrite H_nil_1.
     unfold Peval in H; simpl in H.
-    inversion H; lra.}
+    inversion H; lra. }
   assert (Hq_neq_nil : ~ (q ≅ [])).
   { intro H_qnil.
     setoid_rewrite H_qnil in Heq.
@@ -175,7 +167,7 @@ Proof.
     now apply complex_poly_degree in Hex.
 
   - intros _ p0 Heq.
-    forward IH. { easy. }
+    specialize (IH ltac:(easy)).
     setoid_replace
       (poly_prod (f :: f0 :: facs)) with
       ([f; -C1] *, poly_prod (f0 :: facs))
@@ -211,15 +203,22 @@ Proof.
   induction l1; try reflexivity.
   intros l2 f.
   simpl app.
-  unfold poly_prod.
-  fold poly_prod.
+  unfold poly_prod; fold poly_prod.
   rewrite IHl1.
-  unfold poly_prod.
-  fold poly_prod.
-  rewrite <- P.Pmult_assoc.
-  rewrite <- P.Pmult_assoc.
+  unfold poly_prod; fold poly_prod.
+  do 2 rewrite <- P.Pmult_assoc.
   now rewrite (P.Pmult_comm [a; -C1] [f; -C1]).
 Qed.
+
+Lemma Pfac_cancel_l : forall (d : C) (p1 p2 : Polynomial),
+    [d; -C1] *, p1 ≅ [d; -C1] *, p2 -> p1 ≅ p2.
+Proof.
+  intros d p1 p2 Hnil.
+  apply functional_extensionality; intros x.
+  unfold Peq in Hnil.
+  simpl in Hnil.
+  admit.
+Admitted.
 
 Lemma roots_equal_implies_permutation :
   forall (n : nat),
@@ -252,13 +251,17 @@ Proof.
         repeat rewrite Cmult_1_r in Hpeq.
         auto.
       * easy.
-  - clear H.
-    forward IHn. { lia. }
+  - remember (S n) as N. clear H.
+    specialize (IHn ltac:(lia)).
     destruct ds as [| d ds]; try easy.
     assert (Heneqnil : es <> []).
     { intro Hcontra.
       subst. easy. }
     destruct (poly_isolate_factor d es Heneqnil (poly_prod ds) Hpeq) as [k Hk].
+    assert (Hk_le_n : (k < S N)%nat).
+    { rewrite <- Helen.
+      rewrite <- nth_error_Some.
+      now rewrite Hk. }
     clear Heneqnil.
 
     (* break 'es' into multiple pieces *)
@@ -268,30 +271,77 @@ Proof.
     rewrite poly_prod_middle in Hpeq.
     unfold poly_prod in Hpeq. fold poly_prod in Hpeq.
 
-    specialize (IHn ds (e1 ++ e2)).
-    forward IHn. { auto. }
-    forward IHn.
-    { rewrite Hcombine in Helen.
+    assert (Hleneq : length (e1 ++ e2) = N).
+    { subst.
       rewrite app_length in *.
-      simpl in Helen.
+      simpl in *.
       lia. }
 
+    specialize (IHn ds (e1 ++ e2) ltac:(auto) Hleneq).
     (* We need rcancel_mul for polynomials *)
-    assert (Hpeq' : poly_prod ds ≅ poly_prod (e1 ++ e2)). { admit. }
+    assert (Hpeq' : poly_prod ds ≅ poly_prod (e1 ++ e2)).
+    {
+      admit.
+    }
     clear Hpeq.
-    forward IHn. { easy. }
-    destruct IHn as [f [Hperm Hpermeq] ].
+    destruct (IHn ltac:(easy)) as [f' [Hperm Hpermeq] ].
 
-    exists (fun i =>
+    pose (f := fun i =>
               match i with
               | 0 => k
               | S i' =>
-                  let j := f i' in
+                  let j := f' i' in
                   if j <? k then j else S j
               end).
 
-    (* need inverse of f0 *)
-    split. { admit. }
+    exists f.
+
+    split.
+    { destruct Hperm as [f'inv Hf'inv].
+
+      pose (finv := fun j =>
+                if j =? k then 0%nat else
+                  if j <? k then S (f'inv j)
+                  else S (f'inv (pred j))).
+      exists finv.
+      intros x Hx.
+      repeat split.
+      - (* f x < S (S n) *)
+        destruct x.
+        + unfold f. subst.
+          rewrite app_length in Helen.
+          simpl in Helen.
+          lia.
+        + specialize (Hf'inv x ltac:(lia)).
+          simpl. destruct (f' x <? k) eqn:E; lia.
+      - (* finv x < S (S n) *)
+        unfold finv.
+        bdestruct_all; try (rewrite <- Nat.succ_lt_mono).
+        + (* k <= N *)
+          now destruct (Hf'inv x ltac:(lia)).
+        + lia.
+        + (* f'inv (pred x) < N *)
+          destruct x; simpl.
+          * now destruct (Hf'inv 0%nat ltac:(lia)).
+          * now destruct (Hf'inv x ltac:(lia)).
+      - (* finv (f x) = x *)
+        unfold finv, f.
+        destruct x.
+        + (* x = 0 *)
+          simpl.
+          bdestruct (k =? k); [ lia | easy ].
+        + bdestruct_all; simpl; destruct (Hf'inv x ltac:(lia)); lia.
+      - (* f (finv x) = x *)
+        unfold finv, f.
+        destruct x.
+        + bdestruct_all; try (destruct (Hf'inv 0%nat ltac:(lia))); lia.
+        + bdestruct_all.
+          * destruct (Hf'inv (S x) ltac:(lia)). lia.
+          * destruct (Hf'inv (S x) ltac:(lia)). lia.
+          * auto.
+          * simpl in *. destruct (Hf'inv x ltac:(lia)). lia.
+          * destruct (Hf'inv x ltac:(lia)). simpl. lia.
+    }
 
     unfold permutation.
     intros i.
@@ -299,11 +349,11 @@ Proof.
     subst.
     simpl.
     rewrite Hpermeq.
-    bdestruct (f i' <? length e1)%nat.
+    bdestruct (f' i' <? length e1)%nat.
     + do 2 rewrite (nth_error_app1 _ _ H); reflexivity.
     + replace (e1 ++ d :: e2) with ((e1 ++ [d]) ++ e2)
         by ( rewrite <- app_assoc; auto ).
-      assert (Hsecond : (length (e1 ++ [d]) <= S (f i'))%nat).
+      assert (Hsecond : (length (e1 ++ [d]) <= S (f' i'))%nat).
       { rewrite app_length. simpl. lia. }
       rewrite (nth_error_app2 _ _ H).
       rewrite (nth_error_app2 _ _ Hsecond).
