@@ -242,12 +242,11 @@ Proof.
       lia. }
 
     specialize (IHn ds (e1 ++ e2) ltac:(auto) Hleneq).
-    (* We need rcancel_mul for polynomials *)
+
     assert (Hpeq' : poly_prod ds ≅ poly_prod (e1 ++ e2)).
-    {
-      admit.
-    }
+    { now apply Pfac_cancel_l in Hpeq. }
     clear Hpeq.
+
     destruct (IHn ltac:(easy)) as [f' [Hperm Hpermeq] ].
 
     pose (f := fun i =>
@@ -325,4 +324,4 @@ Proof.
       simpl length.
       rewrite Nat.add_1_r.
       auto.
-Admitted.
+Qed.
