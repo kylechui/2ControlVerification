@@ -33,45 +33,6 @@ Fixpoint poly_prod (c : Factors) : Polynomial :=
   | h :: t => [h; -C1] *, poly_prod t
   end.
 
-Lemma Peval_nil : forall c, ([][[c]]) = C0.
-Proof.
-  intros.
-  reflexivity.
-Qed.
-
-(* Lemma to show that (x - c) evaluates to (a - c) at x = a *)
-Lemma x_minus_c_eval : forall (a c : C),
-  (x_minus_c c)[[a]] = a - c.
-Proof.
-  intros a c.
-  unfold x_minus_c, linear_poly.
-  simpl.
-  repeat rewrite cons_eval.
-  rewrite Peval_nil.
-  lca.
-Qed.
-
-(* Define a function to create a product of (x - c_i) terms *)
-Fixpoint prod_x_minus_c (cs : list C) : Polynomial :=
-  match cs with
-  | [] => [C1]  (* Empty product is 1 *)
-  | c :: cs' => (x_minus_c c) *, (prod_x_minus_c cs')
-  end.
-
-(* Define a function to create a product of (c_i - x) terms *)
-Fixpoint prod_c_minus_x (cs : list C) : Polynomial :=
-  match cs with
-  | [] => [C1]  (* Empty product is 1 *)
-  | c :: cs' => (c_minus_x c) *, (prod_c_minus_x cs')
-  end.
-
-(* Define a big product function for complex numbers *)
-Fixpoint big_prod (f : nat -> C) (n : nat) : C :=
-  match n with
-  | 0 => C1  (* Empty product is 1 *)
-  | S n' => (f n') * (big_prod f n')
-  end.
-
 Lemma complex_poly_degree : forall (q : Polynomial) (d : C),
     Peval ([d; -C1] *, q) <> Peval [C1].
 Proof.
