@@ -33,6 +33,7 @@ Fixpoint poly_prod (c : Factors) : Polynomial :=
   | h :: t => [h; -C1] *, poly_prod t
   end.
 
+(* Lemma 1.1 *)
 Lemma complex_poly_degree : forall (q : Polynomial) (d : C),
     Peval ([d; -C1] *, q) <> Peval [C1].
 Proof.
@@ -66,7 +67,7 @@ Proof.
   simpl in Hdeg. lia.
 Qed.
 
-(* Lemma 1.1 (Euclid's Lemma) *)
+(* Lemma 1.2 (Euclid's Lemma) *)
 Lemma euclid_lemma : forall {d e : C} {p r : Polynomial},
   [d; -C1] *, p ≅ r *, [e; -C1] ->
   d = e \/ exists (q : Polynomial), [d; -C1] *, q ≅ r.
@@ -106,6 +107,7 @@ Proof.
   apply Pmult_1_l.
 Qed.
 
+(* Lemma 1.3 *)
 Lemma poly_isolate_factor : forall (d : C) (facs : list C),
     facs <> [] ->
     (forall (p : Polynomial),
@@ -154,7 +156,6 @@ Proof.
   intros.
   destruct l; try inversion H.
   destruct l; try inversion H1.
-
   now exists t.
 Qed.
 
@@ -171,6 +172,7 @@ Proof.
   now rewrite (P.Pmult_comm [a; -C1] [f; -C1]).
 Qed.
 
+(* Lemma 1.4 *)
 Lemma Pfac_cancel_l : forall (d : C) (p1 p2 : Polynomial),
     [d; -C1] *, p1 ≅ [d; -C1] *, p2 -> p1 ≅ p2.
 Proof.
@@ -181,6 +183,7 @@ Proof.
   admit.
 Admitted.
 
+(* Lemma 1.5 *)
 Lemma roots_equal_implies_permutation :
   forall (n : nat),
   (n > 0)%nat ->
