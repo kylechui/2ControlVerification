@@ -172,16 +172,38 @@ Proof.
   now rewrite (P.Pmult_comm [a; -C1] [f; -C1]).
 Qed.
 
+Lemma Pmult_0_factor : forall (p1 p2 : Polynomial),
+  (p1 *, p2) ≅ [] -> p1 ≅ [] \/ p2 ≅ [].
+Proof.
+  intros p1 p2 H.
+  destruct (Peq_0_dec p1), (Peq_0_dec p2); try auto.
+  destruct (Pmult_neq_0 _ _ n n0); auto.
+Qed.
+
 (* Lemma 1.4 *)
 Lemma Pfac_cancel_l : forall (d : C) (p1 p2 : Polynomial),
     [d; -C1] *, p1 ≅ [d; -C1] *, p2 -> p1 ≅ p2.
 Proof.
   intros d p1 p2 Hnil.
-  apply functional_extensionality; intros x.
-  unfold Peq in Hnil.
-  simpl in Hnil.
-  admit.
-Admitted.
+  pose proof (H := Pplus_mor _ _ Hnil ([d; -C1] *, -, p2) _ ltac:(reflexivity)).
+  rewrite <- P.Pmult_plus_distr_l in H.
+  unfold Popp in H.
+  rewrite <- P.Pmult_assoc in H.
+  rewrite (P.Pmult_comm [d; -C1] [- C1]) in H.
+  rewrite P.Pmult_assoc in H.
+  rewrite Pplus_opp_r in H.
+  destruct (Pmult_0_factor _ _ H).
+  - apply degree_mor in H0. unfold degree in H0.
+    unfold compactify in H0.
+    simpl in H0.
+    destruct (Ceq_dec (-C1) 0%R) as [H01 | _]; try (inversion H01; lra).
+    simpl in H0. lia.
+  - pose proof (H' := Pplus_mor _ _ H0 p2  _ ltac:(reflexivity)).
+    rewrite P.Pplus_assoc in H'.
+    setoid_replace ([-C1] *, p2 +, p2) with
+      ([] : Polynomial) in H' by now rewrite Pplus_opp_l.
+    simpl in H'. now rewrite P.Pplus_0_r in H'.
+Qed.
 
 (* Lemma 1.5 *)
 Lemma roots_equal_implies_permutation :
