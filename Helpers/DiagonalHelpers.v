@@ -1,4 +1,5 @@
 Require Import QuantumLib.Eigenvectors.
+Require Import QuantumLib.Matrix.
 Require Import MatrixHelpers.
 Require Import GateHelpers.
 

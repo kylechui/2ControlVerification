@@ -35,3 +35,4 @@ nra.cache
 .DS_Store
 CoqMakefile
 CoqMakefile.conf
+tags

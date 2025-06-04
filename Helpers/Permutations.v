@@ -4,13 +4,364 @@ Require Import QuantumLib.Eigenvectors.
 Require Import Coq.Sets.Ensembles.
 Require Import Coq.Logic.Classical_Pred_Type.
 Require Import Coq.Logic.Classical_Prop.
+Require Import DiagonalHelpers.
+Require Import WFHelpers.
+Require Import UnitaryHelpers.
+Require Import Classical.
+Require Import MatrixHelpers.
 
-Lemma perm_eigenvalues : forall {n} (U D D' : Square n),
+Definition scaled_identity (n : nat) (c : C) : Square n :=
+  fun x y => if (x <? n) && (y <? n)
+             then (if (x =? y) then c else C0)
+             else C0.
+
+(* Define the characteristic polynomial using scaled_identity and Mminus *)
+Definition char_poly {n} (A : Square n) (x : C) : C :=
+  Determinant (Mminus A (scaled_identity n x)).
+
+(* Lemma to show that scaled_identity is well-formed *)
+Lemma WF_scaled_identity : forall {n} (c : C), WF_Matrix (scaled_identity n c).
+Proof.
+  intros n c.
+  unfold WF_Matrix, scaled_identity.
+  intros.
+  destruct (x =? y).
+  destruct H.
+  - (* Case x >= n *)
+    assert (Hlt: (x <? n) = false).
+    { apply Nat.ltb_ge. assumption. }
+    rewrite Hlt.
+    simpl.
+    reflexivity.
+  - (* Case y >= n *)
+    assert (Hlt: (y <? n) = false).
+    { apply Nat.ltb_ge. assumption. }
+    rewrite Hlt.
+    rewrite andb_false_r.
+    reflexivity.
+  - destruct H.
+    assert (Hlt: (x <? n) = false).
+    { apply Nat.ltb_ge. assumption. }
+    rewrite Hlt.
+    simpl.
+    reflexivity.
+    assert (Hlt: (y <? n) = false).
+    { apply Nat.ltb_ge. assumption. }
+    rewrite Hlt.
+    rewrite andb_false_r.
+    reflexivity.
+Qed.
+
+(* Lemma to show that scaled_identity is a complex scalar times the identity *)
+Lemma scaled_identity_eq_scalar_times_identity : forall {n} (x : C),
+  scaled_identity n x = x .* (I n).
+Proof.
+  intros n x.
+  unfold scaled_identity, I.
+  prep_matrix_equality.
+  simpl.
+  destruct ((x0 <? n) && (y <? n)) eqn:E1.
+  - (* Case where both indices are in bounds *)
+    destruct (x0 =? y) eqn:E2.
+    + (* Case where x0 = y *)
+      destruct ((x0 =? y) && (x0 <? n)) eqn:E3.
+      * (* Main case: x0 = y and both in bounds *)
+        unfold scale.
+        rewrite E3.
+        lca.
+      * (* Impossible case - we know x0 = y and x0 < n but E3 is false *)
+        apply andb_true_iff in E1. destruct E1 as [Hx0 Hy].
+        apply Nat.eqb_eq in E2. subst.
+        rewrite Hy in E3.
+        rewrite andb_true_r in E3.
+        rewrite Nat.eqb_refl in E3.
+        discriminate.
+    + (* Case where x0 <> y *)
+      destruct ((x0 =? y) && (x0 <? n)) eqn:E3.
+      * (* Impossible case - we know x0 ≠ y but E3 is true *)
+        apply andb_true_iff in E3.
+        destruct E3 as [Hx0 Hy].
+        rewrite E2 in Hx0.
+        discriminate.
+      * (* Case where indices are different *)
+        unfold scale.
+        rewrite E3.
+        lca.
+  - (* Case where at least one index is out of bounds *)
+    destruct ((x0 =? y) && (x0 <? n)) eqn:E2.
+    + (* Impossible case - we know one index is out but E3 is true *)
+      apply andb_true_iff in E2. destruct E2 as [Hx0 Hy].
+      apply andb_false_iff in E1. destruct E1 as [H1 | H2].
+      * rewrite Hy in H1.
+        discriminate.
+      * apply Nat.eqb_eq in Hx0. subst y.
+        rewrite Hy in H2.
+        discriminate.
+    + unfold scale.
+      rewrite E2.
+      lca.
+Qed.
+
+(* Conjugating a matrix with a unitary preserves the characteristic polynomial *)
+Lemma char_poly_similarity : forall {n} (A B U : Square n) x,
+  WF_Unitary U -> U × A × U† = B -> char_poly A x = char_poly B x.
+Proof.
+  intros n A B U x WF_U H_conj.
+  unfold char_poly.
+  assert (H_eq : Mminus B (scaled_identity n x) = 
+                 U × (Mminus A (scaled_identity n x)) × U†).
+{
+  unfold Mminus.
+  (* First show that U × (scaled_identity n x) = (scaled_identity n x) × U *)
+  assert (H_comm : U × (scaled_identity n x) = (scaled_identity n x) × U).
+  {
+    rewrite scaled_identity_eq_scalar_times_identity.
+    rewrite Mscale_mult_dist_r.
+    rewrite Mscale_mult_dist_l.
+    rewrite Mmult_1_r.
+    rewrite Mmult_1_l.
+    reflexivity.
+    solve_WF_matrix.
+    solve_WF_matrix.
+  }
+  (* Now use distributive properties *)
+  rewrite <- H_conj.
+  rewrite Mmult_plus_distr_l.
+  rewrite Mmult_plus_distr_r.
+  assert (H_comm_mopp: U × Mopp(scaled_identity n x) = Mopp(scaled_identity n x) × U).
+  {
+    unfold Mopp.
+    rewrite Mscale_mult_dist_r.
+    rewrite Mscale_mult_dist_l.
+    rewrite H_comm.
+    reflexivity.
+  }
+  rewrite H_comm_mopp.
+  rewrite Mmult_assoc.
+  rewrite Mmult_assoc.
+  rewrite other_unitary_decomp.
+  Msimpl.
+  reflexivity.
+  - unfold Mopp at 1.
+    apply WF_scale.
+    apply WF_scaled_identity.
+  - solve_WF_matrix.
+}
+rewrite H_eq.
+rewrite <- Determinant_multiplicative.
+rewrite <- Determinant_multiplicative.
+rewrite <- Cmult_assoc.
+rewrite <- Cmult_comm.
+rewrite <- Cmult_assoc.
+assert (H_unit1: U × U† = I n) by (apply other_unitary_decomp; auto).
+assert (H_det: Determinant (U × U†) = Determinant (I n)) by (rewrite H_unit1; reflexivity).
+rewrite Determinant_multiplicative.
+assert (H_unit2: U† × U = I n).
+{
+  destruct WF_U as [WF_U unit_U].
+  apply unit_U.
+}
+rewrite H_unit2.
+rewrite Det_I.
+rewrite Cmult_1_r.
+reflexivity.
+Qed.
+
+Fixpoint prod_f (f : nat -> C) (n : nat) : C :=
+  match n with
+  | 0 => C1 (* The product over an empty range is 1 *)
+  | S n' => (f n') * (prod_f f n') (* Multiply the current value with the rest *)
+  end.
+
+(* Helper lemma: For diagonal matrices, off-diagonal entries are 0 *)
+(* Lemma diagonal_off_diag_zero : forall {n} (D : Square n),
+  WF_Diagonal D -> forall i j, i <> j -> D i j = C0.
+Proof.
+  intros n D [WF_D D_diag] i j Hij.
+  apply D_diag.
+  assumption.
+Qed.
+
+(* Helper lemma: For diagonal matrices, diagonal entries are well-defined *)
+Lemma diagonal_diag_well_defined : forall {n} (D : Square n),
+  WF_Diagonal D -> forall i, (i < n)%nat -> exists c, D i i = c.
+Proof.
+  intros n D [WF_D D_diag] i Hi.
+  destruct (classic (D i i = C0)).
+  - exists C0. assumption.
+  - exists (D i i). reflexivity.
+Qed. *)
+
+(* Helper lemma: Product of diagonal entries equals determinant *)
+Lemma diagonal_det_prod : forall (D : Square 4),
+  WF_Diagonal D -> Determinant D = prod_f (fun i => D i i) 4.
+Proof.
+  intros D WF_D.
+  unfold prod_f.
+  Csimpl.
+  assert (H: exists c1 c2 c3 c4, D = diag4 c1 c2 c3 c4).
+  {
+    exists (D 0%nat 0%nat), (D 1%nat 1%nat), (D 2%nat 2%nat), (D 3%nat 3%nat).
+    destruct WF_D as [WF_D D_diag].
+    prep_matrix_equality.
+    destruct x, y; try reflexivity.
+    try (apply D_diag; lia).
+    Msimpl.
+    assert (H_neq: (S x) <> 0%nat).
+    { apply Nat.neq_succ_0. }
+    rewrite D_diag by auto.
+    unfold diag4.
+    destruct x.
+    reflexivity.
+    destruct x.
+    reflexivity.
+    destruct x.
+    reflexivity.
+    destruct x.
+    reflexivity.
+    reflexivity.
+    destruct x, y.
+    - simpl. unfold diag4. reflexivity.
+    - rewrite D_diag by auto.
+      unfold diag4.
+      reflexivity.
+    - rewrite D_diag by auto.
+      unfold diag4.
+      destruct x.
+      reflexivity.
+      destruct x.
+      reflexivity.
+      reflexivity.
+    - destruct x, y.
+      simpl. unfold diag4. reflexivity.
+      rewrite D_diag by lia.
+      unfold diag4.
+      reflexivity.
+      rewrite D_diag by lia.
+      unfold diag4.
+      destruct x.
+      reflexivity.
+      reflexivity.
+      destruct x, y; simpl.
+      reflexivity.
+      simpl.
+      unfold diag4.
+      rewrite D_diag by lia.
+      reflexivity.
+      unfold diag4.
+      rewrite D_diag by lia.
+      reflexivity.
+      simpl.
+      assert (H_bound: ((S (S (S (S x)))) >= 4)%nat) by lia.
+      rewrite (row_out_of_bounds D _).
+      unfold diag4.
+      reflexivity.
+      assumption.
+      assumption.
+  }
+  destruct H as [c1 [c2 [c3 [c4 D_eq]]]].
+  rewrite D_eq.
+  rewrite Det_diag4.
+  unfold diag4.
+  repeat rewrite Cmult_assoc.
+  lca.
+Qed.
+
+Lemma char_poly_diagonal : forall (D : Square 4),
+  WF_Diagonal D -> forall x, char_poly D x = prod_f (fun i => D i i - x) 4.
+Proof.
+intros D WF_D x.
+unfold char_poly.
+assert (H_diag: WF_Diagonal (Mminus D (scaled_identity 4 x))).
+{
+  rewrite scaled_identity_eq_scalar_times_identity.
+  unfold Mminus.
+  unfold Mopp.
+  unfold WF_Diagonal.
+  split. solve_WF_matrix.
+  destruct WF_D as [WF_D D_diag].
+  intros i j H_neq.
+  rewrite Mplus_access.
+  rewrite D_diag.
+  rewrite Cplus_0_l.
+  rewrite <- Mscale_access.
+  rewrite <- Mscale_access.
+  unfold I.
+  destruct (i =? j) eqn:Eij.
+  - apply Nat.eqb_eq in Eij.
+    contradiction.
+  - simpl.
+    lca.
+  - assumption.
+}
+rewrite (diagonal_det_prod (Mminus D (scaled_identity 4 x))); auto.
+rewrite scaled_identity_eq_scalar_times_identity.
+unfold Mminus.
+unfold Mopp.
+lca.
+Qed.
+
+Lemma poly_roots_perm : forall (f g : nat -> C),
+  (forall x, prod_f (fun i => f i - x) 4 = prod_f (fun i => g i - x) 4) ->
+  exists (σ : nat -> nat), permutation 4 σ /\ forall (i : nat), f i = g (σ i).
+Proof.
+  intros f g H_prod.
+  assert (H_exists : forall i, (i < 4)%nat -> exists j, (j < 4)%nat /\ f i = g j).
+  {
+    admit.
+  }
+  (* For each i < 4, get the j that H_exists guarantees *)
+  destruct (H_exists 0%nat) as [j0 [H_j0 H_eq0]]. { auto. }
+  destruct (H_exists 1%nat) as [j1 [H_j1 H_eq1]]. { auto. }
+  destruct (H_exists 2%nat) as [j2 [H_j2 H_eq2]]. { auto. }
+  destruct (H_exists 3%nat) as [j3 [H_j3 H_eq3]]. { auto. }
+
+  (* Define our permutation σ *)
+  exists (fun i => match i with
+                  | 0 => j0
+                  | 1 => j1
+                  | 2 => j2
+                  | 3 => j3
+                  | _ => i
+                  end).
+  split.
+Admitted.
+
+Lemma perm_eigenvalues : forall (U D E : Square 4),
+  WF_Unitary U -> WF_Diagonal D -> WF_Diagonal E -> U × D × U† = E ->
+  exists (σ : nat -> nat),
+    permutation 4 σ /\ forall (i : nat), D i i = E (σ i) (σ i).
+Proof.
+  intros U D E WF_U WF_D WF_E H_conj.
+  
+  assert (Hchar : forall x, char_poly D x = char_poly E x).
+  {
+    intros x.
+    apply (char_poly_similarity D E U x); assumption.
+  }
+  
+  assert (Hprod : forall x : C, prod_f (fun i => D i i - x) 4 = prod_f (fun i => E i i - x) 4).
+  {
+    intros x.
+    rewrite <- (char_poly_diagonal D WF_D x).
+    rewrite <- (char_poly_diagonal E WF_E x).
+    apply Hchar.
+  }
+
+  apply poly_roots_perm in Hprod.
+  destruct Hprod as [σ [Hperm Heq]].
+  exists σ.
+  split. assumption.
+  intros i.
+  apply Heq.
+Qed.
+
+(* Lemma perm_eigenvalues : forall {n} (U D D' : Square n),
   WF_Unitary U -> WF_Diagonal D -> WF_Diagonal D' -> U × D × U† = D' ->
   exists (σ : nat -> nat),
     permutation n σ /\ forall (i : nat), D i i = D' (σ i) (σ i).
 Proof.
-Admitted.
+Admitted. *)
 
 (* To equate the eigenvalues of two matrices, we often need equality of matrices
    up to some permutation. This lemma allows us to take the existence of a
